@@ -1,0 +1,79 @@
+SIGN UP FLOW (FIXED):
+═════════════════════
+
+User fills form (name + email + password)
+         │
+         ▼
+signUpAction() ──→ supabase.auth.signUp({ email, password })
+         │              │
+         │              ├─→ Creates auth.users entry (unconfirmed)
+         │              └─→ Sends confirmation email
+         │
+         ├─→ serviceClient.from("profiles").upsert({
+         │       id, email, role, first_name, last_name
+         │   })
+         │
+         └─→ Checks admin_invites → if found, role = "admin"
+                                     else role = "member"
+
+User clicks confirmation link
+         │
+         ▼
+/auth/callback ──→ exchangeCodeForSession()
+         │
+         ├─→ Checks profiles.role
+         ├─→ Checks admin_invites (backup)
+         ├─→ Uses user_metadata for profile data
+         │
+         └─→ Redirects: admin → /admin, member → /users
+
+
+ADD ADMIN FLOW (FIXED):
+═══════════════════════
+
+Admin opens Settings → clicks "Add Admin"
+         │
+         ▼
+Member Picker Dialog opens
+         │  (fetches from members table)
+         │  (shows avatar, name, email, ID)
+         │  (grays out existing admins + no-email members)
+         │
+         ▼
+Admin selects a member → Preview card shows
+         │
+         ▼
+Clicks "Grant Admin Access"
+         │
+         ▼
+addAdminFromMember(memberId)
+         │
+         ├─ Case A: Profile exists (already signed up)
+         │     └─→ UPDATE profiles SET role = 'admin'
+         │         + UPDATE first_name, last_name, avatar_url
+         │         → INSTANT admin access on next login
+         │
+         └─ Case B: No profile (hasn't signed up yet)
+               └─→ auth.admin.createUser({ email, email_confirm: true })
+                   → INSERT profiles { role: 'admin', ... }
+                   → INSTANT admin access when they sign in via magic link
+
+
+
+
+PERMISSION MODEL (UNCHANGED):
+═════════════════════════════
+
+┌──────────────────────┬───────────────────────────┐
+│  Action              │  Who                      │
+├──────────────────────┼───────────────────────────┤
+│  Add admin           │  Any admin (if < 4 total) │
+│  Remove admin        │  Primary admin ONLY       │
+│  Edit own profile    │  Any admin (own only)     │
+│  Change own email    │  Any admin (own only)     │
+│  Link member record  │  Any admin (email match)  │
+│  View all admins     │  Any admin                │
+│  Impersonate         │  Any admin (logged)       │
+│  View audit logs     │  Any admin                │
+│  Remove self         │  NOT allowed (primary)    │
+└──────────────────────┴───────────────────────────┘

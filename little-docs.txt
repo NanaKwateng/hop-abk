@@ -1,0 +1,69 @@
+What is Debounced Search?
+
+Imagine you're typing "John" in a search box.
+Without debounce: Search fires 4 times → "J", "Jo", "Joh", "John"
+With debounce:    Search fires 1 time  → waits 300ms after you stop typing → "John"
+
+This prevents unnecessary work. We "debounce" (delay) the search until the user
+pauses typing. It's like waiting for someone to finish their sentence before responding.
+
+
+What are URL Query Params for Persistence?
+When you filter/search/sort, the URL updates like:
+/admin/users?search=john&gender=Male&sort=firstName&order=asc&page=2
+
+Why this matters:
+1. Refresh the page → your filters are still there (they're saved IN the URL)
+2. Share the URL → someone else sees the exact same filtered view
+3. Browser back/forward buttons work with your filters
+4. Bookmarkable → save a specific filtered view
+
+Think of it like saving your place in a book using the page number.
+The URL IS your bookmark.
+
+
+What is Zustand?
+
+Zustand is a simple state manager. Think of it as a "global notebook" 
+that any component in your app can read from or write to.
+
+Without Zustand: Component A has data, Component B needs it → complex prop drilling
+With Zustand:    Component A writes to notebook, Component B reads from notebook
+
+
+What is TanStack Table?
+
+TanStack Table gives your table superpowers:
+- Column sorting (click headers)
+- Row selection (checkboxes)
+- Pagination (page 1, 2, 3...)
+- Column visibility (show/hide columns)
+- Filtering (per-column or global)
+
+You define columns, give it data, and it handles the rest.
+
+
+What is TanStack Query?
+
+TanStack Query manages "server state" — data that lives on your backend.
+Right now we use mock data, but later when you add an API:
+
+- It caches responses (no duplicate requests)
+- It auto-refetches when data might be stale
+- It handles loading/error states automatically
+- It deduplicates requests (10 components asking for same data = 1 request)
+
+We set it up now so switching from mock data to real API is just changing one function.
+
+
+What is Zod + React Hook Form?
+
+Zod: Defines RULES for your data
+  → "email must be a valid email", "firstName must be at least 2 characters"
+
+React Hook Form: Manages FORM STATE efficiently
+  → tracks what's typed, what's been touched, what has errors
+  → doesn't re-render the whole form when one field changes
+
+Together: You define rules with Zod, React Hook Form enforces them.
+
