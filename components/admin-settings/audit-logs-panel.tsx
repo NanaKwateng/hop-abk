@@ -100,7 +100,7 @@ export function AuditLogsPanel({ logs }: AuditLogsPanelProps) {
                                     return (
                                         <>
                                             <TableRow
-                                                //key={log.id}
+                                                key={log.id}
                                                 className={cn(
                                                     hasMetadata && "cursor-pointer hover:bg-muted/50"
                                                 )}
