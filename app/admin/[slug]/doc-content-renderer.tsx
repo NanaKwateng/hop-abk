@@ -10,8 +10,9 @@ import MainPage from "@/components/dashboard/introduction/blocks/main-page";
 import FinancePageServer from "@/components/dashboard/finance/FinancePage";
 import WorkflowsPage from "@/app/workflow/page";
 import AccountSettingPage from "../accounts/settings/page";
-import SettingsPage from "../settings/page";
+import SettingsPage from "../admin-settings/page";
 import CustomizePage from "../customize/page";
+import AdminFlowPage from "../admin-flow/page";
 
 
 interface DocContentRendererProps {
@@ -26,7 +27,8 @@ export function DocContentRenderer({ slug, content }: DocContentRendererProps) {
         case "users": return <UsersContent />;
         case "finance": return <FinancialContent />;
         case "all-workflows": return <AllWorkFlows />;
-        case "Manage accouts": return <ManageAccounts />;
+        case "Manage accounts": return <ManageAccounts />;
+        case "admin flow": return <ManageAdmin />;
         case "Customize Settings": return <Customization />;
         case "register-member": return <RegisterMemberContent />;
 
@@ -84,6 +86,12 @@ function ManageAccounts() {
     return (
         <div className="min-h-screen w-full">
             <AccountSettingPage />
+        </div>
+    );
+}
+function ManageAdmin() {
+    return (
+        <div className="min-h-screen w-full">
             <SettingsPage />
         </div>
     );
@@ -91,10 +99,18 @@ function ManageAccounts() {
 
 
 
+
 function Customization() {
     return (
         <div className="min-h-screen w-full">
             <CustomizePage />
+        </div>
+    );
+}
+function Flow() {
+    return (
+        <div className="min-h-screen w-full">
+            <AdminFlowPage />
         </div>
     );
 }

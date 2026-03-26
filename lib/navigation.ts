@@ -1,16 +1,16 @@
 // lib/navigation.ts
 import { IconType } from "react-icons";
 import {
-    FiHome, FiUsers, FiUserPlus, FiPieChart, FiMoon, FiSettings
+    FiHome, FiUsers, FiUserPlus, FiPieChart, FiSettings
 } from "react-icons/fi";
-import { FaPalette } from "react-icons/fa6";
+import { FaPalette, FaUserShield } from "react-icons/fa6";
 import {
-    BiPalette, BiBadge
+    BiPalette
 } from "react-icons/bi";
 import {
     TbVector, TbActivity, TbAlertCircle, TbDotsCircleHorizontal
 } from "react-icons/tb";
-import { SiVite, SiAstro } from "react-icons/si";
+
 import { MdOutlineSecurity } from "react-icons/md";
 
 export interface NavItem {
@@ -93,7 +93,7 @@ export const navigation: NavCategory[] = [
             },
             {
                 title: "Manage settings",
-                href: "/admin/settings",
+                href: "/admin/admin-settings",
                 icon: FiSettings,
                 iconBg: "bg-gray-200 dark:bg-gray-700",
                 iconColor: "text-gray-700 dark:text-gray-300"
@@ -104,6 +104,13 @@ export const navigation: NavCategory[] = [
                 icon: BiPalette,
                 iconBg: "bg-red-100 dark:bg-red-500/20",
                 iconColor: "text-red-600 dark:text-red-400"
+            },
+            {
+                title: "Admin Flow ",
+                href: "/admin/admin-flow",
+                icon: FaUserShield,
+                iconBg: "bg-blue-400 dark:bg-blue-500/20",
+                iconColor: "text-white dark:text-white"
             },
         ],
     },

@@ -98,7 +98,7 @@ export function AuditLogsPanel({ logs }: AuditLogsPanelProps) {
                                     const hasMetadata = log.metadata && Object.keys(log.metadata).length > 0;
 
                                     return (
-                                        <>
+                                        <div key={log.id}>
                                             <TableRow
                                                 key={log.id}
                                                 className={cn(
@@ -148,7 +148,7 @@ export function AuditLogsPanel({ logs }: AuditLogsPanelProps) {
                                                     </TableCell>
                                                 </TableRow>
                                             )}
-                                        </>
+                                        </div>
                                     );
                                 })
                             )}
