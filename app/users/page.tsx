@@ -33,9 +33,7 @@ export default async function UsersPage() {
         <main className="relative flex w-full flex-col items-center bg-black font-sans selection:bg-white/30">
             <FilmGrain />
             <HeroSection />
-            {/* <SplitFeatureSection /> */}
-            {/* <LandingPage /> */}
-            {/* <BentoCard /> */}
+
         </main>
     )
 }

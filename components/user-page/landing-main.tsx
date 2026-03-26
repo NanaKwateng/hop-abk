@@ -18,6 +18,7 @@ import { FaInstagram, FaTiktok, FaYoutube } from "react-icons/fa6";
 import { FaFacebook } from "react-icons/fa";
 import Link from "next/link";
 import { Badge } from "../ui/badge";
+import { HoverBorderGradient } from "../ui/hover-border-gradient";
 
 // --- Helper Circle Component for the Beams ---
 const Circle = forwardRef<HTMLDivElement, { children: React.ReactNode; className?: string }>(
@@ -56,11 +57,27 @@ export default function LandingPage() {
                 className="bg-[#f7f7f6] w-full relative mx-auto py-20 px-4"
             >
                 {/* Top Branding */}
-                <header className="flex justify-center items-center gap-2 mb-10 relative z-10">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-black">
-                        <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5L12 2Z" />
-                    </svg>
-                    <span className="font-bold tracking-tight text-sm uppercase">House of Power Min. Int'l</span>
+                <header className="flex flex-col md:flex-row justify-between items-start gap-3 mb-10 relative z-10">
+                    <div className="block">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-black">
+                            <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5L12 2Z" />
+                        </svg>
+                        <span className="font-bold tracking-tight text-sm uppercase">House of Power Min. Int'l</span>
+                    </div>
+
+                    <p className="text-gray-700 max-w-sm">
+                        Welcome to House of Power. We are honored to have you join us today.. Our branches are located worldwide and always open for you everytime. Our social media platforms are also active, scroll for more.
+                    </p>
+
+                    <HoverBorderGradient containerClassName="rounded-full"
+                        as="button"
+                        className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2">
+                        <Link href={"/auth/login"}>
+                            Sign in
+                        </Link>
+                    </HoverBorderGradient>
+
+
                 </header>
 
                 {/* Hero Section */}
