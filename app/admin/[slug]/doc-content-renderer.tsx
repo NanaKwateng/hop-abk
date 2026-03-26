@@ -27,7 +27,6 @@ export function DocContentRenderer({ slug, content }: DocContentRendererProps) {
         case "finance": return <FinancialContent />;
         case "all-workflows": return <AllWorkFlows />;
         case "Manage accouts": return <ManageAccounts />;
-        case "Manage settings": return <ManageSettings />;
         case "Customize Settings": return <Customization />;
         case "register-member": return <RegisterMemberContent />;
 
@@ -85,17 +84,12 @@ function ManageAccounts() {
     return (
         <div className="min-h-screen w-full">
             <AccountSettingPage />
-        </div>
-    );
-}
-
-function ManageSettings() {
-    return (
-        <div className="min-h-screen w-full">
             <SettingsPage />
         </div>
     );
 }
+
+
 
 function Customization() {
     return (
