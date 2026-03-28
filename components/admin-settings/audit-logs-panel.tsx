@@ -1,7 +1,7 @@
 // components/admin-settings/audit-logs-panel.tsx
 "use client";
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react"; // FIX: added React import for Fragment
 import {
     Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "@/components/ui/card";
@@ -97,10 +97,21 @@ export function AuditLogsPanel({ logs }: AuditLogsPanelProps) {
                                     const isExpanded = expandedId === log.id;
                                     const hasMetadata = log.metadata && Object.keys(log.metadata).length > 0;
 
+                                    {/* FIX: <div> → <React.Fragment>
+                                      *
+                                      * HTML spec: <tbody> can only contain <tr> elements.
+                                      * A <div> inside <tbody> is invalid and causes the
+                                      * React hydration error you're seeing.
+                                      *
+                                      * React.Fragment groups multiple elements without
+                                      * adding any DOM node — so <tbody> sees only <tr>s.
+                                      *
+                                      * We use <React.Fragment key={...}> instead of the
+                                      * shorthand <> because we need the key prop.
+                                      */}
                                     return (
-                                        <div key={log.id}>
+                                        <React.Fragment key={log.id}>
                                             <TableRow
-                                                key={log.id}
                                                 className={cn(
                                                     hasMetadata && "cursor-pointer hover:bg-muted/50"
                                                 )}
@@ -140,7 +151,7 @@ export function AuditLogsPanel({ logs }: AuditLogsPanelProps) {
                                                 </TableCell>
                                             </TableRow>
                                             {isExpanded && hasMetadata && (
-                                                <TableRow key={`${log.id}-meta`}>
+                                                <TableRow>
                                                     <TableCell colSpan={5} className="bg-muted/30 p-4">
                                                         <pre className="text-xs font-mono whitespace-pre-wrap break-all">
                                                             {JSON.stringify(log.metadata, null, 2)}
@@ -148,7 +159,7 @@ export function AuditLogsPanel({ logs }: AuditLogsPanelProps) {
                                                     </TableCell>
                                                 </TableRow>
                                             )}
-                                        </div>
+                                        </React.Fragment>
                                     );
                                 })
                             )}
