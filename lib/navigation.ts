@@ -94,9 +94,9 @@ export const navigation: NavCategory[] = [
             {
                 title: "Manage settings",
                 href: "/admin/admin-settings",
-                icon: FiSettings,
-                iconBg: "bg-gray-200 dark:bg-gray-700",
-                iconColor: "text-gray-700 dark:text-gray-300"
+                icon: FaUserShield,
+                iconBg: "bg-blue-400 dark:bg-blue-500/20",
+                iconColor: "text-white dark:text-white"
             },
             {
                 title: "Customize Settings",
@@ -104,13 +104,6 @@ export const navigation: NavCategory[] = [
                 icon: BiPalette,
                 iconBg: "bg-red-100 dark:bg-red-500/20",
                 iconColor: "text-red-600 dark:text-red-400"
-            },
-            {
-                title: "Admin Flow ",
-                href: "/admin/admin-flow",
-                icon: FaUserShield,
-                iconBg: "bg-blue-400 dark:bg-blue-500/20",
-                iconColor: "text-white dark:text-white"
             },
         ],
     },
