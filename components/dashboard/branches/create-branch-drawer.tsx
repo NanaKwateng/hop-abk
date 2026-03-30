@@ -259,8 +259,8 @@ export function CreateBranchDrawer({ open, onOpenChange }: CreateBranchDrawerPro
         <>
             <Sheet open={open} onOpenChange={handleClose}>
                 <SheetContent
-                    side="top"
-                    className="h-[95vh] sm:h-[90vh] p-0 flex flex-col gap-0 rounded-b-2xl"
+                    side="left"
+                    className="h-[95vh] sm:h-[90vh] p-0 flex flex-col gap-0 rounded-b-2xl w-full max-w-md"
                 >
                     {/* Header + Stepper */}
                     <div className="shrink-0 px-6 pt-6 pb-4 border-b bg-muted/30 space-y-4">
