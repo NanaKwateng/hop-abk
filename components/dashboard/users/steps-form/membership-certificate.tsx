@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Star } from "lucide-react";
+import { Star, BadgeCheck } from "lucide-react";
 import { format } from "date-fns";
 
 // ─────────────────────────────────────────────
@@ -243,22 +243,7 @@ const MembershipCertificate = React.forwardRef<
 
                         <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
                             {data.avatarUrl && (
-                                /* Plain <img> — html2canvas handles data: URLs natively */
-                                <img
-                                    src={data.avatarUrl}
-                                    alt={fullName}
-                                    width={80}
-                                    height={80}
-                                    style={{
-                                        width: "80px",
-                                        height: "80px",
-                                        borderRadius: "50%",
-                                        objectFit: "cover",
-                                        border: `4px solid ${C.gold}`,
-                                        flexShrink: 0,
-                                        display: "block",
-                                    }}
-                                />
+                                <AvatarBadge avatarUrl={data.avatarUrl} />
                             )}
                             <h2
                                 style={{
@@ -574,3 +559,147 @@ export const MembershipBadge = ({ position = "MEMBER" }: { position?: string }) 
         </div>
     </div>
 );
+
+export const AvatarBadge = ({ avatarUrl }: { avatarUrl: string }) => {
+    return (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, gap: "4px" }}>
+            {/* Badge Graphic Container */}
+            <div style={{ position: "relative", width: "80px", height: "100px" }}>
+
+                {/* Left Ribbon Tail */}
+                <div style={{
+                    position: "absolute",
+                    top: "45px",
+                    left: "12px",
+                    width: "20px",
+                    display: "flex",
+                    flexDirection: "column",
+                    transform: "rotate(25deg)",
+                    transformOrigin: "top center",
+                    zIndex: 0,
+                }}>
+                    <div style={{ width: "20px", height: "40px", backgroundColor: "#0ea5e9" }} />
+                    {/* The triangle cutout (uses background cream color to act as a mask) */}
+                    <div style={{
+                        width: 0, height: 0,
+                        borderLeft: "10px solid #0ea5e9",
+                        borderRight: "10px solid #0ea5e9",
+                        borderBottom: `10px solid ${C.cream}`
+                    }} />
+                    {/* Golden accent lines matching the image */}
+                    <div style={{ position: "absolute", top: 0, left: "2px", width: "1.5px", height: "36px", backgroundColor: "#FBE18D" }} />
+                    <div style={{ position: "absolute", top: 0, right: "2px", width: "1.5px", height: "36px", backgroundColor: "#FBE18D" }} />
+                </div>
+
+                {/* Right Ribbon Tail */}
+                <div style={{
+                    position: "absolute",
+                    top: "45px",
+                    right: "12px",
+                    width: "20px",
+                    display: "flex",
+                    flexDirection: "column",
+                    transform: "rotate(-25deg)",
+                    transformOrigin: "top center",
+                    zIndex: 0,
+                }}>
+                    <div style={{ width: "20px", height: "40px", backgroundColor: "#0ea5e9" }} />
+                    {/* The triangle cutout */}
+                    <div style={{
+                        width: 0, height: 0,
+                        borderLeft: "10px solid #0ea5e9",
+                        borderRight: "10px solid #0ea5e9",
+                        borderBottom: `10px solid ${C.cream}`
+                    }} />
+                    {/* Golden accent lines matching the image */}
+                    <div style={{ position: "absolute", top: 0, left: "2px", width: "1.5px", height: "36px", backgroundColor: "#FBE18D" }} />
+                    <div style={{ position: "absolute", top: 0, right: "2px", width: "1.5px", height: "36px", backgroundColor: "#FBE18D" }} />
+                </div>
+
+                {/* Main Circular Body */}
+                <div style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "80px",
+                    height: "80px",
+                    zIndex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}>
+                    {/* Scalloped Outer Edge (built with rotated squares for html2canvas safety) */}
+                    <div style={{ position: "absolute", inset: 0, zIndex: 1 }}>
+                        {[0, 15, 30, 45, 60, 75].map((deg) => (
+                            <div
+                                key={deg}
+                                style={{
+                                    position: "absolute",
+                                    top: "2px", left: "2px", right: "2px", bottom: "2px",
+                                    backgroundColor: "#0ea5e9", // Sky Blue outer ring
+                                    borderRadius: "4px",
+                                    transform: `rotate(${deg}deg)`,
+                                    border: "1px solid rgba(0,0,0,0.15)"
+                                }}
+                            />
+                        ))}
+                    </div>
+
+                    {/* Thick Golden Linen Ring */}
+                    <div style={{
+                        position: "relative",
+                        zIndex: 2,
+                        width: "60px",
+                        height: "60px",
+                        borderRadius: "50%",
+                        background: "linear-gradient(135deg, #FBE18D 0%, #D4AF37 40%, #FFF3B0 60%, #B8860B 100%)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: "0 2px 6px rgba(0,0,0,0.2)"
+                    }}>
+                        {/* Inner White Container locking the Avatar */}
+                        <div style={{
+                            width: "48px",
+                            height: "48px",
+                            borderRadius: "50%",
+                            backgroundColor: C.white,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            overflow: "hidden",
+                            boxShadow: "inset 0 2px 4px rgba(0,0,0,0.4)"
+                        }}>
+                            <img
+                                src={avatarUrl}
+                                alt="Member Avatar"
+                                style={{
+                                    width: "48px",
+                                    height: "48px",
+                                    objectFit: "cover",
+                                    display: "block",
+                                    backgroundColor: "#f1f5f9"
+                                }}
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Verification Text & Icon */}
+            <div style={{ display: "flex", alignItems: "center", gap: "4px", zIndex: 2 }}>
+                <BadgeCheck size={12} color="#0ea5e9" strokeWidth={3} />
+                <span style={{
+                    fontSize: "8px",
+                    fontWeight: 800,
+                    color: "#0284c7",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    fontFamily: "'Arial', sans-serif"
+                }}>
+                    Member Verified
+                </span>
+            </div>
+        </div>
+    );
+};

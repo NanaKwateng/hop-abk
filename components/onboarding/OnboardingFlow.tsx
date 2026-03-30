@@ -1,22 +1,21 @@
-// src/components/onboarding/OnboardingFlow.tsx
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Step1Welcome from "./StepWelcome";
-import Step2Learn from "./StepEducation";
+import Step2Features from "./StepEducation";
 import Step3Terms from "./Step3Consent";
 import Step4Verify from "./Step4Launch";
 import Step5Celebrate from "./Step5End";
+import FloatingVisuals from "./FloatingVisuals";
 import { completeOnboarding } from "@/actions/onboarding";
 
-const steps = [Step1Welcome, Step2Learn, Step3Terms, Step4Verify, Step5Celebrate];
+const steps = [Step1Welcome, Step2Features, Step3Terms, Step4Verify, Step5Celebrate];
 
 export default function OnboardingFlow() {
-    const router = useRouter();
     const [currentStep, setCurrentStep] = useState(0);
     const [isPending, setIsPending] = useState(false);
+    const [canContinue, setCanContinue] = useState(true); // Let steps control the Next button
 
     const handleNext = async () => {
         if (currentStep < steps.length - 1) {
@@ -24,7 +23,7 @@ export default function OnboardingFlow() {
             return;
         }
 
-        // Final Step - Complete Onboarding
+        // Final Step
         setIsPending(true);
         try {
             const redirectPath = await completeOnboarding();
@@ -41,192 +40,77 @@ export default function OnboardingFlow() {
     };
 
     const handleBack = () => {
-        if (currentStep > 0) {
-            setCurrentStep((prev) => prev - 1);
-        }
+        if (currentStep > 0) setCurrentStep((prev) => prev - 1);
     };
 
     const CurrentComponent = steps[currentStep];
-    const progressPercent = ((currentStep + 1) / steps.length) * 100;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-black flex flex-col overflow-hidden relative">
-            {/* Animated background gradient orbs */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <motion.div
-                    className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl"
-                    animate={{
-                        x: [0, 50, -30, 0],
-                        y: [0, -50, 30, 0],
-                    }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-                />
-                <motion.div
-                    className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl"
-                    animate={{
-                        x: [0, -50, 30, 0],
-                        y: [0, 50, -30, 0],
-                    }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                />
-            </div>
-
-            {/* Top Header with Progress */}
-            <header className="relative z-20 px-6 lg:px-12 py-8 flex items-center justify-between">
-                <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-2"
-                >
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">H</span>
+        <div className="min-h-screen bg-[#0d0d0d] flex font-sans text-gray-200 selection:bg-pink-500/30">
+            {/* LEFT PANE - Content Area */}
+            <div className="flex-1 flex flex-col relative z-10 w-full lg:w-3/5 xl:w-2/3">
+                {/* Header (Logo / Exit) */}
+                <header className="px-8 py-6 flex items-center gap-3 border-b border-white/5">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-pink-500 to-sky-400 flex items-center justify-center shadow-lg shadow-pink-500/20">
+                        <span className="text-white font-bold text-sm">H</span>
                     </div>
-                    <span className="text-white font-bold text-xl tracking-tight">hop</span>
-                </motion.div>
+                    <span className="font-semibold text-white tracking-wide">hop</span>
+                </header>
 
-                {/* Step indicator text */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="hidden md:flex items-center gap-3"
-                >
-                    <span className="text-sm text-gray-400">
-                        Step <span className="font-bold text-white">{currentStep + 1}</span> of{" "}
-                        <span className="font-bold text-white">{steps.length}</span>
-                    </span>
-                    <div className="w-48 h-1 bg-gray-800 rounded-full overflow-hidden">
-                        <motion.div
-                            className="h-full bg-gradient-to-r from-blue-500 to-purple-600"
-                            initial={{ width: 0 }}
-                            animate={{ width: `${progressPercent}%` }}
-                            transition={{ duration: 0.6, ease: "easeOut" }}
-                        />
+                {/* Main Step Content */}
+                <main className="flex-1 overflow-y-auto px-8 py-10 lg:px-16 lg:py-16 custom-scrollbar">
+                    <div className="max-w-2xl mx-auto h-full flex flex-col justify-center">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={currentStep}
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                transition={{ duration: 0.4, ease: "easeOut" }}
+                            >
+                                {/* Pass down setCanContinue so steps like "Terms" can lock the button */}
+                                <CurrentComponent setCanContinue={setCanContinue} />
+                            </motion.div>
+                        </AnimatePresence>
                     </div>
-                </motion.div>
-            </header>
+                </main>
 
-            {/* Main Content */}
-            <main className="relative z-10 flex-1 flex items-center justify-center px-6 lg:px-12 py-12">
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={currentStep}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.5, ease: "easeOut" }}
-                        className="w-full max-w-5xl"
-                    >
-                        <CurrentComponent />
-                    </motion.div>
-                </AnimatePresence>
-            </main>
+                {/* Footer Navigation (Firebase Style) */}
+                <footer className="px-8 py-6 lg:px-16 border-t border-white/5 bg-[#0d0d0d]/80 backdrop-blur-md flex items-center justify-between">
+                    {currentStep > 0 && currentStep < steps.length - 1 ? (
+                        <button
+                            onClick={handleBack}
+                            disabled={isPending}
+                            className="text-sky-400 font-medium hover:text-sky-300 transition-colors disabled:opacity-50"
+                        >
+                            Previous
+                        </button>
+                    ) : (
+                        <div /> // Spacer
+                    )}
 
-            {/* Bottom Navigation Buttons */}
-            <footer className="relative z-20 px-6 lg:px-12 py-8 flex items-center justify-between">
-                {/* Back Button */}
-                <motion.button
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    whileHover={{ x: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleBack}
-                    disabled={currentStep === 0 || isPending}
-                    className="px-6 py-2.5 rounded-lg border border-gray-700 text-gray-300 hover:text-white hover:border-gray-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-300 text-sm font-medium flex items-center gap-2"
-                >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Back
-                </motion.button>
-
-                {/* Next Button / Circular Progress */}
-                <motion.button
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    whileHover={!isPending ? { scale: 1.05 } : {}}
-                    whileTap={!isPending ? { scale: 0.95 } : {}}
-                    onClick={handleNext}
-                    disabled={isPending}
-                    className="relative group flex items-center justify-center outline-none disabled:opacity-70 disabled:cursor-not-allowed"
-                >
-                    {/* Circular Progress SVG */}
-                    <svg className="w-24 h-24 transform -rotate-90 absolute" viewBox="0 0 60 60">
-                        <circle
-                            cx="30"
-                            cy="30"
-                            r="24"
-                            stroke="rgba(255,255,255,0.1)"
-                            strokeWidth="2"
-                            fill="none"
-                        />
-                        <motion.circle
-                            cx="30"
-                            cy="30"
-                            r="24"
-                            stroke="url(#gradientProgress)"
-                            strokeWidth="3"
-                            fill="none"
-                            strokeLinecap="round"
-                            initial={{ strokeDasharray: "0 150" }}
-                            animate={{ strokeDasharray: `${progressPercent * 1.5} 150` }}
-                            transition={{ duration: 0.6, ease: "easeOut" }}
-                        />
-                        <defs>
-                            <linearGradient id="gradientProgress" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stopColor="#3b82f6" />
-                                <stop offset="100%" stopColor="#a855f7" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
-
-                    {/* Inner Button */}
-                    <motion.div
-                        className="relative w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white group-hover:shadow-lg group-hover:shadow-blue-500/50 transition-shadow duration-300"
-                        whileHover={{ boxShadow: "0 0 30px rgba(59, 130, 246, 0.6)" }}
+                    <button
+                        onClick={handleNext}
+                        disabled={!canContinue || isPending}
+                        className={`px-8 py-2.5 rounded-full font-medium transition-all duration-300 flex items-center justify-center min-w-[140px]
+                            ${canContinue && !isPending
+                                ? "bg-sky-500 hover:bg-sky-400 text-white shadow-lg shadow-sky-500/20"
+                                : "bg-white/10 text-white/40 cursor-not-allowed"
+                            }`}
                     >
                         {isPending ? (
-                            <motion.div
-                                animate={{ rotate: 360 }}
-                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                                className="w-6 h-6 border-2 border-white border-t-transparent rounded-full"
-                            />
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         ) : currentStep === steps.length - 1 ? (
-                            <motion.svg
-                                className="w-7 h-7"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ delay: 0.2 }}
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={3}
-                                    d="M5 13l4 4L19 7"
-                                />
-                            </motion.svg>
+                            "Go to Dashboard"
                         ) : (
-                            <motion.svg
-                                className="w-7 h-7"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                                animate={{ x: [0, 3, 0] }}
-                                transition={{ duration: 1.5, repeat: Infinity }}
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M14 5l7 7m0 0l-7 7m7-7H3"
-                                />
-                            </motion.svg>
+                            "Continue"
                         )}
-                    </motion.div>
-                </motion.button>
-            </footer>
+                    </button>
+                </footer>
+            </div>
+
+            {/* RIGHT PANE - Animated 3D Visuals */}
+            <FloatingVisuals currentStep={currentStep} />
         </div>
     );
 }

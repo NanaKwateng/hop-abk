@@ -213,7 +213,7 @@ function SummaryCard({
                 <div className="flex items-baseline gap-2 mt-1">
                     <p className="text-xl font-bold tabular-nums">{value}</p>
                     {trend !== undefined && trend !== 0 && (
-                        <span className="text-xs font-medium bg-white/20 px-1 rounded">
+                        <span className="text-xs font-medium px-1 py-3 rounded">
                             {trend > 0 ? "+" : ""}{trend}%
                         </span>
                     )}
