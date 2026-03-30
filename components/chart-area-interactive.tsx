@@ -35,8 +35,8 @@ import {
 import type { GenderDistributionData } from "@/lib/types/dashboard-analytics";
 
 // ── Explicit colors that work on both light and dark backgrounds ──
-const MALE_COLOR = "#2563eb";   // Blue-600 — always visible
-const FEMALE_COLOR = "#e11d48"; // Rose-600 — always visible
+const MALE_COLOR = "#2563eb";   // Blue-600
+const FEMALE_COLOR = "#e11d48"; // Rose-600
 
 const chartConfig = {
   members: {
@@ -56,9 +56,9 @@ const chartConfig = {
 type TimeRange = "12m" | "6m" | "3m";
 
 const TIME_RANGE_OPTIONS: { value: TimeRange; label: string }[] = [
-  { value: "12m", label: "All Time" },
-  { value: "6m", label: "This Year" },
-  { value: "3m", label: "Last 6 Months" },
+  { value: "12m", label: "Full Year" },
+  { value: "6m", label: "Last 6 Months" },
+  { value: "3m", label: "Last 3 Months" },
 ];
 
 interface ChartAreaInteractiveProps {
@@ -76,34 +76,50 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
   }, [isMobile]);
 
   // ── Filter snapshots based on selected time range ──
+  // All ranges are relative to the CURRENT YEAR
   const filteredData = React.useMemo(() => {
     const now = new Date();
+    const currentYear = now.getFullYear();
     let startDate: Date;
 
     switch (timeRange) {
       case "3m": {
+        // Last 3 months from now, but still within current year
         startDate = new Date(now);
-        startDate.setMonth(startDate.getMonth() - 6);
+        startDate.setMonth(startDate.getMonth() - 3);
+        // Ensure we don't go before Jan 1 of current year
+        const janFirst = new Date(currentYear, 0, 1);
+        if (startDate < janFirst) {
+          startDate = janFirst;
+        }
         break;
       }
       case "6m": {
-        startDate = new Date(now.getFullYear(), 0, 1);
+        // Last 6 months from now, but still within current year
+        startDate = new Date(now);
+        startDate.setMonth(startDate.getMonth() - 6);
+        // Ensure we don't go before Jan 1 of current year
+        const janFirstSix = new Date(currentYear, 0, 1);
+        if (startDate < janFirstSix) {
+          startDate = janFirstSix;
+        }
         break;
       }
       case "12m":
       default: {
-        if (data.snapshots.length > 0) {
-          startDate = new Date(data.snapshots[0].date);
-        } else {
-          startDate = new Date(now.getFullYear() - 1, 0, 1);
-        }
+        // Full current year: Jan 1 of current year
+        startDate = new Date(currentYear, 0, 1);
         break;
       }
     }
 
-    return data.snapshots.filter(
-      (snapshot) => new Date(snapshot.date) >= startDate
-    );
+    // End date is end of current year (Dec 31)
+    const endDate = new Date(currentYear, 11, 31, 23, 59, 59, 999);
+
+    return data.snapshots.filter((snapshot) => {
+      const snapshotDate = new Date(snapshot.date);
+      return snapshotDate >= startDate && snapshotDate <= endDate;
+    });
   }, [data.snapshots, timeRange]);
 
   // ── Summary stats ──
@@ -148,7 +164,11 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
 
   // ── Date range label for footer ──
   const dateRangeLabel = React.useMemo(() => {
-    if (filteredData.length === 0) return "No data available";
+    const currentYear = new Date().getFullYear();
+
+    if (filteredData.length === 0) {
+      return `No data available for ${currentYear}`;
+    }
 
     const first = new Date(filteredData[0].date);
     const last = new Date(filteredData[filteredData.length - 1].date);
@@ -236,7 +256,7 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
               size="sm"
               aria-label="Select time range"
             >
-              <SelectValue placeholder="All Time" />
+              <SelectValue placeholder="Full Year" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
               {TIME_RANGE_OPTIONS.map((opt) => (
@@ -254,11 +274,6 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
       </CardHeader>
 
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-        {/* 
-                    IMPORTANT: Override CSS variables inline on the container 
-                    so ChartContainer/Recharts can resolve them.
-                    This guarantees colors work regardless of theme config.
-                */}
         <div
           style={{
             ["--color-male" as string]: MALE_COLOR,
@@ -293,15 +308,6 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
                 tick={{ fontSize: 12 }}
                 tickFormatter={(value) => {
                   const date = new Date(value);
-                  if (timeRange === "12m") {
-                    return date.toLocaleDateString(
-                      "en-US",
-                      {
-                        month: "short",
-                        year: "2-digit",
-                      }
-                    );
-                  }
                   return date.toLocaleDateString(
                     "en-US",
                     {
@@ -348,7 +354,6 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
                 }
               />
 
-              {/* Male line — hardcoded stroke for guaranteed visibility */}
               <Line
                 dataKey="male"
                 type="monotone"
@@ -363,7 +368,6 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
                 }}
               />
 
-              {/* Female line — hardcoded stroke for guaranteed visibility */}
               <Line
                 dataKey="female"
                 type="monotone"

@@ -73,6 +73,13 @@ export const navigation: NavCategory[] = [
                 iconColor: "text-cyan-600 dark:text-cyan-400"
             },
             {
+                title: "Manage Branches",
+                href: "/admin/branches",
+                icon: TbVector,
+                iconBg: "bg-cyan-100 dark:bg-cyan-500/20",
+                iconColor: "text-cyan-600 dark:text-cyan-400"
+            },
+            {
                 title: "Financial Analytics",
                 href: "/admin/finance",
                 icon: FiPieChart,
@@ -82,7 +89,7 @@ export const navigation: NavCategory[] = [
         ],
     },
     {
-        title: "Settings",
+        title: "Settings and Preferences",
         items: [
             {
                 title: "Manage Accounts",

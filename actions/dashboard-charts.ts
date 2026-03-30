@@ -206,24 +206,57 @@ export async function fetchPaymentCollectionData(year: number) {
 async function _fetchGenderDistribution(range: "12m" | "6m" | "3m"): Promise<GenderDistributionData> {
     const supabase = createServiceClient(); // ✅ Safe for caching
     const now = new Date();
-    let startDate: Date;
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-indexed
+
+    // ── All ranges are scoped to the CURRENT YEAR ──
+    let startMonth: number;
 
     switch (range) {
-        case "3m": startDate = new Date(now.getFullYear(), now.getMonth() - 5, 1); break;
-        case "6m": startDate = new Date(now.getFullYear(), 0, 1); break;
-        case "12m": default: startDate = new Date(now.getFullYear() - 4, 0, 1); break;
+        case "3m": {
+            // Last 3 months, but clamped to Jan of current year
+            startMonth = Math.max(0, currentMonth - 2); // e.g., if Oct (9), start from Aug (7)
+            break;
+        }
+        case "6m": {
+            // Last 6 months, but clamped to Jan of current year
+            startMonth = Math.max(0, currentMonth - 5); // e.g., if Oct (9), start from May (4)
+            break;
+        }
+        case "12m":
+        default: {
+            // Full current year: January through current month
+            startMonth = 0;
+            break;
+        }
     }
 
+    // ── Build snapshot dates: one per month from startMonth to currentMonth ──
     const snapshotDates: Date[] = [];
-    const cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-
-    while (cursor <= now) {
-        const snapshotDate = new Date(cursor.getFullYear(), cursor.getMonth(), 15);
-        if (snapshotDate <= now) snapshotDates.push(new Date(snapshotDate));
-        cursor.setMonth(cursor.getMonth() + 1);
+    for (let month = startMonth; month <= currentMonth; month++) {
+        // Use the last day of each month as the snapshot cutoff
+        // For the current month, use today's date instead
+        if (month < currentMonth) {
+            // Last day of the month
+            const lastDay = new Date(currentYear, month + 1, 0, 23, 59, 59, 999);
+            snapshotDates.push(lastDay);
+        } else {
+            // Current month — use right now as cutoff
+            snapshotDates.push(new Date(now));
+        }
     }
 
-    const { data: allMembers, error } = await supabase.from("members").select("created_at, gender").order("created_at", { ascending: true });
+    // ── Query members registered from start of current year up to now ──
+    const yearStart = `${currentYear}-01-01T00:00:00.000Z`;
+    const yearEnd = now.toISOString();
+
+    const { data: allMembers, error } = await supabase
+        .from("members")
+        .select("created_at, gender")
+        .gte("created_at", yearStart)
+        .lte("created_at", yearEnd)
+        .order("created_at", { ascending: true });
+
     if (error) throw new Error(error.message);
 
     const parsedMembers = (allMembers ?? []).map((m) => ({
@@ -231,25 +264,46 @@ async function _fetchGenderDistribution(range: "12m" | "6m" | "3m"): Promise<Gen
         gender: (m.gender?.toLowerCase().trim() ?? "") as string,
     }));
 
-    const snapshots: GenderSnapshot[] = snapshotDates.map((snapshotDate) => {
-        let male = 0; let female = 0;
+    // ── Build cumulative snapshots per month ──
+    const snapshots: GenderSnapshot[] = snapshotDates.map((snapshotCutoff) => {
+        let male = 0;
+        let female = 0;
+
         for (const member of parsedMembers) {
-            if (member.createdAt <= snapshotDate) {
+            if (member.createdAt <= snapshotCutoff) {
                 if (member.gender === "male") male++;
                 else if (member.gender === "female") female++;
             }
         }
-        return { date: snapshotDate.toISOString().split("T")[0], male, female };
+
+        // Format date label as first of the month for consistent chart labels
+        const labelDate = new Date(snapshotCutoff.getFullYear(), snapshotCutoff.getMonth(), 1);
+        return {
+            date: labelDate.toISOString().split("T")[0],
+            male,
+            female,
+        };
     });
 
+    // ── Current totals ──
     const currentMale = parsedMembers.filter((m) => m.gender === "male").length;
     const currentFemale = parsedMembers.filter((m) => m.gender === "female").length;
+    const totalMembers = currentMale + currentFemale;
 
-    return { snapshots, currentMale, currentFemale, totalMembers: allMembers.length };
+    return {
+        snapshots,
+        currentMale,
+        currentFemale,
+        totalMembers,
+    };
 }
 
 export async function fetchGenderDistribution(range: "12m" | "6m" | "3m") {
     await getAuth(); // ✅ Validates cookies first
-    const cachedFn = withAnalyticsCache(() => _fetchGenderDistribution(range), ['gender-dist', range], 60);
+    const cachedFn = withAnalyticsCache(
+        () => _fetchGenderDistribution(range),
+        ['gender-dist', range],
+        60
+    );
     return await cachedFn();
 }

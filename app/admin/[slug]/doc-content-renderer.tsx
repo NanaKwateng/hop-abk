@@ -13,6 +13,7 @@ import AccountSettingPage from "../accounts/settings/page";
 import SettingsPage from "../admin-settings/page";
 import CustomizePage from "../customize/page";
 import AdminFlowPage from "../admin-flow/page";
+import BranchesPage from "../branches/page";
 
 interface DocContentRendererProps {
     slug: string;
@@ -79,6 +80,13 @@ export function DocContentRenderer({ slug, content }: DocContentRendererProps) {
         // you see in the production screenshot).
         case "admin-settings":
             return <ManageAdmin />;
+
+        // ✅ FIX: This case was COMPLETELY MISSING.
+        // The sidebar links to /admin/admin-settings → slug = "admin-settings"
+        // Without this case, it fell through to GenericContent (the "Generic fallback..." 
+        // you see in the production screenshot).
+        case "branches":
+            return <Branches />;
 
         // ✅ FIX: Was "Customize Settings" (display title).
         // The sidebar links to /admin/customize → slug = "customize"
@@ -164,6 +172,14 @@ function Customization() {
     return (
         <div className="min-h-screen w-full">
             <CustomizePage />
+        </div>
+    );
+}
+
+function Branches() {
+    return (
+        <div className="min-h-screen w-full">
+            <BranchesPage />
         </div>
     );
 }

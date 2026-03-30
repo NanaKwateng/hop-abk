@@ -110,7 +110,7 @@ export function FinancePage({
 
                 {/* ── Overview: Bar Chart ── */}
                 <TabsContent value="overview" className="mt-6">
-                    <Card className="border-none shadow-md bg-white">
+                    <Card className="border-none shadow-md">
                         <CardHeader>
                             <CardTitle>Yearly Payment Overview</CardTitle>
                             <CardDescription>

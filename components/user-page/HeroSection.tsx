@@ -4,6 +4,7 @@ import { Button } from "../ui/button";
 import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
 import { UserDropdown } from "../auth/UserMenu";
+import OnboardingPage from "@/app/onboarding/page";
 
 export const HeroSection = () => {
     const containerRef = useRef<HTMLElement>(null);
@@ -138,6 +139,7 @@ export const HeroSection = () => {
                         </Link>
                     </motion.div>
                 </div>
+
             </motion.div>
         </section>
     );
