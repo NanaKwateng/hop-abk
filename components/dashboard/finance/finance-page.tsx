@@ -127,7 +127,7 @@ export function FinancePage({
 
                 {/* ── Analytics: Line Chart ── */}
                 <TabsContent value="analytics" className="mt-6">
-                    <Card className="border-none shadow-md bg-white">
+                    <Card className="border-none shadow-md">
                         <CardHeader>
                             <CardTitle>Monthly Payment Trends</CardTitle>
                             <CardDescription>
@@ -144,7 +144,7 @@ export function FinancePage({
 
                 {/* ── Reports: Members Progress Table ── */}
                 <TabsContent value="reports" className="mt-6">
-                    <Card className="border-none shadow-md bg-white">
+                    <Card className="border-none shadow-md">
                         <CardHeader>
                             <CardTitle>Member Payment Progress</CardTitle>
                             <CardDescription>
@@ -163,7 +163,7 @@ export function FinancePage({
 
                 {/* ── Groups: Pie Chart ── */}
                 <TabsContent value="groups" className="mt-6">
-                    <Card className="border-none shadow-md bg-white">
+                    <Card className="border-none shadow-md">
                         <CardHeader className="items-center">
                             <CardTitle>Group Payment Distribution</CardTitle>
                             <CardDescription>
