@@ -10,7 +10,7 @@ import {
 import {
     TbVector, TbActivity, TbAlertCircle, TbDotsCircleHorizontal
 } from "react-icons/tb";
-
+import { PiGitBranchBold } from "react-icons/pi";
 import { MdOutlineSecurity } from "react-icons/md";
 
 export interface NavItem {
@@ -75,9 +75,9 @@ export const navigation: NavCategory[] = [
             {
                 title: "Manage Branches",
                 href: "/admin/branches",
-                icon: TbVector,
+                icon: PiGitBranchBold,
                 iconBg: "bg-cyan-100 dark:bg-cyan-500/20",
-                iconColor: "text-cyan-600 dark:text-cyan-400"
+                iconColor: "text-white dark:text-cyan-400"
             },
             {
                 title: "Financial Analytics",
