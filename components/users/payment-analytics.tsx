@@ -252,7 +252,7 @@ export function PaymentAnalyticsView({
                     onValueChange={setActiveTab}
                     className="w-full"
                 >
-                    <TabsList className="w-full h-10 rounded-2xl bg-muted/60 p-1 grid grid-cols-3">
+                    <TabsList className="w-full max-w-sm h-10 rounded-2xl bg-muted/60 p-1 grid grid-cols-3">
                         <TabsTrigger
                             value="overview"
                             className="rounded-xl text-xs font-semibold data-[state=active]:shadow-sm gap-1.5"

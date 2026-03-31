@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Figtree } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner"
-import { ImpersonationBanner } from "./admin/ImpersonationBanner";
+
 
 import { ThemeProvider } from "@/components/theme-provider"
+import { PWAProvider } from "@/components/pwa/pwa-provider";
 const figtree = Figtree({ subsets: ['latin'], variable: '--font-sans' });
 
 const geistSans = Geist({
@@ -18,8 +19,38 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HOP | Abuakwa Central",
+  title: {
+    default: "HOP | Abuakwa Central Assembly",
+    template: "%s — HOP Church",
+  },
   description: "Spaces for workflow management",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "HOP Zones",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  openGraph: {
+    type: "website",
+    siteName: "HOP | Abuakwa Central Assembly",
+    title: "House of Power Min. Int'l.",
+    description: "Spaces for Workflow Management",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -29,19 +60,58 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={figtree.variable} suppressHydrationWarning>
+
+      <head>
+        {/* ── Favicon (browser tabs) ── */}
+        <link rel="icon" href="/icons/icon-72x72.png" type="image/png" sizes="72x72" />
+        <link rel="icon" href="/icons/icon-96x96.png" type="image/png" sizes="96x96" />
+        <link rel="icon" href="/favicon.ico" sizes="32x32" />
+
+        {/* ── iOS ── */}
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+        <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="HOP ABK" />
+
+        {/* ── Android / General ── */}
+        <meta name="mobile-web-app-capable" content="yes" />
+
+        {/* ── Windows Tiles ── */}
+        <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
+        <meta name="msapplication-TileColor" content="#1a365d" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
-        {/* <ImpersonationBanner /> */}
-        <Toaster position="top-right" />
+        <PWAProvider>
+
+
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+
+          <Toaster
+            position="bottom-right"
+            richColors
+            toastOptions={{
+              classNames: {
+                // These keys target the specific toast variants
+                success: 'bg-blue-600 text-white border-blue-700',
+                error: 'bg-red-600 text-white border-red-700',
+                // Optional: styling the icon or description specifically
+                icon: 'text-white',
+              },
+            }}
+          />
+
+        </PWAProvider>
       </body>
     </html>
   );

@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/docs/sidebar";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { CustomizationProvider } from "@/lib/context/customization-context";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { AssistiveTouch } from "@/components/dashboard/assistive-touch";
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     return (
 
@@ -24,7 +25,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         </main>
                     </SidebarInset>
                 </div>
+                <AssistiveTouch />
             </QueryProvider>
+
         </CustomizationProvider>
 
     );
