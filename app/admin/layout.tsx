@@ -11,6 +11,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <CustomizationProvider>
 
             <QueryProvider>
+
                 <div className="flex min-h-screen">
                     <DashboardHeader />
 
@@ -22,10 +23,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                         <main className="flex-1 p-8">
                             {children}
+                            <AssistiveTouch />
                         </main>
                     </SidebarInset>
                 </div>
-                <AssistiveTouch />
             </QueryProvider>
 
         </CustomizationProvider>
