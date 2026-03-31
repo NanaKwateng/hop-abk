@@ -40,7 +40,7 @@ export default function Step3Terms({ setCanContinue }: { setCanContinue: (val: b
                 </div>
 
                 {/* Mandatory Terms Checkbox */}
-                <div className="flex items-start gap-4 p-4 rounded-xl bg-sky-500/5 border border-sky-500/10">
+                <div className="flex items-start gap-4 p-4 rounded-xl border border-white/5">
                     <button
                         onClick={() => setAgreedTerms(!agreedTerms)}
                         className={`mt-1 flex-shrink-0 w-6 h-6 rounded border flex items-center justify-center transition-colors ${agreedTerms ? 'bg-sky-500 border-sky-500' : 'bg-transparent border-gray-600 hover:border-sky-400'}`}

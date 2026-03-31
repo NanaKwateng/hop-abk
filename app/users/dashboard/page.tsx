@@ -24,20 +24,17 @@ export default function Page() {
 }
 
 async function DashboardContent() {
-    // ── Check session ──
     const member = await getVerifiedMember();
 
     if (!member) {
         redirect("/verify");
     }
 
-    // ── Fetch analytics ──
     let analytics;
     try {
         analytics = await fetchMemberAnalytics(member.id);
     } catch (error) {
         console.error("[MEMBER DASHBOARD] Analytics fetch failed:", error);
-        // Provide empty analytics so the page still renders
         analytics = {
             currentYear: {
                 year: new Date().getFullYear(),

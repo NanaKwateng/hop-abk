@@ -56,7 +56,7 @@ import { toast } from "sonner";
 import confetti from "canvas-confetti";
 
 const STEPS = [
-    { label: "Branch Info", icon: Building2, description: "Name & location" },
+    { label: "Branch Info", icon: Building2, description: "Basic details" },
     { label: "Details", icon: Users, description: "Size & contact" },
     { label: "Leader", icon: UserCircle, description: "Leader profile" },
     { label: "Review", icon: Check, description: "Confirm & create" },
@@ -263,7 +263,7 @@ export function CreateBranchDrawer({ open, onOpenChange }: CreateBranchDrawerPro
                     className="h-[95vh] sm:h-[90vh] p-0 flex flex-col gap-0 rounded-b-2xl w-full max-w-md"
                 >
                     {/* Header + Stepper */}
-                    <div className="shrink-0 px-6 pt-6 pb-4 border-b bg-muted/30 space-y-4">
+                    <div className="shrink-0 px-6 pt-4 pb-2 border-b bg-muted/30 space-y-4">
                         <SheetHeader className="text-left">
                             <SheetTitle className="text-xl flex items-center gap-2">
                                 <Building2 className="h-5 w-5 text-primary" />
@@ -342,7 +342,7 @@ export function CreateBranchDrawer({ open, onOpenChange }: CreateBranchDrawerPro
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
                                 transition={{ duration: 0.25 }}
-                                className="px-6 py-6 max-w-2xl mx-auto"
+                                className="px-6 py-6 max-w-4xl mx-auto"
                             >
                                 {/* STEP 1: Branch Info */}
                                 {step === 1 && (
@@ -375,7 +375,7 @@ export function CreateBranchDrawer({ open, onOpenChange }: CreateBranchDrawerPro
                                                 className="text-sm font-medium flex items-center gap-2"
                                             >
                                                 <MapPin className="h-4 w-4 text-primary" />{" "}
-                                                Location *
+                                                Location
                                             </Label>
                                             <Input
                                                 id="b-location"
@@ -560,7 +560,7 @@ export function CreateBranchDrawer({ open, onOpenChange }: CreateBranchDrawerPro
                                         <div className="space-y-3">
                                             <Label className="text-sm font-medium flex items-center gap-2">
                                                 <Shield className="h-4 w-4 text-primary" />{" "}
-                                                Leader Position *
+                                                Leader Position
                                             </Label>
                                             <RadioGroup
                                                 value={leaderPosition}
@@ -624,14 +624,14 @@ export function CreateBranchDrawer({ open, onOpenChange }: CreateBranchDrawerPro
                                                     onChange={handleAvatarSelect}
                                                 />
                                                 <p className="text-[11px] text-muted-foreground mt-0.5">
-                                                    JPG, PNG. Max 5MB. Will be cropped.
+                                                    JPG, JPEG, WebP, PNG. Max 5MB. Will be cropped.
                                                 </p>
                                             </div>
                                         </div>
 
                                         <div className="space-y-2">
                                             <Label className="text-sm font-medium">
-                                                Full Name *
+                                                Full Name
                                             </Label>
                                             <Input
                                                 placeholder="Leader's full name"
@@ -675,7 +675,7 @@ export function CreateBranchDrawer({ open, onOpenChange }: CreateBranchDrawerPro
                                                 <div className="space-y-2">
                                                     <Label className="text-sm flex items-center gap-1">
                                                         <Home className="h-3.5 w-3.5" /> Place of
-                                                        Stay
+                                                        Stay / Location
                                                     </Label>
                                                     <Input
                                                         placeholder="e.g. East Legon, Accra"

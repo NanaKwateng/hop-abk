@@ -8,10 +8,10 @@ export default function Step2Features({ setCanContinue }: { setCanContinue: (val
     useEffect(() => setCanContinue(true), [setCanContinue]);
 
     const features = [
-        "Plan and design your application seamlessly.",
-        "Debug and troubleshoot issues with AI assistance.",
-        "Get insights and recommendations to engage users.",
-        "Generate schemas and explore data intuitively."
+        "View all metrics, analyze your workspace and track progress seamlessly",
+        "Set up your account, create new workspaces and then monitor progess steadily",
+        "Get insights and recommendations for all usecases, enjoy the best as you move along",
+        "A platform built just to cover all your needs with regards to the usage of our services."
     ];
 
     return (
@@ -24,10 +24,10 @@ export default function Step2Features({ setCanContinue }: { setCanContinue: (val
                         initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
                         className="relative flex items-center gap-6"
                     >
-                        <div className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center z-10 shadow-lg shadow-black">
+                        <div className="w-8 h-8 rounded-full bg-black border-2 border-sky-800 flex items-center justify-center z-10 shadow-lg shadow-black">
                             <Check className="w-5 h-5 text-sky-400" />
                         </div>
-                        <p className="text-gray-300 text-base flex-1 bg-white/5 border border-white/5 p-4 rounded-xl">{text}</p>
+                        <p className="w-full max-w-sm text-gray-300 text-base flex-1 p-3 rounded-xl">{text}</p>
                     </motion.div>
                 ))}
             </div>

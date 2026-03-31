@@ -10,7 +10,7 @@ export default function Step1Welcome({ setCanContinue }: { setCanContinue: (val:
         <div className="space-y-6">
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                 <h1 className="text-4xl lg:text-5xl font-semibold text-white">
-                    Hello there, <br />
+                    Heaven oo <br />
                     <span className="bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-sky-400">
                         Welcome to HOP..
                     </span>

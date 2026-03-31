@@ -9,6 +9,8 @@ import Step4Verify from "./Step4Launch";
 import Step5Celebrate from "./Step5End";
 import FloatingVisuals from "./FloatingVisuals";
 import { completeOnboarding } from "@/actions/onboarding";
+import { FaBridge } from "react-icons/fa6";
+import { FaIdBadge, FaRulerVertical } from "react-icons/fa";
 
 const steps = [Step1Welcome, Step2Features, Step3Terms, Step4Verify, Step5Celebrate];
 
@@ -46,15 +48,15 @@ export default function OnboardingFlow() {
     const CurrentComponent = steps[currentStep];
 
     return (
-        <div className="min-h-screen bg-[#0d0d0d] flex font-sans text-gray-200 selection:bg-pink-500/30">
+        <div className="min-h-screen bg-black flex font-sans text-gray-200 selection:bg-pink-500/30">
             {/* LEFT PANE - Content Area */}
             <div className="flex-1 flex flex-col relative z-10 w-full lg:w-3/5 xl:w-2/3">
                 {/* Header (Logo / Exit) */}
                 <header className="px-8 py-6 flex items-center gap-3 border-b border-white/5">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-pink-500 to-sky-400 flex items-center justify-center shadow-lg shadow-pink-500/20">
-                        <span className="text-white font-bold text-sm">H</span>
-                    </div>
-                    <span className="font-semibold text-white tracking-wide">hop</span>
+
+                    <span className="font-semibold text-white tracking-wide">
+                        <FaRulerVertical />
+                    </span>
                 </header>
 
                 {/* Main Step Content */}
@@ -76,7 +78,7 @@ export default function OnboardingFlow() {
                 </main>
 
                 {/* Footer Navigation (Firebase Style) */}
-                <footer className="px-8 py-6 lg:px-16 border-t border-white/5 bg-[#0d0d0d]/80 backdrop-blur-md flex items-center justify-between">
+                <footer className="px-8 py-4 lg:px-16 border-white/5 bg-black flex items-center justify-between">
                     {currentStep > 0 && currentStep < steps.length - 1 ? (
                         <button
                             onClick={handleBack}

@@ -9,10 +9,10 @@ export default function Step4Verify({ setCanContinue }: { setCanContinue: (val: 
     const [activeIndex, setActiveIndex] = useState(0);
 
     const candidates = [
-        { id: 1, image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=800&auto=format&fit=crop", score: 84 },
-        { id: 2, image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop", score: 92 },
-        { id: 3, image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=800&auto=format&fit=crop", score: 76 },
-        { id: 4, image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&auto=format&fit=crop", score: 89 },
+        { id: 1, image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=800&auto=format&fit=crop", score: "clarity" },
+        { id: 2, image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop", score: "Transparency" },
+        { id: 3, image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=800&auto=format&fit=crop", score: "Photorealistic" },
+        { id: 4, image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&auto=format&fit=crop", score: "Photogenic" },
     ];
 
     useEffect(() => {
@@ -25,12 +25,12 @@ export default function Step4Verify({ setCanContinue }: { setCanContinue: (val: 
     return (
         <div className="space-y-6">
             <h2 className="text-3xl font-semibold text-white mb-2">Verify Identity</h2>
-            <p className="text-sm text-gray-400 mb-8">
-                Provide the perfect look for your portrait to secure your account.
+            <p className="text-sm text-gray-400 mb-8 max-w-sm">
+                Provide the perfect look for your portrait to secure your account. Easy for member identification and authorization
             </p>
 
             {/* The Bento Grid Card */}
-            <div className="w-full max-w-sm mx-auto bg-[#131313] border border-white/5 shadow-2xl overflow-hidden rounded-2xl p-6">
+            <div className="w-full max-w-sm mx-auto border border-0 overflow-hidden rounded-2xl p-6">
                 <div className="grid grid-cols-2 gap-3 relative">
                     {candidates.map((candidate, index) => {
                         const isActive = index === activeIndex;

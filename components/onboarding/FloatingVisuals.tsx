@@ -13,7 +13,7 @@ export default function FloatingVisuals({ currentStep }: { currentStep: number }
     ];
 
     return (
-        <div className="hidden lg:flex w-2/5 xl:w-1/3 bg-[#111111] border-l border-white/5 relative items-center justify-center overflow-hidden">
+        <div className="hidden lg:flex w-3/8 xl:w-2/9 bg-black relative items-center justify-center overflow-hidden">
             {/* Subtle background glow */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-tr from-pink-500/10 to-sky-500/10 blur-[100px] rounded-full" />
 
@@ -24,7 +24,7 @@ export default function FloatingVisuals({ currentStep }: { currentStep: number }
                     return (
                         <motion.div
                             key={i}
-                            className={`absolute p-6 rounded-2xl border ${item.border} ${item.bg} backdrop-blur-xl shadow-2xl`}
+                            className={`absolute p-6 rounded-2xl border-0 ${item.border} ${item.bg} backdrop-blur-xl shadow-2xl`}
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{
                                 opacity: isFocus ? 1 : 0.4,
