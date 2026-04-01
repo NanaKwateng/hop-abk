@@ -38,7 +38,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { Member } from "@/lib/types";
 import type { PaymentAnalytics } from "@/lib/types/payments";
-import { FaFire } from "react-icons/fa";
+import { FaExpandAlt, FaExpandAlt, FaFire } from "react-icons/fa";
+import { FaArrowTrendUp } from "react-icons/fa6";
 
 const SPRING_SNAPPY = { type: "spring" as const, stiffness: 400, damping: 30 };
 const SPRING_BOUNCY = { type: "spring" as const, stiffness: 300, damping: 20, mass: 0.8 };
@@ -253,8 +254,8 @@ export function MemberDashboardPage({
                             👋
                         </motion.span>
                     </h1>
-                    <p className="text-sm text-muted-foreground mt-0.5">
-                        {member.firstName}, here&apos;s your overview.
+                    <p className="text-sm max-w-sm text-muted-foreground mt-0.5">
+                        {member.firstName}, here&apos;s your overview, continue to keep track of your progress
                     </p>
                 </motion.div>
 
@@ -314,7 +315,7 @@ export function MemberDashboardPage({
                                                 exit={{ scale: 0, rotate: 90 }}
                                                 transition={SPRING_BOUNCY}
                                             >
-                                                <IoBookmark className="h-4 w-4 text-primary" />
+                                                <FaExpandAlt className="h-4 w-4 text-primary" />
                                             </motion.div>
                                         ) : (
                                             <motion.div
@@ -511,7 +512,7 @@ export function MemberDashboardPage({
                                             className="w-full h-11 rounded-2xl font-semibold text-sm gap-2 shadow-sm bg-foreground text-background hover:bg-foreground/90"
                                             size="lg"
                                         >
-                                            <IoChatbubbleOutline className="h-4 w-4" />
+                                            <FaArrowTrendUp className="h-4 w-4" />
                                             View Payments
                                         </Button>
                                     </motion.div>

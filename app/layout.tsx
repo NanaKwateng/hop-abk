@@ -6,6 +6,7 @@ import { Toaster } from "sonner"
 
 import { ThemeProvider } from "@/components/theme-provider"
 import { PWAProvider } from "@/components/pwa/pwa-provider";
+import { PWADebug } from "@/components/pwa/pwa-debug";
 const figtree = Figtree({ subsets: ['latin'], variable: '--font-sans' });
 
 const geistSans = Geist({
@@ -110,7 +111,7 @@ export default function RootLayout({
               },
             }}
           />
-
+          <PWADebug />
         </PWAProvider>
       </body>
     </html>
