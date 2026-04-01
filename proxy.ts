@@ -1,8 +1,30 @@
-// src/middleware.ts
+// middleware.ts
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 export default async function proxy(request: NextRequest) {
+    // ── Skip PWA and public static files immediately ──
+    const { pathname } = request.nextUrl;
+
+    const publicFiles = [
+        "/manifest.json",
+        "/sw.js",
+        "/offline",
+        "/favicon.ico",
+    ];
+
+    const publicPrefixes = [
+        "/icons/",
+        "/screenshots/",
+    ];
+
+    if (
+        publicFiles.includes(pathname) ||
+        publicPrefixes.some((prefix) => pathname.startsWith(prefix))
+    ) {
+        return NextResponse.next();
+    }
+
     let response = NextResponse.next({
         request: { headers: request.headers },
     });
@@ -43,7 +65,6 @@ export default async function proxy(request: NextRequest) {
 
     // 2. Authenticated User Logic
     if (user) {
-        // Fetch role AND onboarding status from DB
         const { data: profile } = await supabase
             .from("profiles")
             .select("role, onboarding_completed")
@@ -53,32 +74,27 @@ export default async function proxy(request: NextRequest) {
         const role = profile?.role || "member";
         const hasCompletedOnboarding = profile?.onboarding_completed === true;
 
-        // --- NEW: ONBOARDING FLOW ENFORCEMENT ---
+        // --- ONBOARDING FLOW ENFORCEMENT ---
         if (!hasCompletedOnboarding) {
-            // If they haven't finished onboarding, force them to the onboarding page
             if (!isOnboardingPage) {
                 url.pathname = "/onboarding";
                 return NextResponse.redirect(url);
             }
-            // If they are already on /onboarding, just let them stay there
             return response;
         }
 
         // --- USER HAS COMPLETED ONBOARDING ---
 
-        // Prevent users who have already onboarded from going back to the onboarding page
         if (isOnboardingPage) {
             url.pathname = role === "admin" ? "/admin" : "/users";
             return NextResponse.redirect(url);
         }
 
-        // A. If user is on Login/Signup page or Root, redirect to their dashboard
         if (isAuthPage || isPublicRoot) {
             url.pathname = role === "admin" ? "/admin" : "/users";
             return NextResponse.redirect(url);
         }
 
-        // B. Protect Admin Routes
         if (isAdminPage && role !== "admin") {
             url.pathname = "/users";
             return NextResponse.redirect(url);
@@ -90,6 +106,6 @@ export default async function proxy(request: NextRequest) {
 
 export const config = {
     matcher: [
-        "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+        "/((?!_next/static|_next/image|favicon\\.ico|manifest\\.json|sw\\.js|icons/|screenshots/).*)",
     ],
 };

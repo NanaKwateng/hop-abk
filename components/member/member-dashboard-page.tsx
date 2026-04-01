@@ -40,7 +40,7 @@ import type { Member } from "@/lib/types";
 import type { PaymentAnalytics } from "@/lib/types/payments";
 import { FaExpandAlt, FaFire } from "react-icons/fa";
 import { FaArrowTrendUp } from "react-icons/fa6";
-
+import { BsArrowsAngleContract } from "react-icons/bs";
 const SPRING_SNAPPY = { type: "spring" as const, stiffness: 400, damping: 30 };
 const SPRING_BOUNCY = { type: "spring" as const, stiffness: 300, damping: 20, mass: 0.8 };
 const SPRING_GENTLE = { type: "spring" as const, stiffness: 200, damping: 25 };
@@ -160,7 +160,7 @@ export function MemberDashboardPage({
         },
         {
             icon: IoTimeOutline,
-            label: "Joined",
+            label: "Registered",
             value: formatDate(member.createdAt),
             href: null,
             actionable: false,
@@ -315,7 +315,7 @@ export function MemberDashboardPage({
                                                 exit={{ scale: 0, rotate: 90 }}
                                                 transition={SPRING_BOUNCY}
                                             >
-                                                <FaExpandAlt className="h-4 w-4 text-primary" />
+                                                <BsArrowsAngleContract className="h-4 w-4 text-primary" />
                                             </motion.div>
                                         ) : (
                                             <motion.div
@@ -325,7 +325,7 @@ export function MemberDashboardPage({
                                                 exit={{ scale: 0, rotate: -90 }}
                                                 transition={SPRING_BOUNCY}
                                             >
-                                                <IoBookmarkOutline className="h-3.5 w-3.5 text-muted-foreground" />
+                                                <FaExpandAlt className="h-3.5 w-3.5 text-muted-foreground" />
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
