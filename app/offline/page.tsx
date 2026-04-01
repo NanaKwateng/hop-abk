@@ -2,9 +2,6 @@
 "use client"
 import { IoCloudOfflineOutline, IoRefreshOutline } from "react-icons/io5";
 
-export const metadata = {
-    title: "Offline — HOP Church | Abuakwa Assembly",
-};
 
 export default function OfflinePage() {
     return (
