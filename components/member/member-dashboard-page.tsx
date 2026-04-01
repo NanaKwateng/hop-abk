@@ -38,7 +38,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { Member } from "@/lib/types";
 import type { PaymentAnalytics } from "@/lib/types/payments";
-import { FaExpandAlt, FaExpandAlt, FaFire } from "react-icons/fa";
+import { FaFire } from "react-icons/fa";
 import { FaArrowTrendUp } from "react-icons/fa6";
 
 const SPRING_SNAPPY = { type: "spring" as const, stiffness: 400, damping: 30 };
