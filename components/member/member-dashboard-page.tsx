@@ -531,7 +531,7 @@ export function MemberDashboardPage({
                                                 onClick={toggleExpanded}
                                                 className="h-11 w-11 rounded-2xl shrink-0"
                                             >
-                                                <IoBookmarkOutline className="h-4 w-4" />
+                                                <RiOpenArmLine className="h-4 w-4" />
                                             </Button>
                                         </motion.div>
                                     )}
