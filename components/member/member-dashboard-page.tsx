@@ -32,6 +32,7 @@ import {
     IoSparklesOutline,
     IoChevronForward,
 } from "react-icons/io5";
+import { RiOpenArmLine } from "react-icons/ri";
 import { PaymentAnalyticsView } from "@/components/users/payment-analytics";
 import { memberSignOut } from "@/actions/member-verify";
 import { toast } from "sonner";
@@ -294,7 +295,7 @@ export function MemberDashboardPage({
                                     }}
                                 />
 
-                                {/* Bookmark toggle */}
+                                {/* Expand Arrow toggle */}
                                 <motion.button
                                     whileTap={{ scale: 0.8 }}
                                     whileHover={{ scale: 1.05 }}
@@ -433,7 +434,7 @@ export function MemberDashboardPage({
                                                         delay: 0.3,
                                                     }}
                                                 >
-                                                    <IoShieldCheckmarkOutline className="h-5 w-5 text-blue-500" />
+                                                    <RiOpenArmLine className="h-5 w-5 text-blue-500" />
                                                 </motion.div>
                                             </div>
 
