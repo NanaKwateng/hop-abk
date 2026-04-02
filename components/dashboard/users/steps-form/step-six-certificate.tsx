@@ -1,8 +1,10 @@
+// src/components/users/steps-form/step-six-certificate.tsx
 "use client";
 
 import React, { useRef, useState, useCallback, useEffect } from "react";
-import { CertificateTemplate } from "../certificate-template"; // Adjust import path
-import type { CertificateData } from "./membership-certificate"; // Adjust import path
+import confetti from "canvas-confetti";
+import { CertificateTemplate } from "../certificate-template";
+import type { CertificateData } from "./membership-certificate";
 import { Button } from "@/components/ui/button";
 import {
     DownloadIcon,
@@ -44,6 +46,7 @@ export function StepSixCertificate({ data, onReset }: StepSixProps) {
     const [isCapturing, setIsCapturing] = useState(false);
     const [downloaded, setDownloaded] = useState(false);
     const [avatarDataUrl, setAvatarDataUrl] = useState<string | undefined>(data.avatarUrl);
+    const [hasConfettiFired, setHasConfettiFired] = useState(false);
 
     // Pre-fetch avatar to prevent CORS taint
     useEffect(() => {
@@ -53,21 +56,62 @@ export function StepSixCertificate({ data, onReset }: StepSixProps) {
             .catch(() => setAvatarDataUrl(data.avatarUrl));
     }, [data.avatarUrl]);
 
+    // Fire confetti when this step mounts
+    useEffect(() => {
+        if (hasConfettiFired) return;
+        setHasConfettiFired(true);
+
+        const timer = setTimeout(() => {
+            // First burst — center
+            confetti({
+                particleCount: 100,
+                spread: 90,
+                origin: { y: 0.4, x: 0.5 },
+                colors: ["#10b981", "#6366f1", "#f59e0b", "#ef4444", "#3b82f6", "#8b5cf6"],
+                gravity: 1,
+                scalar: 1,
+                ticks: 200,
+            });
+
+            // Second burst — left side (delayed)
+            setTimeout(() => {
+                confetti({
+                    particleCount: 40,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0, y: 0.5 },
+                    colors: ["#10b981", "#fbbf24", "#6366f1"],
+                });
+            }, 200);
+
+            // Third burst — right side (delayed)
+            setTimeout(() => {
+                confetti({
+                    particleCount: 40,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1, y: 0.5 },
+                    colors: ["#ef4444", "#3b82f6", "#8b5cf6"],
+                });
+            }, 400);
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [hasConfettiFired]);
+
     const resolvedData = { ...data, avatarUrl: avatarDataUrl };
 
     // Canvas Generation Logic
     const captureCanvas = useCallback(async () => {
         if (!captureRef.current) throw new Error("Capture ref not ready");
 
-        // Ensure fonts and images are completely loaded in the DOM
         if (document.fonts?.ready) await document.fonts.ready;
-        await new Promise((resolve) => setTimeout(resolve, 300)); // Buffer for layout engine
+        await new Promise((resolve) => setTimeout(resolve, 300));
 
-        // Dynamically import html2canvas to avoid Next.js SSR issues
         const html2canvas = (await import("html2canvas-pro")).default;
 
         return await html2canvas(captureRef.current, {
-            scale: 3, // Retina-ready crispness
+            scale: 3,
             useCORS: true,
             allowTaint: false,
             backgroundColor: "#FFFFFF",
@@ -100,7 +144,6 @@ export function StepSixCertificate({ data, onReset }: StepSixProps) {
             const canvas = await captureCanvas();
             const { default: jsPDF } = await import("jspdf");
 
-            // Convert pixels to exact mm for PDF (aspect ratio match)
             const PX_TO_MM = 0.264583;
             const pageW = CERT_WIDTH * PX_TO_MM;
             const pageH = CERT_HEIGHT * PX_TO_MM;
@@ -111,7 +154,7 @@ export function StepSixCertificate({ data, onReset }: StepSixProps) {
                 format: [pageW, pageH],
             });
 
-            const imgData = canvas.toDataURL("image/jpeg", 1.0); // JPEG smaller file size for PDF
+            const imgData = canvas.toDataURL("image/jpeg", 1.0);
             pdf.addImage(imgData, "JPEG", 0, 0, pageW, pageH);
             pdf.save(`${data.firstName}-Certificate.pdf`);
 
@@ -139,7 +182,7 @@ export function StepSixCertificate({ data, onReset }: StepSixProps) {
                 </Button>
             </div>
 
-            {/* VISIBLE PREVIEW - Scaled down for UI */}
+            {/* VISIBLE PREVIEW */}
             <div
                 className="overflow-hidden border rounded-xl bg-slate-50 shadow-inner flex justify-center"
                 style={{ height: `${CERT_HEIGHT * zoom}px` }}
@@ -149,11 +192,7 @@ export function StepSixCertificate({ data, onReset }: StepSixProps) {
                 </div>
             </div>
 
-            {/* 
-              * PRODUCTION FIX: HIDDEN CAPTURE TARGET 
-              * Instead of height: 0 (which causes blank images), we render it fully,
-              * but push it off-screen. The browser paints it perfectly.
-            */}
+            {/* HIDDEN CAPTURE TARGET */}
             <div className="fixed top-[-9999px] left-[-9999px] z-[-9999] pointer-events-none">
                 <CertificateTemplate data={resolvedData} ref={captureRef} />
             </div>
