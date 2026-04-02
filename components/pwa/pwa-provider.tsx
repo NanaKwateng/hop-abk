@@ -3,15 +3,16 @@
 
 import { useServiceWorker } from "@/hooks/use-service-worker";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
+import { NotificationPrompt } from "@/components/pwa/notification-prompt";
 
 export function PWAProvider({ children }: { children: React.ReactNode }) {
-    // Register service worker
     useServiceWorker();
 
     return (
         <>
             {children}
             <InstallPrompt />
+            <NotificationPrompt />
         </>
     );
 }
