@@ -13,7 +13,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <QueryProvider>
 
                 <div className="flex min-h-screen">
-                    <DashboardHeader />
 
 
                     <aside className="w-64 bg-background hidden md:block">

@@ -23,6 +23,7 @@ import {
 } from "@/actions/admin-settings";
 import { toast } from "sonner";
 import type { AdminProfile } from "@/lib/types/admin-settings";
+import { UserDropdown } from "../auth/UserMenu";
 
 interface AccountSettingsPageProps {
     profile: AdminProfile;
@@ -98,6 +99,7 @@ export function AccountSettingsPage({ profile }: AccountSettingsPageProps) {
     return (
         <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-6">
             <div>
+                <UserDropdown />
                 <h1 className="text-2xl font-bold tracking-tight">
                     Account Settings
                 </h1>

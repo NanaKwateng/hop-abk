@@ -31,6 +31,7 @@ export interface WorkflowEntry {
     memberId: string;
     memberFirstName: string;
     memberLastName: string;
+    memberAvatarUrl: string | null;
     title: string;
     description: string | null;
     amount: number | null;
