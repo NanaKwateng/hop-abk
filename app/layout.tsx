@@ -6,7 +6,7 @@ import { Toaster } from "sonner"
 
 import { ThemeProvider } from "@/components/theme-provider"
 import { PWAProvider } from "@/components/pwa/pwa-provider";
-import { ErrorBoundary } from "@/components/pwa/error-boundary";
+//import { ErrorBoundary } from "@/components/pwa/error-boundary";
 
 const figtree = Figtree({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -87,32 +87,20 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ErrorBoundary>
-          <PWAProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              {children}
-            </ThemeProvider>
+        <PWAProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
 
-            <Toaster
-              position="bottom-right"
-              richColors
-              toastOptions={{
-                classNames: {
-                  // These keys target the specific toast variants
-                  success: 'bg-blue-600 text-white border-blue-700',
-                  error: 'bg-red-600 text-white border-red-700',
-                  // Optional: styling the icon or description specifically
-                  icon: 'text-white',
-                },
-              }}
-            />
-          </PWAProvider>
-        </ErrorBoundary>
+          <Toaster />
+        </PWAProvider>
+        {/* <ErrorBoundary>
+        </ErrorBoundary> */}
       </body>
     </html>
   );
