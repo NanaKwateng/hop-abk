@@ -6,7 +6,7 @@ import { Toaster } from "sonner"
 
 import { ThemeProvider } from "@/components/theme-provider"
 import { PWAProvider } from "@/components/pwa/pwa-provider";
-//import { ErrorBoundary } from "@/components/pwa/error-boundary";
+import { ErrorBoundary } from "@/components/pwa/error-boundary";
 
 const figtree = Figtree({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -87,20 +87,20 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <PWAProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            {children}
-          </ThemeProvider>
+        <ErrorBoundary>
+          <PWAProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+            </ThemeProvider>
 
-          <Toaster />
-        </PWAProvider>
-        {/* <ErrorBoundary>
-        </ErrorBoundary> */}
+            <Toaster />
+          </PWAProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );
