@@ -178,7 +178,6 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                 return merged;
             });
 
-            // Fire confetti for payment entries
             if (workflow.type === "payments" && newEntries.length > 0) {
                 fireConfetti();
             }
@@ -186,10 +185,8 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
         [drawerMember, workflow.type]
     );
 
-    // ── Refresh members after manage drawer changes ──
     function handleMembersChanged() {
         router.refresh();
-        // Optimistic: close and let server data repopulate
         setManageMembersOpen(false);
     }
 
@@ -245,9 +242,13 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
     const handleExport = useCallback((formatType: "csv" | "excel") => {
         const columns = [
             { header: "Member Name", key: "memberName" },
-            workflow.type === "roles" ? { header: "Role", key: "title" } : { header: "Title", key: "title" },
+            workflow.type === "roles"
+                ? { header: "Role", key: "title" }
+                : { header: "Title", key: "title" },
             { header: "Description", key: "description" },
-            ...(workflow.type === "payments" ? [{ header: "Amount (GH₵)", key: "amount" }] : []),
+            ...(workflow.type === "payments"
+                ? [{ header: "Amount (GH₵)", key: "amount" }]
+                : []),
             { header: "Status", key: "status" },
             { header: "Date Recorded", key: "date" },
         ];
@@ -281,12 +282,16 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
             URL.revokeObjectURL(url);
         } else {
             let html = "<html><head><meta charset='utf-8'></head><body><table border='1'><tr>";
-            columns.forEach((c) => { html += `<th style="background-color:#4472C4;color:white;font-weight:bold;padding:8px">${c.header}</th>`; });
+            columns.forEach((c) => {
+                html += `<th style="background-color:#4472C4;color:white;font-weight:bold;padding:8px">${c.header}</th>`;
+            });
             html += "</tr>";
             data.forEach((d, i) => {
                 const bgColor = i % 2 === 0 ? "#ffffff" : "#f2f2f2";
                 html += `<tr style="background-color:${bgColor}">`;
-                columns.forEach((c) => { html += `<td style="padding:6px">${d[c.key as keyof typeof d]}</td>`; });
+                columns.forEach((c) => {
+                    html += `<td style="padding:6px">${d[c.key as keyof typeof d]}</td>`;
+                });
                 html += "</tr>";
             });
             html += "</table></body></html>";
@@ -307,9 +312,10 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
     return (
         <TooltipProvider>
             <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6">
-                {/* Back */}
+
+                {/* ✅ FIXED: /admin/all-workflows → /admin/workflows */}
                 <Button variant="ghost" size="sm" asChild>
-                    <Link href="/admin/all-workflows">
+                    <Link href="/admin/workflows">
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         All Workflows
                     </Link>
@@ -393,7 +399,9 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                                     {workflow.type === "payments" ? "Total Amount" : "Processed"}
                                 </p>
                                 <p className="text-lg font-bold tabular-nums">
-                                    {workflow.type === "payments" ? `GH₵ ${totalPayments.toFixed(2)}` : `${processedMemberIds.size}/${members.length}`}
+                                    {workflow.type === "payments"
+                                        ? `GH₵ ${totalPayments.toFixed(2)}`
+                                        : `${processedMemberIds.size}/${members.length}`}
                                 </p>
                             </div>
                         </CardContent>
@@ -420,8 +428,10 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                                 Members ({members.length})
                             </CardTitle>
                             <CardDescription className="text-xs">
-                                {workflow.type === "payments" ? "Click a member to record payments"
-                                    : workflow.type === "roles" ? "Click a member to assign roles"
+                                {workflow.type === "payments"
+                                    ? "Click a member to record payments"
+                                    : workflow.type === "roles"
+                                        ? "Click a member to assign roles"
                                         : "Click a member to create entries"}
                             </CardDescription>
                             <div className="flex gap-2">
@@ -465,7 +475,12 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                                                 role="button"
                                                 tabIndex={0}
                                                 onClick={() => handleMemberClick(member)}
-                                                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleMemberClick(member); } }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter" || e.key === " ") {
+                                                        e.preventDefault();
+                                                        handleMemberClick(member);
+                                                    }
+                                                }}
                                                 className={cn(
                                                     "flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors outline-none",
                                                     "hover:bg-muted/50 focus-visible:bg-muted/50",
@@ -474,20 +489,30 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                                             >
                                                 <Avatar className="h-8 w-8 shrink-0">
                                                     <AvatarImage src={member.avatarUrl || ""} />
-                                                    <AvatarFallback className="text-[10px]">{initials.toUpperCase() || "?"}</AvatarFallback>
+                                                    <AvatarFallback className="text-[10px]">
+                                                        {initials.toUpperCase() || "?"}
+                                                    </AvatarFallback>
                                                 </Avatar>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium truncate">{member.firstName} {member.lastName}</p>
+                                                    <p className="text-sm font-medium truncate">
+                                                        {member.firstName} {member.lastName}
+                                                    </p>
                                                     <div className="flex items-center gap-2">
-                                                        <p className="text-[11px] text-muted-foreground font-mono">{member.membershipId ?? "—"}</p>
+                                                        <p className="text-[11px] text-muted-foreground font-mono">
+                                                            {member.membershipId ?? "—"}
+                                                        </p>
                                                         {entryCount > 0 && (
-                                                            <Badge variant="secondary" className="text-[9px] h-4 px-1">{entryCount}</Badge>
+                                                            <Badge variant="secondary" className="text-[9px] h-4 px-1">
+                                                                {entryCount}
+                                                            </Badge>
                                                         )}
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-1.5 shrink-0">
                                                     {workflow.type === "payments" && memberTotal > 0 && (
-                                                        <span className="text-[10px] text-green-600 font-medium tabular-nums">GH₵{memberTotal.toFixed(0)}</span>
+                                                        <span className="text-[10px] text-green-600 font-medium tabular-nums">
+                                                            GH₵{memberTotal.toFixed(0)}
+                                                        </span>
                                                     )}
                                                     {isProcessed && (
                                                         <Tooltip>
@@ -502,7 +527,9 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                                         );
                                     })}
                                     {filteredMembers.length === 0 && (
-                                        <p className="text-center py-8 text-sm text-muted-foreground">No members found.</p>
+                                        <p className="text-center py-8 text-sm text-muted-foreground">
+                                            No members found.
+                                        </p>
                                     )}
                                 </div>
                             </ScrollArea>
@@ -520,9 +547,13 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                                         {selectedMember ? (
                                             <span className="flex items-center gap-2">
                                                 <UserCheck className="h-3.5 w-3.5 text-primary" />
-                                                <strong>{selectedMember.firstName} {selectedMember.lastName}</strong>
+                                                <strong>
+                                                    {selectedMember.firstName} {selectedMember.lastName}
+                                                </strong>
                                             </span>
-                                        ) : "Select a member from the list."}
+                                        ) : (
+                                            "Select a member from the list."
+                                        )}
                                     </CardDescription>
                                 </CardHeader>
                                 {selectedMember ? (
@@ -531,23 +562,52 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                                             <Label htmlFor="entry-title">Title</Label>
                                             <Input
                                                 id="entry-title"
-                                                placeholder={workflow.type === "monitor" ? "e.g., Attendance note" : "e.g., Service Duty"}
+                                                placeholder={
+                                                    workflow.type === "monitor"
+                                                        ? "e.g., Attendance note"
+                                                        : "e.g., Service Duty"
+                                                }
                                                 value={title}
                                                 onChange={(e) => setTitle(e.target.value)}
                                             />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="entry-desc">
-                                                Description <span className="text-muted-foreground font-normal">(optional)</span>
+                                                Description{" "}
+                                                <span className="text-muted-foreground font-normal">
+                                                    (optional)
+                                                </span>
                                             </Label>
-                                            <Textarea id="entry-desc" placeholder="Add notes…" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
+                                            <Textarea
+                                                id="entry-desc"
+                                                placeholder="Add notes…"
+                                                rows={3}
+                                                value={description}
+                                                onChange={(e) => setDescription(e.target.value)}
+                                            />
                                         </div>
                                         <div className="flex gap-2 pt-2">
-                                            <Button onClick={handleSaveEntry} disabled={isPending || !title.trim()}>
-                                                {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                            <Button
+                                                onClick={handleSaveEntry}
+                                                disabled={isPending || !title.trim()}
+                                            >
+                                                {isPending ? (
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <Save className="mr-2 h-4 w-4" />
+                                                )}
                                                 Save Entry
                                             </Button>
-                                            <Button variant="outline" onClick={() => { setSelectedMember(null); setTitle(""); setDescription(""); }}>Cancel</Button>
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => {
+                                                    setSelectedMember(null);
+                                                    setTitle("");
+                                                    setDescription("");
+                                                }}
+                                            >
+                                                Cancel
+                                            </Button>
                                         </div>
                                     </CardContent>
                                 ) : (
@@ -556,7 +616,9 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                                             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
                                                 <Users className="h-6 w-6 text-muted-foreground" />
                                             </div>
-                                            <p className="text-sm text-muted-foreground">Click a member to create an entry.</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                Click a member to create an entry.
+                                            </p>
                                         </div>
                                     </CardContent>
                                 )}
@@ -573,9 +635,13 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                                         </div>
                                         <div className="space-y-1">
                                             <p className="text-sm font-medium">
-                                                {workflow.type === "payments" ? "Click a member to open the payment recorder" : "Click a member to assign roles"}
+                                                {workflow.type === "payments"
+                                                    ? "Click a member to open the payment recorder"
+                                                    : "Click a member to assign roles"}
                                             </p>
-                                            <p className="text-xs text-muted-foreground">Each member&apos;s data opens in a dedicated panel.</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Each member&apos;s data opens in a dedicated panel.
+                                            </p>
                                         </div>
                                     </div>
                                 </CardContent>
@@ -586,15 +652,29 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                         <Card>
                             <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-4">
                                 <div className="space-y-1">
-                                    <CardTitle className="text-base">All Entries ({entries.length})</CardTitle>
-                                    <CardDescription>Processed {config.label.toLowerCase()} for this workflow.</CardDescription>
+                                    <CardTitle className="text-base">
+                                        All Entries ({entries.length})
+                                    </CardTitle>
+                                    <CardDescription>
+                                        Processed {config.label.toLowerCase()} for this workflow.
+                                    </CardDescription>
                                 </div>
                                 {entries.length > 0 && (
                                     <div className="flex items-center gap-2">
-                                        <Button variant="outline" size="sm" onClick={() => handleExport("csv")} className="h-8">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleExport("csv")}
+                                            className="h-8"
+                                        >
                                             <Download className="mr-2 h-3.5 w-3.5" />CSV
                                         </Button>
-                                        <Button variant="outline" size="sm" onClick={() => handleExport("excel")} className="h-8">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleExport("excel")}
+                                            className="h-8"
+                                        >
                                             <Download className="mr-2 h-3.5 w-3.5" />Excel
                                         </Button>
                                     </div>
@@ -612,8 +692,12 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                                             <TableHeader>
                                                 <TableRow>
                                                     <TableHead>Member</TableHead>
-                                                    <TableHead>{workflow.type === "roles" ? "Role" : "Title"}</TableHead>
-                                                    {workflow.type === "payments" && <TableHead className="text-right">Amount</TableHead>}
+                                                    <TableHead>
+                                                        {workflow.type === "roles" ? "Role" : "Title"}
+                                                    </TableHead>
+                                                    {workflow.type === "payments" && (
+                                                        <TableHead className="text-right">Amount</TableHead>
+                                                    )}
                                                     <TableHead>Status</TableHead>
                                                     <TableHead className="hidden sm:table-cell">Date</TableHead>
                                                     <TableHead className="w-10" />
@@ -621,14 +705,19 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                                             </TableHeader>
                                             <TableBody>
                                                 {entries.map((entry) => {
-                                                    const initials = ((entry.memberFirstName[0] ?? "") + (entry.memberLastName[0] ?? "")).toUpperCase();
+                                                    const initials = (
+                                                        (entry.memberFirstName[0] ?? "") +
+                                                        (entry.memberLastName[0] ?? "")
+                                                    ).toUpperCase();
                                                     return (
                                                         <TableRow key={entry.id}>
                                                             <TableCell className="font-medium">
                                                                 <div className="flex items-center gap-2">
                                                                     <Avatar className="h-6 w-6">
                                                                         <AvatarImage src={entry.memberAvatarUrl || ""} />
-                                                                        <AvatarFallback className="text-[8px]">{initials}</AvatarFallback>
+                                                                        <AvatarFallback className="text-[8px]">
+                                                                            {initials}
+                                                                        </AvatarFallback>
                                                                     </Avatar>
                                                                     <span className="text-sm truncate max-w-[120px]">
                                                                         {entry.memberFirstName} {entry.memberLastName}
@@ -637,7 +726,9 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                                                             </TableCell>
                                                             <TableCell>
                                                                 <div>
-                                                                    <p className="text-sm">{entry.roleTitle ?? entry.title}</p>
+                                                                    <p className="text-sm">
+                                                                        {entry.roleTitle ?? entry.title}
+                                                                    </p>
                                                                     {(entry.roleDescription ?? entry.description) && (
                                                                         <p className="text-xs text-muted-foreground line-clamp-1">
                                                                             {entry.roleDescription ?? entry.description}
@@ -647,14 +738,18 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                                                             </TableCell>
                                                             {workflow.type === "payments" && (
                                                                 <TableCell className="text-right tabular-nums">
-                                                                    {entry.amount != null ? `GH₵ ${entry.amount.toFixed(2)}` : "—"}
+                                                                    {entry.amount != null
+                                                                        ? `GH₵ ${entry.amount.toFixed(2)}`
+                                                                        : "—"}
                                                                 </TableCell>
                                                             )}
                                                             <TableCell>
                                                                 <Badge
                                                                     variant={
-                                                                        entry.status === "completed" ? "default"
-                                                                            : entry.status === "cancelled" ? "destructive"
+                                                                        entry.status === "completed"
+                                                                            ? "default"
+                                                                            : entry.status === "cancelled"
+                                                                                ? "destructive"
                                                                                 : "secondary"
                                                                     }
                                                                     className="text-[10px]"
@@ -667,7 +762,8 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                                                             </TableCell>
                                                             <TableCell>
                                                                 <Button
-                                                                    variant="ghost" size="icon"
+                                                                    variant="ghost"
+                                                                    size="icon"
                                                                     className="h-7 w-7 text-muted-foreground hover:text-destructive"
                                                                     onClick={() => setDeleteEntryId(entry.id)}
                                                                 >
@@ -687,11 +783,16 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                 </div>
 
                 {/* Delete dialog */}
-                <AlertDialog open={deleteEntryId !== null} onOpenChange={(open) => !open && setDeleteEntryId(null)}>
+                <AlertDialog
+                    open={deleteEntryId !== null}
+                    onOpenChange={(open) => !open && setDeleteEntryId(null)}
+                >
                     <AlertDialogContent>
                         <AlertDialogHeader>
                             <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
-                            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+                            <AlertDialogDescription>
+                                This action cannot be undone.
+                            </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
@@ -710,7 +811,10 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                 {drawerMember && workflow.type === "payments" && (
                     <PaymentEntryDrawer
                         open={paymentDrawerOpen}
-                        onOpenChange={(open) => { setPaymentDrawerOpen(open); if (!open) router.refresh(); }}
+                        onOpenChange={(open) => {
+                            setPaymentDrawerOpen(open);
+                            if (!open) router.refresh();
+                        }}
                         workflowId={workflow.id}
                         member={drawerMember}
                         onEntryChange={handleDrawerEntryChange}
@@ -720,7 +824,10 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
                 {drawerMember && workflow.type === "roles" && (
                     <RoleEntryDrawer
                         open={roleDrawerOpen}
-                        onOpenChange={(open) => { setRoleDrawerOpen(open); if (!open) router.refresh(); }}
+                        onOpenChange={(open) => {
+                            setRoleDrawerOpen(open);
+                            if (!open) router.refresh();
+                        }}
                         workflowId={workflow.id}
                         member={drawerMember}
                         onEntryChange={handleDrawerEntryChange}

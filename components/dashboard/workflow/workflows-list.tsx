@@ -134,7 +134,7 @@ export function WorkflowsList({ initialWorkflows }: WorkflowsListProps) {
     }
 
     function navigateToWorkflow(wf: Workflow) {
-        router.push(`/workflow/${wf.slug}`);
+        router.push(`/admin/workflows/${wf.slug}`)
     }
 
     return (

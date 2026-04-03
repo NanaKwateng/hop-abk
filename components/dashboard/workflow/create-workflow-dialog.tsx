@@ -113,7 +113,7 @@ export function CreateWorkflowDrawer({
             onOpenChange(false);
 
             // Navigate using the slug
-            router.push(`/workflow/${slug}`);
+            router.push(`/admin/workflows/${slug}`);
             router.refresh();
         } catch (error: any) {
             toast.error(error.message || "Failed to create workflow");
