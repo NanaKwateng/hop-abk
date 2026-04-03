@@ -315,7 +315,7 @@ export function WorkflowDetailPage({ workflow }: WorkflowDetailPageProps) {
 
                 {/* ✅ FIXED: /admin/all-workflows → /admin/workflows */}
                 <Button variant="ghost" size="sm" asChild>
-                    <Link href="/admin/workflows">
+                    <Link href="/admin/workflow">
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         All Workflows
                     </Link>
