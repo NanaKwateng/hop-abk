@@ -3,6 +3,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link"; // ✅ CRITICAL: Use Link for navigation
 import {
     Card,
     CardContent,
@@ -60,36 +61,36 @@ const TYPE_CONFIG = {
     payments: {
         icon: CreditCard,
         label: "💳 Payments",
-        iconColor: "text-[#3B82F6]", // Blue from "relevant lists" card
+        iconColor: "text-[#3B82F6]",
         bgColor: "bg-[#E0E7FF]",
-        cardBg: "bg-[#6366F1]", // Indigo/Blue card
+        cardBg: "bg-[#6366F1]",
         textColor: "text-white",
         descColor: "text-indigo-100",
     },
     records: {
         icon: FileText,
         label: "📄 Records",
-        iconColor: "text-[#D97706]", // Amber from "Auto-prioritize" card
+        iconColor: "text-[#D97706]",
         bgColor: "bg-[#FEF3C7]",
-        cardBg: "bg-[#FBBF24]", // Yellow card
+        cardBg: "bg-[#FBBF24]",
         textColor: "text-[#451a03]",
         descColor: "text-[#92400e]",
     },
     roles: {
         icon: Shield,
         label: "🛡️ Roles",
-        iconColor: "text-[#7C3AED]", // Purple from "categories" card
+        iconColor: "text-[#7C3AED]",
         bgColor: "bg-[#EDE9FE]",
-        cardBg: "bg-[#A78BFA]", // Purple card
+        cardBg: "bg-[#A78BFA]",
         textColor: "text-white",
         descColor: "text-purple-100",
     },
     monitor: {
         icon: Activity,
         label: "📊 Monitor",
-        iconColor: "text-[#EA580C]", // Coral from "voice memos" card
+        iconColor: "text-[#EA580C]",
         bgColor: "bg-[#FFEDD5]",
-        cardBg: "bg-[#FB7185]", // Coral/Red card
+        cardBg: "bg-[#FB7185]",
         textColor: "text-white",
         descColor: "text-rose-100",
     },
@@ -131,10 +132,6 @@ export function WorkflowsList({ initialWorkflows }: WorkflowsListProps) {
                 setDeleteTarget(null);
             }
         });
-    }
-
-    function navigateToWorkflow(wf: Workflow) {
-        router.push(`/admin/workflow/${wf.slug}`)
     }
 
     return (
@@ -189,98 +186,129 @@ export function WorkflowsList({ initialWorkflows }: WorkflowsListProps) {
                         const status = getStatus(wf);
                         const config = TYPE_CONFIG[wf.type] ?? TYPE_CONFIG.records;
                         const TypeIcon = config.icon;
+                        const workflowUrl = `/admin/workflow/${wf.slug}`; // ✅ Define URL once
 
                         return (
-                            <Card
+                            <Link
                                 key={wf.id}
+                                href={workflowUrl} // ✅ CRITICAL: Use Link instead of onClick
                                 className={cn(
-                                    "group flex flex-col transition-all duration-300 cursor-pointer border-none rounded-[2rem] shadow-sm",
+                                    "group flex flex-col transition-all duration-300 border-none rounded-[2rem] shadow-sm",
                                     "hover:shadow-xl hover:-translate-y-1",
                                     config.cardBg,
                                     status === "expired" && "ring-2 ring-destructive/50"
                                 )}
-                                onClick={() => navigateToWorkflow(wf)}
                             >
-                                <CardHeader className="pb-3">
-                                    <div className="flex items-start justify-between">
-                                        <div
-                                            className={cn(
-                                                "flex h-12 w-12 items-center justify-center rounded-2xl shadow-inner bg-white/90"
-                                            )}
-                                        >
-                                            <TypeIcon
-                                                className={cn("h-6 w-6", config.iconColor)}
-                                            />
+                                <Card className="border-none shadow-none bg-transparent h-full flex flex-col">
+                                    <CardHeader className="pb-3">
+                                        <div className="flex items-start justify-between">
+                                            <div
+                                                className={cn(
+                                                    "flex h-12 w-12 items-center justify-center rounded-2xl shadow-inner bg-white/90"
+                                                )}
+                                            >
+                                                <TypeIcon
+                                                    className={cn("h-6 w-6", config.iconColor)}
+                                                />
+                                            </div>
+
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-inherit opacity-60 hover:opacity-100 transition-opacity"
+                                                        onClick={(e) => {
+                                                            e.preventDefault(); // ✅ Prevent Link navigation
+                                                            e.stopPropagation();
+                                                        }}
+                                                    >
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent
+                                                    align="end"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                    }}
+                                                >
+                                                    <DropdownMenuItem asChild>
+                                                        <Link href={workflowUrl}>
+                                                            <Eye className="mr-2 h-4 w-4" />
+                                                            Open Workspace
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem
+                                                        className="text-destructive focus:text-destructive"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            setDeleteTarget(wf);
+                                                        }}
+                                                    >
+                                                        <Trash2 className="mr-2 h-4 w-4" />
+                                                        Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
 
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 text-inherit opacity-60 hover:opacity-100 transition-opacity"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent
-                                                align="end"
-                                                onClick={(e) => e.stopPropagation()}
-                                            >
-                                                <DropdownMenuItem
-                                                    onClick={() => navigateToWorkflow(wf)}
-                                                >
-                                                    <Eye className="mr-2 h-4 w-4" />
-                                                    Open Workspace
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem
-                                                    className="text-destructive focus:text-destructive"
-                                                    onClick={() => setDeleteTarget(wf)}
-                                                >
-                                                    <Trash2 className="mr-2 h-4 w-4" />
-                                                    Delete
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </div>
+                                        <CardTitle
+                                            className={cn(
+                                                "text-xl mt-4 font-bold tracking-tight",
+                                                config.textColor
+                                            )}
+                                        >
+                                            {wf.name}
+                                        </CardTitle>
 
-                                    <CardTitle className={cn("text-xl mt-4 font-bold tracking-tight", config.textColor)}>
-                                        {wf.name}
-                                    </CardTitle>
+                                        <CardDescription
+                                            className={cn(
+                                                "flex items-center gap-1.5 font-medium opacity-90",
+                                                config.descColor
+                                            )}
+                                        >
+                                            <Clock className="h-3.5 w-3.5" />
+                                            {format(new Date(wf.startDate), "MMM d")} –{" "}
+                                            {format(new Date(wf.endDate), "MMM d, yyyy")}
+                                        </CardDescription>
+                                    </CardHeader>
 
-                                    <CardDescription className={cn("flex items-center gap-1.5 font-medium opacity-90", config.descColor)}>
-                                        <Clock className="h-3.5 w-3.5" />
-                                        {format(new Date(wf.startDate), "MMM d")} –{" "}
-                                        {format(new Date(wf.endDate), "MMM d, yyyy")}
-                                    </CardDescription>
-                                </CardHeader>
+                                    <CardContent className="flex-1 pb-3">
+                                        <Badge className="bg-white/20 hover:bg-white/30 border-none text-white backdrop-blur-md font-medium">
+                                            {config.label}
+                                        </Badge>
+                                    </CardContent>
 
-                                <CardContent className="flex-1 pb-3">
-                                    <Badge className="bg-white/20 hover:bg-white/30 border-none text-white backdrop-blur-md font-medium">
-                                        {config.label}
-                                    </Badge>
-                                </CardContent>
-
-                                <CardFooter className="pt-3 flex items-center justify-between bg-black/5 rounded-b-[2rem]">
-                                    <span className={cn("flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider", config.descColor)}>
-                                        <Users className="h-3.5 w-3.5" />
-                                        {wf.memberCount} member
-                                        {wf.memberCount !== 1 ? "s" : ""}
-                                    </span>
-                                    <Badge
-                                        variant="outline"
-                                        className={cn(
-                                            "text-[10px] uppercase font-bold border-none",
-                                            status === "active" ? "bg-green-400 text-green-950" :
-                                                status === "expired" ? "bg-red-400 text-red-950" : "bg-white/50 text-slate-900"
-                                        )}
-                                    >
-                                        {status}
-                                    </Badge>
-                                </CardFooter>
-                            </Card>
+                                    <CardFooter className="pt-3 flex items-center justify-between bg-black/5 rounded-b-[2rem]">
+                                        <span
+                                            className={cn(
+                                                "flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider",
+                                                config.descColor
+                                            )}
+                                        >
+                                            <Users className="h-3.5 w-3.5" />
+                                            {wf.memberCount} member
+                                            {wf.memberCount !== 1 ? "s" : ""}
+                                        </span>
+                                        <Badge
+                                            variant="outline"
+                                            className={cn(
+                                                "text-[10px] uppercase font-bold border-none",
+                                                status === "active"
+                                                    ? "bg-green-400 text-green-950"
+                                                    : status === "expired"
+                                                        ? "bg-red-400 text-red-950"
+                                                        : "bg-white/50 text-slate-900"
+                                            )}
+                                        >
+                                            {status}
+                                        </Badge>
+                                    </CardFooter>
+                                </Card>
+                            </Link>
                         );
                     })}
                 </div>
