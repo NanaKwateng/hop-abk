@@ -1,13 +1,8 @@
-// components/dashboard/workflow/role-entry-drawer.tsx
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
 import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
-    SheetDescription,
+    Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,38 +13,19 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
+    AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+    AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-    Loader2,
-    Save,
-    Plus,
-    Trash2,
-    Pencil,
-    Shield,
-    X,
-    Check,
+    Loader2, Save, Plus, Trash2, Pencil, Shield, X,
 } from "lucide-react";
 import {
-    createWorkflowEntry,
-    updateWorkflowEntry,
-    deleteWorkflowEntry,
-    getMemberWorkflowEntries,
+    createWorkflowEntry, updateWorkflowEntry,
+    deleteWorkflowEntry, getMemberWorkflowEntries,
 } from "@/actions/workflow";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import type {
-    WorkflowMember,
-    WorkflowEntry,
-} from "@/lib/types/workflow";
+import type { WorkflowMember, WorkflowEntry } from "@/lib/types/workflow";
 
 interface RoleEntryDrawerProps {
     open: boolean;
@@ -66,14 +42,14 @@ export function RoleEntryDrawer({
     member,
     onEntryChange,
 }: RoleEntryDrawerProps) {
-    const [isPending, startTransition] = useTransition();
+    const [isSaving, startSaveTransition] = useTransition();
+    const [isDeleting, startDeleteTransition] = useTransition();
     const [entries, setEntries] = useState<WorkflowEntry[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [editingEntry, setEditingEntry] = useState<WorkflowEntry | null>(null);
     const [deleteEntryId, setDeleteEntryId] = useState<string | null>(null);
 
-    // Form state
     const [roleTitle, setRoleTitle] = useState("");
     const [roleDescription, setRoleDescription] = useState("");
 
@@ -81,14 +57,27 @@ export function RoleEntryDrawer({
         (member.firstName?.[0] ?? "") + (member.lastName?.[0] ?? "");
 
     useEffect(() => {
-        if (open && member) {
-            setIsLoading(true);
-            getMemberWorkflowEntries(workflowId, member.memberId)
-                .then((data) => setEntries(data))
-                .catch(() => toast.error("Failed to load entries"))
-                .finally(() => setIsLoading(false));
-        }
-    }, [open, member, workflowId]);
+        if (!open) return;
+        let cancelled = false;
+
+        setIsLoading(true);
+        getMemberWorkflowEntries(workflowId, member.memberId)
+            .then((data) => {
+                if (!cancelled) setEntries(data);
+            })
+            .catch(() => {
+                if (!cancelled) toast.error("Failed to load entries");
+            })
+            .finally(() => {
+                if (!cancelled) setIsLoading(false);
+            });
+
+        // ✅ Cleanup: if drawer closes before fetch completes,
+        // prevent setting state on unmounted/closed component
+        return () => {
+            cancelled = true;
+        };
+    }, [open, member.memberId, workflowId]);
 
     function resetForm() {
         setRoleTitle("");
@@ -110,7 +99,7 @@ export function RoleEntryDrawer({
             return;
         }
 
-        startTransition(async () => {
+        startSaveTransition(async () => {
             try {
                 if (editingEntry) {
                     const updated = await updateWorkflowEntry({
@@ -122,9 +111,12 @@ export function RoleEntryDrawer({
                         description: roleDescription.trim() || undefined,
                     });
 
-                    setEntries((prev) =>
-                        prev.map((e) => (e.id === updated.id ? updated : e))
+                    // ✅ Fixed: derive newEntries explicitly, no stale closure
+                    const newEntries = entries.map((e) =>
+                        e.id === updated.id ? updated : e
                     );
+                    setEntries(newEntries);
+                    onEntryChange(newEntries);
                     toast.success("Role updated");
                 } else {
                     const entry = await createWorkflowEntry({
@@ -138,14 +130,20 @@ export function RoleEntryDrawer({
                         status: "completed",
                     });
 
-                    setEntries((prev) => [entry, ...prev]);
+                    // ✅ Fixed: derive newEntries explicitly, no stale closure
+                    const newEntries = [entry, ...entries];
+                    setEntries(newEntries);
+                    onEntryChange(newEntries);
                     toast.success("Role assigned");
                 }
 
-                onEntryChange(entries);
                 resetForm();
-            } catch (error: any) {
-                toast.error("Failed to save", { description: error.message });
+            } catch (error: unknown) {
+                const message =
+                    error instanceof Error
+                        ? error.message
+                        : "An unexpected error occurred";
+                toast.error("Failed to save", { description: message });
             }
         });
     }
@@ -153,14 +151,20 @@ export function RoleEntryDrawer({
     async function handleDeleteEntry() {
         if (!deleteEntryId) return;
 
-        startTransition(async () => {
+        startDeleteTransition(async () => {
             try {
                 await deleteWorkflowEntry(deleteEntryId, workflowId);
-                setEntries((prev) => prev.filter((e) => e.id !== deleteEntryId));
-                onEntryChange(entries.filter((e) => e.id !== deleteEntryId));
+                // ✅ Fixed: derive newEntries explicitly, no stale closure
+                const newEntries = entries.filter((e) => e.id !== deleteEntryId);
+                setEntries(newEntries);
+                onEntryChange(newEntries);
                 toast.success("Role assignment deleted");
-            } catch (error: any) {
-                toast.error("Failed to delete", { description: error.message });
+            } catch (error: unknown) {
+                const message =
+                    error instanceof Error
+                        ? error.message
+                        : "An unexpected error occurred";
+                toast.error("Failed to delete", { description: message });
             } finally {
                 setDeleteEntryId(null);
             }
@@ -168,11 +172,14 @@ export function RoleEntryDrawer({
     }
 
     function handleClose() {
-        if (!isPending) {
+        // ✅ Block close only if an active operation is in flight
+        if (!isSaving && !isDeleting) {
             resetForm();
             onOpenChange(false);
         }
     }
+
+    const isPending = isSaving || isDeleting;
 
     return (
         <>
@@ -210,7 +217,9 @@ export function RoleEntryDrawer({
 
                         <div className="flex items-center gap-4 mt-4 text-sm">
                             <div className="flex items-center gap-1.5">
-                                <span className="text-muted-foreground">Roles assigned:</span>
+                                <span className="text-muted-foreground">
+                                    Roles assigned:
+                                </span>
                                 <Badge variant="secondary" className="text-xs">
                                     {entries.length}
                                 </Badge>
@@ -229,6 +238,7 @@ export function RoleEntryDrawer({
                                     }}
                                     className="w-full"
                                     variant="outline"
+                                    disabled={isPending}
                                 >
                                     <Plus className="mr-2 h-4 w-4" />
                                     Assign Role
@@ -246,6 +256,7 @@ export function RoleEntryDrawer({
                                             size="icon"
                                             className="h-7 w-7"
                                             onClick={resetForm}
+                                            disabled={isSaving}
                                         >
                                             <X className="h-4 w-4" />
                                         </Button>
@@ -274,7 +285,9 @@ export function RoleEntryDrawer({
                                             placeholder="Describe the responsibilities..."
                                             rows={3}
                                             value={roleDescription}
-                                            onChange={(e) => setRoleDescription(e.target.value)}
+                                            onChange={(e) =>
+                                                setRoleDescription(e.target.value)
+                                            }
                                             className="resize-none"
                                         />
                                     </div>
@@ -282,11 +295,11 @@ export function RoleEntryDrawer({
                                     <div className="flex gap-2 pt-1">
                                         <Button
                                             onClick={handleSave}
-                                            disabled={isPending || !roleTitle.trim()}
+                                            disabled={isSaving || !roleTitle.trim()}
                                             size="sm"
                                             className="flex-1"
                                         >
-                                            {isPending ? (
+                                            {isSaving ? (
                                                 <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                                             ) : (
                                                 <Save className="mr-1.5 h-3.5 w-3.5" />
@@ -297,7 +310,7 @@ export function RoleEntryDrawer({
                                             variant="outline"
                                             size="sm"
                                             onClick={resetForm}
-                                            disabled={isPending}
+                                            disabled={isSaving}
                                         >
                                             Cancel
                                         </Button>
@@ -336,11 +349,13 @@ export function RoleEntryDrawer({
                                                             {entry.roleTitle ?? entry.title}
                                                         </p>
                                                     </div>
-                                                    {(entry.roleDescription ?? entry.description) && (
-                                                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2 pl-5">
-                                                            {entry.roleDescription ?? entry.description}
-                                                        </p>
-                                                    )}
+                                                    {(entry.roleDescription ??
+                                                        entry.description) && (
+                                                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2 pl-5">
+                                                                {entry.roleDescription ??
+                                                                    entry.description}
+                                                            </p>
+                                                        )}
                                                 </div>
                                                 <div className="flex items-center gap-1 shrink-0 ml-2">
                                                     <Button
@@ -348,6 +363,7 @@ export function RoleEntryDrawer({
                                                         size="icon"
                                                         className="h-7 w-7"
                                                         onClick={() => startEdit(entry)}
+                                                        disabled={isPending}
                                                     >
                                                         <Pencil className="h-3 w-3" />
                                                     </Button>
@@ -355,14 +371,21 @@ export function RoleEntryDrawer({
                                                         variant="ghost"
                                                         size="icon"
                                                         className="h-7 w-7 text-destructive hover:text-destructive"
-                                                        onClick={() => setDeleteEntryId(entry.id)}
+                                                        onClick={() =>
+                                                            setDeleteEntryId(entry.id)
+                                                        }
+                                                        disabled={isPending}
                                                     >
                                                         <Trash2 className="h-3 w-3" />
                                                     </Button>
                                                 </div>
                                             </div>
                                             <div className="text-[10px] text-muted-foreground pl-5">
-                                                Assigned {format(new Date(entry.createdAt), "MMM d, yyyy")}
+                                                Assigned{" "}
+                                                {format(
+                                                    new Date(entry.createdAt),
+                                                    "MMM d, yyyy"
+                                                )}
                                             </div>
                                         </div>
                                     ))}
@@ -385,13 +408,15 @@ export function RoleEntryDrawer({
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel disabled={isDeleting}>
+                            Cancel
+                        </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDeleteEntry}
-                            disabled={isPending}
+                            disabled={isDeleting}
                             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                            {isPending ? "Removing…" : "Remove"}
+                            {isDeleting ? "Removing…" : "Remove"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

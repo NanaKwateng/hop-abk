@@ -1,4 +1,3 @@
-// components/dashboard/workflow/create-workflow-drawer.tsx
 "use client";
 
 import { useState } from "react";
@@ -26,16 +25,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import {
-    Loader2,
-    ArrowRight,
-    ArrowLeft,
-    Users,
-    FileText,
-    CreditCard,
-    Check,
-    CalendarDays,
-    Shield,
-    Activity,
+    Loader2, ArrowRight, ArrowLeft,
+    FileText, CreditCard, Check, CalendarDays, Shield, Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -93,9 +84,7 @@ export function CreateWorkflowDrawer({
 
     async function onSubmit(data: CreateWorkflowInput) {
         setIsSubmitting(true);
-
         try {
-            // createWorkflow now returns the slug string
             const slug = await createWorkflow({
                 name: data.name,
                 startDate: format(data.dateRange.from, "yyyy-MM-dd"),
@@ -112,11 +101,16 @@ export function CreateWorkflowDrawer({
             setStep(1);
             onOpenChange(false);
 
-            // Navigate using the slug
-            router.push(`/admin/workflows/${slug}`);
+            // ✅ Fixed: was /admin/workflows/${slug}
+            router.push(`/admin/workflow/${slug}`);
             router.refresh();
-        } catch (error: any) {
-            toast.error(error.message || "Failed to create workflow");
+        } catch (error: unknown) {
+            // ✅ Fixed: was error: any
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Failed to create workflow";
+            toast.error(message);
         } finally {
             setIsSubmitting(false);
         }
@@ -134,7 +128,7 @@ export function CreateWorkflowDrawer({
         <Sheet open={open} onOpenChange={handleClose}>
             <SheetContent
                 side="right"
-                className="w-full sm:max-w-2xl p-0 flex flex-col gap-0"
+                className="w-full sm:max-w-2xl px-2 flex flex-col gap-0"
             >
                 {/* Header + Stepper */}
                 <div className="shrink-0 px-6 pt-6 pb-4 border-b bg-muted/30 space-y-4">
@@ -143,8 +137,7 @@ export function CreateWorkflowDrawer({
                             Create New Workflow
                         </SheetTitle>
                         <SheetDescription>
-                            Set up a batch process for member records, payments, or
-                            roles.
+                            Set up a batch process for member records, payments, or roles.
                         </SheetDescription>
                     </SheetHeader>
 
@@ -172,12 +165,9 @@ export function CreateWorkflowDrawer({
                                         <div
                                             className={cn(
                                                 "flex h-6 w-6 items-center justify-center rounded-full text-xs font-semibold transition-colors",
-                                                isActive &&
-                                                "bg-primary text-primary-foreground shadow-sm",
+                                                isActive && "bg-primary text-primary-foreground shadow-sm",
                                                 isComplete && "bg-primary/20 text-primary",
-                                                !isActive &&
-                                                !isComplete &&
-                                                "bg-muted text-muted-foreground"
+                                                !isActive && !isComplete && "bg-muted text-muted-foreground"
                                             )}
                                         >
                                             {isComplete ? (
@@ -190,9 +180,7 @@ export function CreateWorkflowDrawer({
                                             <p
                                                 className={cn(
                                                     "text-xs font-medium leading-none",
-                                                    isActive
-                                                        ? "text-foreground"
-                                                        : "text-muted-foreground"
+                                                    isActive ? "text-foreground" : "text-muted-foreground"
                                                 )}
                                             >
                                                 {s.label}
@@ -215,12 +203,15 @@ export function CreateWorkflowDrawer({
                         <ScrollArea className="h-120">
                             <div className="px-6 py-6 space-y-6">
                                 <div className="space-y-2">
-                                    <Label htmlFor="wf-name" className="text-sm font-medium">
+                                    <Label
+                                        htmlFor="wf-name"
+                                        className="text-sm font-medium"
+                                    >
                                         Workflow Name
                                     </Label>
                                     <Input
                                         id="wf-name"
-                                        placeholder="eg. Building Commitee"
+                                        placeholder="eg. Building Committee"
                                         className="h-11 text-base"
                                         autoFocus
                                         {...form.register("name")}
@@ -261,7 +252,9 @@ export function CreateWorkflowDrawer({
                                                 })
                                             }
                                             numberOfMonths={1}
-                                            disabled={(date) => date < new Date("1900-01-01")}
+                                            disabled={(date) =>
+                                                date < new Date("1900-01-01")
+                                            }
                                             className="mx-auto"
                                         />
                                     </div>
@@ -284,7 +277,9 @@ export function CreateWorkflowDrawer({
                             <MemberSelectionTable
                                 selectedIds={selectedMembers}
                                 onSelectionChange={(ids) =>
-                                    setValue("memberIds", ids, { shouldValidate: true })
+                                    setValue("memberIds", ids, {
+                                        shouldValidate: true,
+                                    })
                                 }
                             />
                             {errors.memberIds && (
@@ -453,9 +448,7 @@ export function CreateWorkflowDrawer({
                                             <span className="font-medium">
                                                 {form.getValues("name")}
                                             </span>
-                                            <span className="text-muted-foreground">
-                                                Action
-                                            </span>
+                                            <span className="text-muted-foreground">Action</span>
                                             <span className="font-medium capitalize">
                                                 {type === "payments"
                                                     ? "💳 Payments"
@@ -465,9 +458,7 @@ export function CreateWorkflowDrawer({
                                                             ? "📊 Monitor"
                                                             : "📄 Records"}
                                             </span>
-                                            <span className="text-muted-foreground">
-                                                Members
-                                            </span>
+                                            <span className="text-muted-foreground">Members</span>
                                             <span className="font-medium">
                                                 {selectedMembers.length} selected
                                             </span>

@@ -4,6 +4,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+
+// ✅ CORRECT:
 import { CreateWorkflowDrawer } from "./create-workflow-dialog";
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
 
@@ -17,11 +19,10 @@ export function WorkflowCreateTrigger() {
                 as="button"
                 className="dark:bg-black p-0 bg-white text-black dark:text-white flex items-center space-x-2 px-2 py-2 text-xs"
                 onClick={() => setOpen(true)}
+                aria-label="Create new workflow"
             >
-
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
                 New Workflow
-
             </HoverBorderGradient>
             <CreateWorkflowDrawer open={open} onOpenChange={setOpen} />
         </>
