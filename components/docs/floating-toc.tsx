@@ -67,14 +67,14 @@ export function FloatingToc() {
     // =========================================================
     if (sections.length === 0) {
         return (
-            <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
-                <div className="flex flex-col space-y-1.5 p-6">
-                    <h3 className="font-semibold leading-none tracking-tight text-lg">
-                        Welcome Admin 👋
+            <div className="rounded-xl border bg-card text-card-foreground shadow-sm max-w-sm">
+                <div className="flex flex-col space-y-1.5 p-4">
+                    <h3 className="font-semibold leading-none tracking-tight text-md font-serif italic">
+                        Welcome Admin
                     </h3>
                 </div>
-                <div className="p-6 pt-0 text-sm text-muted-foreground">
-                    <p className="leading-relaxed">
+                <div className="p-4 pt-0  text-muted-foreground">
+                    <p className="leading-relaxed text-xs font-serif tracking-tighter">
                         You're doing excellent work organizing and managing the House of God. Every update you make here helps the church thrive. Keep up the great work!
                     </p>
                 </div>
