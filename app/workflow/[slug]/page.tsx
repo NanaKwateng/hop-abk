@@ -1,4 +1,4 @@
-// app/admin/workflows/[slug]/page.tsx
+// app/admin/workflow/[slug]/page.tsx
 
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
@@ -45,15 +45,17 @@ async function WorkflowDataLoader({
 }) {
     const { slug } = await params;
 
-    if (!slug || slug.length < 2) {
-        notFound();
-    }
+    // 👇 ADD THIS TEMPORARILY
+    console.log("[WorkflowDataLoader] slug received:", slug);
 
     const workflow = await getWorkflowBySlug(slug);
+
+    // 👇 ADD THIS TEMPORARILY  
+    console.log("[WorkflowDataLoader] workflow result:", workflow);
 
     if (!workflow) {
         notFound();
     }
 
-    return <WorkflowDetailPage workflow={workflow} />;
+    return <WorkflowDetailPage workflow={workflow!} />;
 }
