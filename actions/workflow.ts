@@ -94,65 +94,111 @@ export async function getWorkflows(): Promise<Workflow[]> {
     return (data ?? []).map(mapWorkflow);
 }
 
-export async function getWorkflowBySlug(
-    slug: string
-): Promise<WorkflowDetail | null> {
-    const { supabase } = await getAuthUser();
-    const cleanSlug = sanitizeSlug(slug);
+// actions/workflow.ts - Update getWorkflowBySlug with extensive logging
 
-    const { data: workflow, error: wfError } = await supabase
-        .from("workflows")
-        .select("*")
-        .eq("slug", cleanSlug)
-        .single();
+export async function getWorkflowBySlug(slug: string): Promise<WorkflowDetail | null> {
+    console.log("========================================");
+    console.log("[getWorkflowBySlug] START");
+    console.log("[getWorkflowBySlug] Input slug:", slug);
+    console.log("========================================");
 
-    if (wfError || !workflow) return null;
+    try {
+        const { supabase } = await getAuthUser();
+        const cleanSlug = sanitizeSlug(slug);
 
-    const { data: workflowMembers, error: mErr } = await supabase
-        .from("workflow_members")
-        .select(
-            `id, workflow_id, member_id, created_at,
-             members!inner(id, first_name, last_name, membership_id, avatar_url, member_group)`
-        )
-        .eq("workflow_id", workflow.id)
-        .order("created_at", { ascending: true });
+        console.log("[getWorkflowBySlug] Sanitized slug:", cleanSlug);
 
-    if (mErr) throw new Error(mErr.message);
+        // Query workflow
+        const { data: workflow, error: wfError } = await supabase
+            .from("workflows")
+            .select("*")
+            .eq("slug", cleanSlug)
+            .single();
 
-    const { data: entries, error: eErr } = await supabase
-        .from("workflow_entries")
-        .select(ENTRY_SELECT)
-        .eq("workflow_id", workflow.id)
-        .order("created_at", { ascending: false });
+        console.log("[getWorkflowBySlug] Query result:", {
+            found: !!workflow,
+            error: wfError?.message,
+            workflowId: workflow?.id,
+        });
 
-    if (eErr) throw new Error(eErr.message);
+        if (wfError || !workflow) {
+            console.error("[getWorkflowBySlug] ❌ Workflow not found");
+            console.error("[getWorkflowBySlug] Error:", wfError);
+            return null;
+        }
 
-    const members = (workflowMembers ?? []).map((wm: any) => ({
-        id: wm.id,
-        workflowId: wm.workflow_id,
-        memberId: wm.member_id,
-        firstName: wm.members.first_name,
-        lastName: wm.members.last_name,
-        membershipId: wm.members.membership_id,
-        avatarUrl: wm.members.avatar_url,
-        memberGroup: wm.members.member_group,
-        createdAt: wm.created_at,
-    }));
+        console.log("[getWorkflowBySlug] ✅ Workflow found:", workflow.name);
 
-    return {
-        id: workflow.id,
-        slug: workflow.slug,
-        name: workflow.name,
-        type: workflow.type,
-        startDate: workflow.start_date,
-        endDate: workflow.end_date,
-        memberCount: members.length,
-        createdBy: workflow.created_by,
-        createdAt: workflow.created_at,
-        updatedAt: workflow.updated_at,
-        members,
-        entries: (entries ?? []).map(mapEntry),
-    };
+        // Query members
+        const { data: workflowMembers, error: mErr } = await supabase
+            .from("workflow_members")
+            .select(`
+                id, workflow_id, member_id, created_at,
+                members!inner(id, first_name, last_name, membership_id, avatar_url, member_group)
+            `)
+            .eq("workflow_id", workflow.id)
+            .order("created_at", { ascending: true });
+
+        console.log("[getWorkflowBySlug] Members found:", workflowMembers?.length ?? 0);
+
+        if (mErr) {
+            console.error("[getWorkflowBySlug] Members error:", mErr);
+            throw new Error(mErr.message);
+        }
+
+        // Query entries
+        const { data: entries, error: eErr } = await supabase
+            .from("workflow_entries")
+            .select(`
+                id, workflow_id, member_id, title, description, amount, 
+                role_title, role_description, entry_type, payment_date, 
+                status, created_by, created_at, updated_at,
+                members!inner(first_name, last_name, avatar_url)
+            `)
+            .eq("workflow_id", workflow.id)
+            .order("created_at", { ascending: false });
+
+        console.log("[getWorkflowBySlug] Entries found:", entries?.length ?? 0);
+
+        if (eErr) {
+            console.error("[getWorkflowBySlug] Entries error:", eErr);
+            throw new Error(eErr.message);
+        }
+
+        const members = (workflowMembers ?? []).map((wm: any) => ({
+            id: wm.id,
+            workflowId: wm.workflow_id,
+            memberId: wm.member_id,
+            firstName: wm.members.first_name,
+            lastName: wm.members.last_name,
+            membershipId: wm.members.membership_id,
+            avatarUrl: wm.members.avatar_url,
+            memberGroup: wm.members.member_group,
+            createdAt: wm.created_at,
+        }));
+
+        console.log("[getWorkflowBySlug] ✅ SUCCESS - Returning workflow detail");
+        console.log("========================================");
+
+        return {
+            id: workflow.id,
+            slug: workflow.slug,
+            name: workflow.name,
+            type: workflow.type,
+            startDate: workflow.start_date,
+            endDate: workflow.end_date,
+            memberCount: members.length,
+            createdBy: workflow.created_by,
+            createdAt: workflow.created_at,
+            updatedAt: workflow.updated_at,
+            members,
+            entries: (entries ?? []).map(mapEntry),
+        };
+    } catch (error) {
+        console.error("[getWorkflowBySlug] ❌ EXCEPTION:", error);
+        console.log("========================================");
+        return null;
+    }
 }
 
 export async function getMemberWorkflowEntries(
