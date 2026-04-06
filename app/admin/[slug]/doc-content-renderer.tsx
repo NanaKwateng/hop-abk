@@ -8,7 +8,7 @@ import { UserTableSkeleton } from "@/components/dashboard/users/user-table-skele
 import MainPage from "@/components/dashboard/introduction/blocks/main-page";
 
 import FinancePageServer from "@/components/dashboard/finance/FinancePage";
-import WorkflowsPage from "@/app/workflow/page";
+import WorkflowsPage from "@/app/admin/workflow/page";
 import AccountSettingPage from "../accounts/settings/page";
 import SettingsPage from "../admin-settings/page";
 import CustomizePage from "../customize/page";
