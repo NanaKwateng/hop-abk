@@ -1,0 +1,156 @@
+-- tasks table
+create table public.tasks (
+  id uuid not null default gen_random_uuid(),
+  slug text not null unique,
+  name text not null,
+  purpose text not null check (purpose in ('payments', 'monitoring', 'roles', 'groups', 'records', 'other')),
+  description text,
+  start_date date,
+  end_date date,
+  has_duration boolean default false,
+  duration_type text check (duration_type in ('weekly', 'monthly', 'quarterly', 'custom')),
+  status text not null default 'active' check (status in ('active', 'completed', 'expired', 'archived')),
+  completion_rate numeric default 0,
+  created_by uuid references auth.users(id),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  completed_at timestamptz,
+  primary key (id)
+);
+
+-- task_members table
+create table public.task_members (
+  id uuid not null default gen_random_uuid(),
+  task_id uuid not null references tasks(id) on delete cascade,
+  member_id uuid not null references members(id) on delete cascade,
+  progress numeric default 0,
+  status text default 'pending' check (status in ('pending', 'in_progress', 'completed')),
+  assigned_at timestamptz default now(),
+  completed_at timestamptz,
+  unique(task_id, member_id),
+  primary key (id)
+);
+
+-- task_activities table
+create table public.task_activities (
+  id uuid not null default gen_random_uuid(),
+  task_id uuid not null references tasks(id) on delete cascade,
+  member_id uuid not null references members(id) on delete cascade,
+  activity_type text not null check (activity_type in ('payment', 'record', 'role', 'group', 'monitor', 'other')),
+  title text not null,
+  description text,
+  
+  -- Payment specific
+  amount numeric,
+  payment_date date,
+  payment_status text check (payment_status in ('pending', 'completed', 'cancelled')),
+  payment_period text, -- 'week-1', 'month-1', etc.
+  
+  -- Role specific
+  role_title text,
+  role_description text,
+  
+  -- Group specific
+  group_name text,
+  
+  -- Record specific
+  record_type text,
+  record_content text,
+  
+  -- Monitor specific
+  monitor_note text,
+  monitor_status text,
+  
+  -- Common
+  metadata jsonb,
+  attachments text[],
+  created_by uuid references auth.users(id),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  primary key (id)
+);
+
+-- task_stats (materialized view for performance)
+create materialized view task_stats as
+select 
+  t.id as task_id,
+  count(distinct tm.member_id) as total_members,
+  count(distinct case when tm.status = 'completed' then tm.member_id end) as completed_members,
+  avg(tm.progress) as avg_progress,
+  count(ta.id) as total_activities,
+  sum(ta.amount) filter (where ta.activity_type = 'payment') as total_payments
+from tasks t
+left join task_members tm on tm.task_id = t.id
+left join task_activities ta on ta.task_id = t.id
+group by t.id;
+
+-- Indexes
+create index idx_tasks_slug on tasks(slug);
+create index idx_tasks_status on tasks(status);
+create index idx_tasks_created_at on tasks(created_at desc);
+create index idx_task_members_task on task_members(task_id);
+create index idx_task_members_member on task_members(member_id);
+create index idx_task_activities_task on task_activities(task_id);
+create index idx_task_activities_member on task_activities(member_id);
+create index idx_task_activities_type on task_activities(activity_type);
+
+-- RLS Policies (adjust based on your auth)
+alter table tasks enable row level security;
+alter table task_members enable row level security;
+alter table task_activities enable row level security;
+
+-- Auto-update updated_at
+create or replace function update_updated_at()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
+create trigger tasks_updated_at before update on tasks
+  for each row execute function update_updated_at();
+
+create trigger task_activities_updated_at before update on task_activities
+  for each row execute function update_updated_at();
+
+
+
+app/admin/tasks/
+├── page.tsx                          # List view (cards/grid)
+├── loading.tsx
+├── [slug]/
+│   ├── page.tsx                      # Task detail page
+│   ├── loading.tsx
+│   └── not-found.tsx
+
+actions/
+└── task.ts                           # Server actions
+
+lib/
+├── types/
+│   └── task.ts                       # TypeScript types
+├── validations/
+│   └── task-schema.ts                # Zod schemas
+└── utils/
+    ├── slug.ts                       # Already exists
+    └── task-utils.ts                 # Helper functions
+
+queries/
+└── task-queries.ts                   # TanStack Query hooks
+
+components/dashboard/tasks/
+├── task-list.tsx                     # Card/Grid view
+├── task-card.tsx                     # Individual card
+├── task-detail-page.tsx              # Detail view (client)
+├── task-create-dialog.tsx            # Multi-step creation
+├── task-member-manager.tsx           # Add/remove members
+├── task-activity-tabs.tsx            # Activities by member
+├── task-payment-tracker.tsx          # Payment specific
+├── task-record-manager.tsx           # Records specific
+├── task-role-assigner.tsx            # Role specific
+├── task-monitor-tracker.tsx          # Monitor specific
+├── task-export-menu.tsx              # Export functionality
+├── task-stats-cards.tsx              # Stats dashboard
+├── task-progress-chart.tsx           # Visual progress
+└── task-skeleton.tsx                 # Loading states

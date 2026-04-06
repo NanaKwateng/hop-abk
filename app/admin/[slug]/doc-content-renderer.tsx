@@ -14,6 +14,7 @@ import SettingsPage from "../admin-settings/page";
 import CustomizePage from "../customize/page";
 import AdminFlowPage from "../admin-flow/page";
 import BranchesPage from "../branches/page";
+import TasksPage from "../task/page";
 
 interface DocContentRendererProps {
     slug: string;
@@ -100,6 +101,13 @@ export function DocContentRenderer({ slug, content }: DocContentRendererProps) {
         case "admin-flow":
             return <AdminFlow />;
 
+        // ✅ FIX: Was "admin flow" (with a space, not a hyphen).
+        // The sidebar links to /admin/admin-flow → slug = "admin-flow"
+        // Also: was previously mapped to <ManageAdmin /> (wrong component).
+        // Now correctly maps to <AdminFlow /> which renders AdminFlowPage.
+        case "task":
+            return <ManageTasks />;
+
         // Fallback for anything not explicitly listed
         default:
             return <GenericContent content={content} />;
@@ -156,6 +164,14 @@ function ManageAccounts() {
     return (
         <div className="min-h-screen w-full">
             <AccountSettingPage />
+        </div>
+    );
+}
+
+function ManageTasks() {
+    return (
+        <div className="min-h-screen w-full">
+            <TasksPage />
         </div>
     );
 }

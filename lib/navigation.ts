@@ -86,6 +86,13 @@ export const navigation: NavCategory[] = [
                 iconBg: "bg-orange-100 dark:bg-orange-500/20",
                 iconColor: "text-orange-600 dark:text-orange-400"
             },
+            {
+                title: "Task Management",
+                href: "/admin/task",
+                icon: FiPieChart,
+                iconBg: "bg-pink-500 dark:bg-pink-700",
+                iconColor: "text-white dark:text-white/70"
+            },
         ],
     },
     {

@@ -193,7 +193,7 @@ export function WorkflowsList({ initialWorkflows }: WorkflowsListProps) {
                                 key={wf.id}
                                 href={workflowUrl} // ✅ CRITICAL: Use Link instead of onClick
                                 className={cn(
-                                    "group flex flex-col transition-all duration-300 border-none rounded-[2rem] shadow-sm",
+                                    "group flex flex-col transition-all duration-300 border-none rounded-t-r shadow-sm",
                                     "hover:shadow-xl hover:-translate-y-1",
                                     config.cardBg,
                                     status === "expired" && "ring-2 ring-destructive/50"
