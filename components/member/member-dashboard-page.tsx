@@ -204,7 +204,7 @@ export function MemberDashboardPage({
                             <p className="text-sm font-semibold tracking-tight">
                                 {fullName}
                             </p>
-                            <p className="text-[10px] text-muted-foreground leading-none mt-0.5">
+                            <p className="text-[10px] text-black dark:text-white leading-none mt-0.5">
                                 Member Dashboard
                             </p>
                         </div>
@@ -244,7 +244,7 @@ export function MemberDashboardPage({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ ...SPRING_GENTLE, delay: 0.2 }}
                 >
-                    <h1 className="text-2xl font-bold tracking-tight">
+                    <h1 className="text-2xl font-bold tracking-tight text-black dark:text-white">
                         Welcome back{" "}
                         <motion.span
                             initial={{ opacity: 0, scale: 0.5 }}
@@ -255,7 +255,7 @@ export function MemberDashboardPage({
                             👋
                         </motion.span>
                     </h1>
-                    <p className="text-sm max-w-sm text-muted-foreground mt-0.5">
+                    <p className="text-sm max-w-sm text-black dark:text-white mt-0.5">
                         {member.firstName}, here&apos;s your overview, continue to keep track of your progress
                     </p>
                 </motion.div>
@@ -383,11 +383,11 @@ export function MemberDashboardPage({
                                             </Avatar>
 
                                             <div className="ml-3 flex-1 min-w-0">
-                                                <p className="text-sm font-semibold truncate">
+                                                <p className="text-sm font-semibold truncate text-black dark:text-white">
                                                     {fullName}
                                                 </p>
                                                 {member.membershipId && (
-                                                    <p className="text-[10px] font-mono text-muted-foreground tracking-wider mt-0.5">
+                                                    <p className="text-[10px] font-mono text-black dark:text-white tracking-wider mt-0.5">
                                                         {member.membershipId}
                                                     </p>
                                                 )}
@@ -423,7 +423,7 @@ export function MemberDashboardPage({
                                             className="space-y-2"
                                         >
                                             <div className="flex items-center gap-2">
-                                                <h2 className="text-xl font-bold tracking-tight">
+                                                <h2 className="text-xl font-bold tracking-tight text-black dark:text-white">
                                                     {fullName}
                                                 </h2>
                                                 <motion.div
@@ -439,7 +439,7 @@ export function MemberDashboardPage({
                                             </div>
 
                                             {member.membershipId && (
-                                                <p className="text-xs font-mono text-muted-foreground tracking-wider">
+                                                <p className="text-xs font-mono text-dark dark:text-white tracking-wider">
                                                     {member.membershipId}
                                                 </p>
                                             )}
@@ -628,7 +628,7 @@ export function MemberDashboardPage({
             {/* FULL-SCREEN DRAWER                      */}
             {/* ═══════════════════════════════════════ */}
             <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-                <DrawerContent className="h-[98dvh] rounded-t-[2rem] flex flex-col">
+                <DrawerContent className="h-[99dvh] rounded-t-[2rem] flex flex-col">
                     {/* Handle */}
                     <div className="flex justify-center pt-3 pb-1 shrink-0">
                         <div className="w-12 h-1.5 rounded-full bg-muted-foreground/20" />

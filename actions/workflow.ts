@@ -94,7 +94,7 @@ export async function getWorkflows(): Promise<Workflow[]> {
     return (data ?? []).map(mapWorkflow);
 }
 
-// actions/workflow.ts - Update getWorkflowBySlug with extensive logging
+// actions/workflow.ts - Updated getWorkflowBySlug with extensive logging
 
 export async function getWorkflowBySlug(slug: string): Promise<WorkflowDetail | null> {
     console.log("========================================");
@@ -270,7 +270,6 @@ export async function createWorkflow(
             }
         }
 
-        // ✅ Fixed: was "/admin/workflows" (plural)
         revalidatePath("/admin/workflow");
         return workflow.slug;
     });
