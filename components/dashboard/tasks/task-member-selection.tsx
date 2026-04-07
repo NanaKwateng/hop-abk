@@ -59,15 +59,16 @@ export function TaskMemberSelection({
     const displayMembers = useMemo(() => {
         let filtered = allMembers;
 
-        // Filter by gender
+        // ✅ Filter by gender (male/female from database)
         if (genderFilter !== "all") {
             filtered = filtered.filter((m) => m.gender?.toLowerCase() === genderFilter);
         }
 
-        // Filter by group
+        // ✅ Filter by group (men/women/youth from database)
         if (groupFilter !== "all") {
             filtered = filtered.filter((m) => {
                 const memberGroup = m.memberGroup?.toLowerCase();
+                // Map "men" → "men", "women" → "women", "youth" → "youth"
                 return memberGroup === groupFilter;
             });
         }
@@ -189,14 +190,14 @@ export function TaskMemberSelection({
 
                     {/* Group Filter */}
                     <Select value={groupFilter} onValueChange={(v) => setGroupFilter(v as GroupFilter)}>
-                        <SelectTrigger className="h-8 w-[120px]">
-                            <SelectValue placeholder="Group" />
+                        <SelectTrigger className="h-8 w-[140px]">
+                            <SelectValue placeholder="Fellowship" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Groups</SelectItem>
-                            <SelectItem value="men">Men</SelectItem>
-                            <SelectItem value="women">Women</SelectItem>
-                            <SelectItem value="youth">Youth</SelectItem>
+                            <SelectItem value="all">All Fellowships</SelectItem>
+                            <SelectItem value="men">Men's Fellowship</SelectItem>
+                            <SelectItem value="women">Women's Fellowship</SelectItem>
+                            <SelectItem value="youth">Youth Fellowship</SelectItem>
                         </SelectContent>
                     </Select>
 
@@ -253,14 +254,14 @@ export function TaskMemberSelection({
             </div>
 
             {/* Member List */}
-            <ScrollArea className="flex-1">
+            <ScrollArea className="flex-1 h-screen">
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center gap-2 py-12">
                         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                         <p className="text-sm text-muted-foreground">Loading members...</p>
                     </div>
                 ) : displayMembers.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-2 py-12">
+                    <div className="flex flex-col items-center justify-center gap-2 py-12 overflow-y-auto">
                         <Users className="h-8 w-8 text-muted-foreground/40" />
                         <p className="text-sm text-muted-foreground">
                             {showSelectedOnly
@@ -276,7 +277,7 @@ export function TaskMemberSelection({
                         )}
                     </div>
                 ) : (
-                    <div className="divide-y">
+                    <div className="divide-y pb-4">
                         {displayMembers.map((member) => {
                             const isSelected = selectedSet.has(member.id);
                             const initials =

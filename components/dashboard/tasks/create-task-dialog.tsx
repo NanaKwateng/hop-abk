@@ -344,8 +344,8 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
                                     <div
                                         className={cn(
                                             "flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors",
-                                            isActive && "bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20",
-                                            isComplete && "bg-primary/20 text-primary",
+                                            isActive && "bg-blue-600 text-white shadow-sm ring-2 ring-blue-600/20", // ✅ Blue active
+                                            isComplete && "bg-blue-600/20 text-blue-600", // ✅ Blue completed
                                             !isActive && !isComplete && "bg-muted text-muted-foreground"
                                         )}
                                     >

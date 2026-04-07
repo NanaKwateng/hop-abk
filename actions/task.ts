@@ -319,26 +319,32 @@ export async function getMemberTaskActivities(
 /**
  * Create a new task
  */
+// actions/task.ts - UPDATED createTask with better error handling
+
 export async function createTask(
     payload: CreateTaskPayload
 ): Promise<string> {
     return withActionRetry(async () => {
-        const { supabase, user } = await getAuthUser();
+        try {
+            const { supabase, user } = await getAuthUser();
 
-        // Generate unique slug
-        const slug = generateSlug(payload.name);
-        const { data: existing } = await supabase
-            .from("tasks")
-            .select("id")
-            .eq("slug", slug)
-            .maybeSingle();
+            // Validate payload
+            if (!payload.name || !payload.purpose || !payload.memberIds || payload.memberIds.length === 0) {
+                throw new Error("Invalid task data: name, purpose, and members are required");
+            }
 
-        const finalSlug = existing ? `${slug}-${Date.now().toString(36)}` : slug;
+            // Generate unique slug
+            const slug = generateSlug(payload.name);
+            const { data: existing } = await supabase
+                .from("tasks")
+                .select("id")
+                .eq("slug", slug)
+                .maybeSingle();
 
-        // Create task
-        const { data: task, error: taskError } = await supabase
-            .from("tasks")
-            .insert({
+            const finalSlug = existing ? `${slug}-${Date.now().toString(36)}` : slug;
+
+            // Create task with explicit column mapping
+            const taskData: any = {
                 name: payload.name,
                 slug: finalSlug,
                 purpose: payload.purpose,
@@ -349,34 +355,55 @@ export async function createTask(
                 duration_type: payload.durationType || null,
                 status: "active",
                 created_by: user.id,
-            })
-            .select("id, slug")
-            .single();
+            };
 
-        if (taskError) throw new Error(taskError.message);
+            console.log("[createTask] Inserting task with data:", taskData);
 
-        // Add members
-        if (payload.memberIds.length > 0) {
-            const memberRows = payload.memberIds.map((memberId) => ({
-                task_id: task.id,
-                member_id: memberId,
-                status: "pending",
-                progress: 0,
-            }));
+            const { data: task, error: taskError } = await supabase
+                .from("tasks")
+                .insert(taskData)
+                .select("id, slug")
+                .single();
 
-            const { error: membersError } = await supabase
-                .from("task_members")
-                .insert(memberRows);
-
-            if (membersError) {
-                // Rollback task if member insert fails
-                await supabase.from("tasks").delete().eq("id", task.id);
-                throw new Error(membersError.message);
+            if (taskError) {
+                console.error("[createTask] Task insert error:", taskError);
+                throw new Error(`Failed to create task: ${taskError.message}`);
             }
-        }
 
-        revalidatePath("/admin/task");
-        return task.slug;
+            console.log("[createTask] Task created:", task);
+
+            // Add members
+            if (payload.memberIds.length > 0) {
+                const memberRows = payload.memberIds.map((memberId) => ({
+                    task_id: task.id,
+                    member_id: memberId,
+                    status: "pending",
+                    progress: 0,
+                }));
+
+                console.log("[createTask] Inserting members:", memberRows.length);
+
+                const { error: membersError } = await supabase
+                    .from("task_members")
+                    .insert(memberRows);
+
+                if (membersError) {
+                    console.error("[createTask] Members insert error:", membersError);
+                    // Rollback task if member insert fails
+                    await supabase.from("tasks").delete().eq("id", task.id);
+                    throw new Error(`Failed to add members: ${membersError.message}`);
+                }
+
+                console.log("[createTask] Members added successfully");
+            }
+
+            revalidatePath("/admin/task");
+            console.log("[createTask] Success! Returning slug:", task.slug);
+            return task.slug;
+        } catch (error) {
+            console.error("[createTask] Fatal error:", error);
+            throw error;
+        }
     });
 }
 

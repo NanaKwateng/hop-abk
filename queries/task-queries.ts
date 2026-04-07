@@ -92,6 +92,9 @@ export function useTaskExportQuery(taskId: string, enabled: boolean = false) {
 /**
  * Create a new task
  */
+// queries/task-queries.ts
+// UPDATED - Better error messages
+
 export function useCreateTaskMutation() {
     const queryClient = useQueryClient();
 
@@ -105,8 +108,15 @@ export function useCreateTaskMutation() {
             });
         },
         onError: (error) => {
+            console.error("[useCreateTaskMutation] Error:", error); // ✅ Added console log
+
+            const message = error instanceof Error
+                ? error.message
+                : "Failed to create task. Please try again.";
+
             toast.error("Failed to create task", {
-                description: error instanceof Error ? error.message : "An error occurred",
+                description: message,
+                duration: 5000, // ✅ Longer duration for error
             });
         },
     });
