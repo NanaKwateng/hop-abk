@@ -54,7 +54,6 @@ import { TaskMemberSelection } from "./task-member-selection";
 import { TaskPurposeConfig } from "./task-purpose-config";
 import type { DateRange } from "react-day-picker";
 import type { TaskPurpose } from "@/lib/types/task";
-import { Alert } from "@/components/ui/alert";
 
 interface CreateTaskDialogProps {
     open: boolean;
@@ -170,11 +169,11 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
     const form = useForm<any>({
         defaultValues: {
             name: "",
-            purpose: undefined,
+            purpose: "", // ✅ FIXED: Empty string instead of undefined
             description: "",
             hasDuration: false,
             dateRange: undefined,
-            durationType: undefined,
+            durationType: "", // ✅ FIXED: Empty string instead of undefined
             memberIds: [],
             paymentConfig: undefined,
             recordConfig: undefined,
@@ -241,11 +240,19 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
             payload.monitorConfig = values.monitorConfig;
         }
 
+        // ✅ Log before mutation
+        console.log("[CreateTaskDialog] Submitting payload:", payload);
+
         createMutation.mutate(payload, {
             onSuccess: (slug) => {
+                console.log("[CreateTaskDialog] Success! Slug:", slug);
                 setCreatedTaskSlug(slug);
                 setShowSuccess(true);
                 fireSuccessConfetti();
+            },
+            onError: (error) => {
+                console.error("[CreateTaskDialog] Mutation failed:", error);
+                // Don't close dialog on error so user can retry
             },
         });
     }
@@ -262,16 +269,18 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
 
     function goToTask() {
         if (createdTaskSlug) {
-            router.push(`/admin/task/${createdTaskSlug}`);
-            router.refresh();
-            handleClose();
+            console.log("[CreateTaskDialog] Navigating to:", `/admin/task/${createdTaskSlug}`);
+
+            // ✅ FIXED: Use window.location for safer navigation
+            window.location.href = `/admin/task/${createdTaskSlug}`;
         }
     }
 
     function backToTasks() {
-        router.push("/admin/task");
-        router.refresh();
-        handleClose();
+        console.log("[CreateTaskDialog] Navigating to task list");
+
+        // ✅ FIXED: Use window.location for safer navigation
+        window.location.href = "/admin/task";
     }
 
     if (showSuccess) {
@@ -321,7 +330,7 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
                         </SheetDescription>
                     </SheetHeader>
 
-                    {/* Progress Bar */}
+                    {/* Progress Bar - ✅ FIXED: Added blue color */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                             <span>
@@ -329,10 +338,13 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
                             </span>
                             <span>{Math.round(progress)}% complete</span>
                         </div>
-                        <Progress value={progress} className="h-1.5" />
+                        <Progress
+                            value={progress}
+                            className="h-1.5 [&>div]:bg-blue-600"
+                        />
                     </div>
 
-                    {/* Stepper */}
+                    {/* Stepper - ✅ FIXED: Blue active states */}
                     <nav aria-label="Task creation steps" className="flex items-center justify-between">
                         {STEPS.map((s, i) => {
                             const stepNum = i + 1;
@@ -344,8 +356,8 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
                                     <div
                                         className={cn(
                                             "flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors",
-                                            isActive && "bg-blue-600 text-white shadow-sm ring-2 ring-blue-600/20", // ✅ Blue active
-                                            isComplete && "bg-blue-600/20 text-blue-600", // ✅ Blue completed
+                                            isActive && "bg-blue-600 text-white shadow-sm ring-2 ring-blue-600/20",
+                                            isComplete && "bg-blue-600/20 text-blue-600",
                                             !isActive && !isComplete && "bg-muted text-muted-foreground"
                                         )}
                                     >
@@ -384,9 +396,13 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
                                     )}
                                 </div>
 
+                                {/* ✅ FIXED: RadioGroup with controlled value */}
                                 <div className="space-y-2">
                                     <Label className="text-sm font-medium">Task Purpose *</Label>
-                                    <RadioGroup value={purpose} onValueChange={(v) => setValue("purpose", v, { shouldValidate: true })}>
+                                    <RadioGroup
+                                        value={purpose || ""}
+                                        onValueChange={(v) => setValue("purpose", v, { shouldValidate: true })}
+                                    >
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             {PURPOSE_OPTIONS.map((opt) => {
                                                 const Icon = opt.icon;
@@ -476,10 +492,11 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
                                             </div>
                                         </div>
 
+                                        {/* ✅ FIXED: RadioGroup with controlled value */}
                                         <div className="space-y-2">
                                             <Label className="text-sm font-medium">Duration Type</Label>
                                             <RadioGroup
-                                                value={watch("durationType")}
+                                                value={watch("durationType") || ""}
                                                 onValueChange={(v) => setValue("durationType", v, { shouldValidate: true })}
                                             >
                                                 <div className="grid grid-cols-2 gap-2">
@@ -568,13 +585,17 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
                                     </div>
                                 </div>
 
-                                <Alert>
-                                    <Sparkles className="h-4 w-4" />
-                                    <div className="ml-2">
-                                        <p className="text-sm font-medium">Ready to create!</p>
-                                        <p className="text-xs text-muted-foreground mt-1">Click "Create Task" to proceed.</p>
+                                <div className="rounded-lg border bg-blue-50 dark:bg-blue-950/20 p-4">
+                                    <div className="flex items-start gap-3">
+                                        <Sparkles className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Ready to create!</p>
+                                            <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                                                Click "Create Task" to proceed. You can manage members and activities after creation.
+                                            </p>
+                                        </div>
                                     </div>
-                                </Alert>
+                                </div>
                             </div>
                         </ScrollArea>
                     )}

@@ -116,9 +116,6 @@ function mapActivity(a: any): TaskActivity {
 
 // ── READ ACTIONS ──
 
-/**
- * Fetch all tasks with stats and filtering
- */
 export async function getTasks(
     filters?: TaskFilters
 ): Promise<TaskWithStats[]> {
@@ -137,7 +134,6 @@ export async function getTasks(
             ascending: filters?.sortOrder === "asc",
         });
 
-    // Apply filters
     if (filters?.status) {
         query = query.eq("status", filters.status);
     }
@@ -154,7 +150,6 @@ export async function getTasks(
 
     if (error) throw new Error(error.message);
 
-    // Calculate days until expiry for each task
     const tasksWithStats = (data ?? []).map((t) => {
         let daysUntilExpiry: number | null = null;
         if (t.end_date) {
@@ -168,7 +163,7 @@ export async function getTasks(
             ...mapTask(t),
             memberCount: t.task_members?.[0]?.count ?? 0,
             activityCount: t.task_activities?.[0]?.count ?? 0,
-            totalPayments: null, // Will be calculated if needed
+            totalPayments: null,
             daysUntilExpiry,
         };
     });
@@ -176,9 +171,6 @@ export async function getTasks(
     return tasksWithStats;
 }
 
-/**
- * Fetch single task by slug with full details
- */
 export async function getTaskBySlug(
     slug: string
 ): Promise<TaskDetail | null> {
@@ -193,7 +185,6 @@ export async function getTaskBySlug(
 
         console.log("[getTaskBySlug] Sanitized slug:", cleanSlug);
 
-        // Fetch task
         const { data: task, error: taskError } = await supabase
             .from("tasks")
             .select("*")
@@ -214,7 +205,6 @@ export async function getTaskBySlug(
 
         console.log("[getTaskBySlug] ✅ Task found:", task.name);
 
-        // Fetch members
         const { data: taskMembers, error: membersError } = await supabase
             .from("task_members")
             .select(
@@ -233,7 +223,6 @@ export async function getTaskBySlug(
             throw new Error(membersError.message);
         }
 
-        // Fetch activities
         const { data: activities, error: activitiesError } = await supabase
             .from("task_activities")
             .select(
@@ -255,7 +244,6 @@ export async function getTaskBySlug(
         const members = (taskMembers ?? []).map(mapTaskMember);
         const mappedActivities = (activities ?? []).map(mapActivity);
 
-        // Calculate stats
         const completedMembers = members.filter(
             (m) => m.status === "completed"
         ).length;
@@ -289,9 +277,6 @@ export async function getTaskBySlug(
     }
 }
 
-/**
- * Fetch activities for a specific member in a task
- */
 export async function getMemberTaskActivities(
     taskId: string,
     memberId: string
@@ -317,34 +302,49 @@ export async function getMemberTaskActivities(
 // ── WRITE ACTIONS ──
 
 /**
- * Create a new task
+ * ✅ CRITICAL FIX: Enhanced createTask with comprehensive error handling
  */
-// actions/task.ts - UPDATED createTask with better error handling
-
 export async function createTask(
     payload: CreateTaskPayload
 ): Promise<string> {
+    console.log("=== CREATE TASK STARTED ===");
+    console.log("Payload received:", JSON.stringify(payload, null, 2));
+
     return withActionRetry(async () => {
         try {
+            console.log("1. Getting authenticated user...");
             const { supabase, user } = await getAuthUser();
+            console.log("✅ User authenticated:", user.id);
 
-            // Validate payload
+            console.log("2. Validating payload...");
             if (!payload.name || !payload.purpose || !payload.memberIds || payload.memberIds.length === 0) {
-                throw new Error("Invalid task data: name, purpose, and members are required");
+                const error = "Invalid task data: name, purpose, and members are required";
+                console.error("❌ Validation failed:", error);
+                throw new Error(error);
             }
+            console.log("✅ Payload valid");
 
-            // Generate unique slug
+            console.log("3. Generating slug...");
             const slug = generateSlug(payload.name);
-            const { data: existing } = await supabase
+            console.log("✅ Slug generated:", slug);
+
+            console.log("4. Checking for duplicate slugs...");
+            const { data: existing, error: checkError } = await supabase
                 .from("tasks")
                 .select("id")
                 .eq("slug", slug)
                 .maybeSingle();
 
-            const finalSlug = existing ? `${slug}-${Date.now().toString(36)}` : slug;
+            if (checkError) {
+                console.error("❌ Error checking duplicates:", checkError);
+                throw new Error(`Duplicate check failed: ${checkError.message}`);
+            }
 
-            // Create task with explicit column mapping
-            const taskData: any = {
+            const finalSlug = existing ? `${slug}-${Date.now().toString(36)}` : slug;
+            console.log("✅ Final slug:", finalSlug);
+
+            console.log("5. Preparing task data...");
+            const taskData = {
                 name: payload.name,
                 slug: finalSlug,
                 purpose: payload.purpose,
@@ -353,12 +353,12 @@ export async function createTask(
                 end_date: payload.endDate || null,
                 has_duration: payload.hasDuration,
                 duration_type: payload.durationType || null,
-                status: "active",
+                status: "active" as const,
                 created_by: user.id,
             };
+            console.log("Task data:", JSON.stringify(taskData, null, 2));
 
-            console.log("[createTask] Inserting task with data:", taskData);
-
+            console.log("6. Inserting task into database...");
             const { data: task, error: taskError } = await supabase
                 .from("tasks")
                 .insert(taskData)
@@ -366,50 +366,105 @@ export async function createTask(
                 .single();
 
             if (taskError) {
-                console.error("[createTask] Task insert error:", taskError);
-                throw new Error(`Failed to create task: ${taskError.message}`);
+                console.error("❌ Task insert error:", taskError);
+                console.error("Error code:", taskError.code);
+                console.error("Error details:", JSON.stringify(taskError, null, 2));
+
+                // ✅ ADDED: More specific error messages
+                if (taskError.code === "23505") {
+                    throw new Error("A task with this name already exists. Please choose a different name.");
+                } else if (taskError.code === "42501") {
+                    throw new Error("You don't have permission to create tasks. Please contact your administrator.");
+                } else if (taskError.code === "23502") {
+                    throw new Error("Missing required field. Please check all required fields are filled.");
+                }
+
+                throw new Error(`Failed to create task: ${taskError.message || "Unknown database error"}`);
             }
 
-            console.log("[createTask] Task created:", task);
+            if (!task || !task.id) {
+                throw new Error("Task was not created properly - no ID returned");
+            }
 
-            // Add members
+            console.log("✅ Task created:", task);
+
             if (payload.memberIds.length > 0) {
+                console.log("7. Adding members to task...");
+                console.log("Member IDs:", payload.memberIds);
+
+                // ✅ ADDED: Validate member IDs format
+                const invalidIds = payload.memberIds.filter(id => !id || typeof id !== 'string');
+                if (invalidIds.length > 0) {
+                    console.error("❌ Invalid member IDs detected:", invalidIds);
+                    await supabase.from("tasks").delete().eq("id", task.id);
+                    throw new Error("Invalid member IDs detected. Please refresh and try again.");
+                }
+
                 const memberRows = payload.memberIds.map((memberId) => ({
                     task_id: task.id,
                     member_id: memberId,
-                    status: "pending",
+                    status: "pending" as const,
                     progress: 0,
                 }));
 
-                console.log("[createTask] Inserting members:", memberRows.length);
+                console.log("Member rows to insert:", memberRows.length);
 
                 const { error: membersError } = await supabase
                     .from("task_members")
                     .insert(memberRows);
 
                 if (membersError) {
-                    console.error("[createTask] Members insert error:", membersError);
-                    // Rollback task if member insert fails
-                    await supabase.from("tasks").delete().eq("id", task.id);
-                    throw new Error(`Failed to add members: ${membersError.message}`);
+                    console.error("❌ Members insert error:", membersError);
+                    console.error("Error code:", membersError.code);
+                    console.error("Error details:", JSON.stringify(membersError, null, 2));
+
+                    console.log("⚠️ Rolling back task...");
+                    const { error: rollbackError } = await supabase
+                        .from("tasks")
+                        .delete()
+                        .eq("id", task.id);
+
+                    if (rollbackError) {
+                        console.error("❌ Rollback failed:", rollbackError);
+                    }
+
+                    // ✅ ADDED: More specific error messages
+                    if (membersError.code === "23503") {
+                        throw new Error("One or more selected members no longer exist. Please refresh and try again.");
+                    } else if (membersError.code === "23505") {
+                        throw new Error("Duplicate member assignment detected. Please try again.");
+                    }
+
+                    throw new Error(`Failed to add members: ${membersError.message || "Unknown error"}`);
                 }
 
-                console.log("[createTask] Members added successfully");
+                console.log("✅ Members added successfully");
             }
 
+            console.log("8. Revalidating path...");
             revalidatePath("/admin/task");
-            console.log("[createTask] Success! Returning slug:", task.slug);
+
+            console.log("=== CREATE TASK COMPLETED ===");
+            console.log("Returning slug:", task.slug);
             return task.slug;
+
         } catch (error) {
-            console.error("[createTask] Fatal error:", error);
+            console.error("=== CREATE TASK FAILED ===");
+            console.error("Error type:", typeof error);
+            console.error("Error:", error);
+
+            if (error instanceof Error) {
+                console.error("Error message:", error.message);
+                console.error("Error name:", error.name);
+                console.error("Stack:", error.stack);
+            }
+
+            // ✅ ADDED: Re-throw with preserved message
             throw error;
         }
     });
 }
 
-/**
- * Update task basic info
- */
 export async function updateTask(
     id: string,
     updates: {
@@ -435,7 +490,6 @@ export async function updateTask(
             updateData.start_date = updates.startDate;
         if (updates.endDate !== undefined) updateData.end_date = updates.endDate;
 
-        // Set completed_at if status is completed
         if (updates.status === "completed") {
             updateData.completed_at = new Date().toISOString();
         }
@@ -454,9 +508,6 @@ export async function updateTask(
     });
 }
 
-/**
- * Delete a task
- */
 export async function deleteTask(id: string): Promise<void> {
     return withActionRetry(async () => {
         const { supabase } = await getAuthUser();
@@ -469,9 +520,6 @@ export async function deleteTask(id: string): Promise<void> {
     });
 }
 
-/**
- * Add members to a task
- */
 export async function addTaskMembers(
     taskId: string,
     memberIds: string[]
@@ -479,7 +527,6 @@ export async function addTaskMembers(
     return withActionRetry(async () => {
         const { supabase } = await getAuthUser();
 
-        // Check for existing members
         const { data: existing, error: fetchError } = await supabase
             .from("task_members")
             .select("member_id")
@@ -497,7 +544,7 @@ export async function addTaskMembers(
         const rows = newIds.map((memberId) => ({
             task_id: taskId,
             member_id: memberId,
-            status: "pending",
+            status: "pending" as const,
             progress: 0,
         }));
 
@@ -509,9 +556,6 @@ export async function addTaskMembers(
     });
 }
 
-/**
- * Remove members from a task
- */
 export async function removeTaskMembers(
     taskId: string,
     memberIds: string[]
@@ -527,7 +571,6 @@ export async function removeTaskMembers(
 
         if (error) throw new Error(error.message);
 
-        // Also delete associated activities
         const { error: activityError } = await supabase
             .from("task_activities")
             .delete()
@@ -543,9 +586,6 @@ export async function removeTaskMembers(
     });
 }
 
-/**
- * Create a task activity
- */
 export async function createTaskActivity(
     payload: CreateActivityPayload
 ): Promise<TaskActivity> {
@@ -585,7 +625,6 @@ export async function createTaskActivity(
 
         if (error) throw new Error(error.message);
 
-        // Update member progress
         await updateMemberProgress(payload.taskId, payload.memberId);
 
         revalidatePath("/admin/task");
@@ -593,9 +632,6 @@ export async function createTaskActivity(
     });
 }
 
-/**
- * Update a task activity
- */
 export async function updateTaskActivity(
     payload: UpdateActivityPayload
 ): Promise<TaskActivity> {
@@ -652,9 +688,6 @@ export async function updateTaskActivity(
     });
 }
 
-/**
- * Delete a task activity
- */
 export async function deleteTaskActivity(
     activityId: string,
     taskId: string,
@@ -671,23 +704,18 @@ export async function deleteTaskActivity(
 
         if (error) throw new Error(error.message);
 
-        // Update member progress
         await updateMemberProgress(taskId, memberId);
 
         revalidatePath("/admin/task");
     });
 }
 
-/**
- * Update member progress based on activities
- */
 async function updateMemberProgress(
     taskId: string,
     memberId: string
 ): Promise<void> {
     const { supabase } = await getAuthUser();
 
-    // Count completed activities
     const { count, error: countError } = await supabase
         .from("task_activities")
         .select("*", { count: "exact", head: true })
@@ -699,8 +727,7 @@ async function updateMemberProgress(
         return;
     }
 
-    // Simple progress: if activities > 0, set progress
-    const progress = Math.min((count ?? 0) * 20, 100); // 20% per activity, max 100%
+    const progress = Math.min((count ?? 0) * 20, 100);
 
     const { error: updateError } = await supabase
         .from("task_members")
@@ -716,13 +743,9 @@ async function updateMemberProgress(
         console.error("[updateMemberProgress] Update error:", updateError);
     }
 
-    // Update task completion rate
     await updateTaskCompletionRate(taskId);
 }
 
-/**
- * Update overall task completion rate
- */
 async function updateTaskCompletionRate(taskId: string): Promise<void> {
     const { supabase } = await getAuthUser();
 
@@ -742,9 +765,6 @@ async function updateTaskCompletionRate(taskId: string): Promise<void> {
         .eq("id", taskId);
 }
 
-/**
- * Fetch tasks for export (with all data)
- */
 export async function getTasksForExport(
     taskId: string
 ): Promise<TaskActivity[]> {
