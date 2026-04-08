@@ -169,7 +169,7 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
     const form = useForm<any>({
         defaultValues: {
             name: "",
-            purpose: "", // ✅ FIXED: Empty string instead of undefined
+            purpose: "payments", // ✅ FIXED 
             description: "",
             hasDuration: false,
             dateRange: undefined,

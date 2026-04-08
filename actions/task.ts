@@ -311,6 +311,10 @@ export async function createTask(
     console.log("Payload received:", JSON.stringify(payload, null, 2));
 
     return withActionRetry(async () => {
+        const VALID_PURPOSES = ['payments', 'monitoring', 'roles', 'groups', 'records', 'other'];
+        if (!VALID_PURPOSES.includes(payload.purpose)) {
+            throw new Error(`Invalid purpose: ${payload.purpose}`);
+        }
         try {
             console.log("1. Getting authenticated user...");
             const { supabase, user } = await getAuthUser();
@@ -340,6 +344,8 @@ export async function createTask(
                 throw new Error(`Duplicate check failed: ${checkError.message}`);
             }
 
+
+
             const finalSlug = existing ? `${slug}-${Date.now().toString(36)}` : slug;
             console.log("✅ Final slug:", finalSlug);
 
@@ -366,6 +372,7 @@ export async function createTask(
                 .single();
 
             if (taskError) {
+                console.error("❌ DATABASE ERROR DETAIL:", taskError.message, taskError.details, taskError.hint);
                 console.error("❌ Task insert error:", taskError);
                 console.error("Error code:", taskError.code);
                 console.error("Error details:", JSON.stringify(taskError, null, 2));
@@ -463,6 +470,7 @@ export async function createTask(
             throw error;
         }
     });
+
 }
 
 export async function updateTask(
