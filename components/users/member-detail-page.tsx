@@ -57,6 +57,7 @@ import { TestimonialsView } from "@/components/users/testimonials-view";
 import type { Member } from "@/lib/types";
 import type { MonthPayment, PaymentAnalytics } from "@/lib/types/payments";
 import type { Testimonial } from "@/lib/types/testimonials";
+import { NicknameManage } from "../nicknames/nickname-manage";
 
 interface MemberDetailPageProps {
     member: Member;
@@ -168,6 +169,25 @@ export function MemberDetailPage({
                                     {member.membershipId}
                                 </p>
                             )}
+                        </div>
+
+                        <div className="flex items-center justify-center gap-2">
+                            <NicknameManage
+                                memberId={member.id}
+                                nickname={member.nickname}
+                                memberName={`${member.firstName} ${member.lastName}`}
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <h2 className="text-xl font-bold">
+                                {member.firstName} {member.lastName}
+                            </h2>
+                            <NicknameManage
+                                memberId={member.id}
+                                nickname={member.nickname}
+                                memberName={`${member.firstName} ${member.lastName}`}
+                            />
                         </div>
 
                         <div className="flex flex-wrap justify-center gap-2">

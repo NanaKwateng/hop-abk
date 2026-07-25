@@ -39,6 +39,7 @@ export function rowToMember(row: MemberRow): Member {
         roleComments: row.role_comments || null,
         email: row.email || null,
         avatarUrl: row.avatar_url || null,
+        nickname: row.nickname || null,
         membershipId: row.membership_id || null,
         createdBy: row.created_by || null,
         createdAt: row.created_at || null,
@@ -79,6 +80,7 @@ export function memberFormToRow(
     if (data.roleComments !== undefined) row.role_comments = data.roleComments;
     if (data.email !== undefined) row.email = data.email;
     if (data.avatarUrl !== undefined) row.avatar_url = data.avatarUrl;
+    if (data.nickname !== undefined) row.nickname = data.nickname;
     if (data.membershipId !== undefined) row.membership_id = data.membershipId;
 
     return row;

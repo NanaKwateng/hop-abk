@@ -1,7 +1,8 @@
 // lib/navigation.ts
 import { IconType } from "react-icons";
 import {
-    FiHome, FiUsers, FiUserPlus, FiPieChart, FiSettings
+    FiHome, FiUsers, FiUserPlus, FiPieChart, FiSettings,
+    FiTag
 } from "react-icons/fi";
 import { FaPalette, FaUserShield } from "react-icons/fa6";
 import {
@@ -92,6 +93,14 @@ export const navigation: NavCategory[] = [
                 icon: FiPieChart,
                 iconBg: "bg-pink-500 dark:bg-pink-700",
                 iconColor: "text-white dark:text-white/70"
+            },
+            // ✅ FIX: Nickname item moved inside items array
+            {
+                title: "Nicknames",
+                href: "/admin/nicknames",
+                icon: FiTag,
+                iconBg: "bg-purple-100 dark:bg-purple-500/20",
+                iconColor: "text-purple-600 dark:text-purple-400"
             },
         ],
     },

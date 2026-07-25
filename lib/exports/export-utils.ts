@@ -1,4 +1,4 @@
-// src/lib/export-utils.ts
+// src/lib/exports/export-utils.ts
 // ============================================================
 // Handles exporting user data to CSV and Excel formats.
 // 
@@ -11,7 +11,8 @@
 //   - File format (CSV or Excel-compatible)
 // ============================================================
 
-import { User } from "@/lib/types/user-table-types";
+// ✅ FIX: Use Member from @/lib/types instead of User from user-table-types
+import type { Member } from "@/lib/types";
 import { EXPORTABLE_COLUMNS } from "@/lib/constants/index";
 
 /**
@@ -27,8 +28,8 @@ import { EXPORTABLE_COLUMNS } from "@/lib/constants/index";
  * "USR-0002","Mary","mary@yahoo.com"
  */
 export function usersToCSV(
-    users: User[],
-    columns: (keyof User)[]
+    users: Member[],
+    columns: (keyof Member)[]
 ): string {
     // Step 1: Create header row
     // Find the human-readable label for each column key
@@ -95,8 +96,8 @@ export function downloadFile(
  * This is the main function called by the Export button.
  */
 export function exportToCSV(
-    users: User[],
-    columns: (keyof User)[],
+    users: Member[],
+    columns: (keyof Member)[],
     fileName: string = "members-export"
 ): void {
     const csv = usersToCSV(users, columns);
@@ -114,8 +115,8 @@ export function exportToCSV(
  * but this approach works great without extra dependencies.
  */
 export function exportToExcel(
-    users: User[],
-    columns: (keyof User)[],
+    users: Member[],
+    columns: (keyof Member)[],
     fileName: string = "members-export"
 ): void {
     // Get human-readable headers

@@ -1,34 +1,3 @@
-// // file: src/components/users/step-dots.tsx
-
-// "use client"
-
-// import { motion } from "framer-motion"
-
-// export function StepDots({ step }: { step: number }) {
-//     const steps = [1, 2, 3, 4, 5]
-
-//     return (
-//         <div className="flex gap-2">
-//             {steps.map((s) => {
-
-//                 const active = s === step
-
-//                 return (
-//                     <motion.div
-//                         key={s}
-//                         layout
-//                         transition={{ duration: 0.15 }}
-//                         className={`h-2 rounded-full ${active
-//                                 ? "w-8 bg-primary"
-//                                 : "w-2 bg-muted-foreground/40"
-//                             }`}
-//                     />
-//                 )
-//             })}
-//         </div>
-//     )
-// }
-
 
 // src/components/users/step-dots.tsx
 

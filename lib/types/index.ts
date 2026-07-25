@@ -54,6 +54,7 @@ export interface MemberRow {
     role_comments: string | null;
     email: string | null;
     avatar_url: string | null;
+    nickname: string | null;
     membership_id: string | null;
     created_by: string | null;
     created_at: string | null;
@@ -79,6 +80,7 @@ export interface Member {
     roleComments: string | null;
     email: string | null;
     avatarUrl: string | null;
+    nickname: string | null;
     membershipId: string | null;
     createdBy: string | null;
     createdAt: string | null;
@@ -103,6 +105,7 @@ export interface MemberFormData {
     roleComments?: string;
     email?: string;
     avatarUrl?: string;
+    nickname?: string;
     membershipId?: string;
     registrationDate?: string;
 }

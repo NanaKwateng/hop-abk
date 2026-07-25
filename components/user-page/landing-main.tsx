@@ -62,20 +62,22 @@ export default function LandingPage() {
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-black">
                             <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5L12 2Z" />
                         </svg>
-                        <span className="font-bold tracking-tight text-sm uppercase">House of Power Min. Int'l</span>
+                        <span className="font-bold tracking-tight text-xl uppercase">House of Power Min. Int'l</span>
+
+
+                        <HoverBorderGradient containerClassName="rounded-full w-fit max-w-sm"
+                            as="button"
+                            className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2">
+                            <Link href={"/auth/login"}>
+                                Sign in
+                            </Link>
+                        </HoverBorderGradient>
                     </div>
 
                     <p className="text-gray-700 max-w-sm">
                         Welcome to House of Power. We are honored to have you join us today.. Our branches are located worldwide and always open for you everytime. Our social media platforms are also active, scroll for more.
                     </p>
 
-                    <HoverBorderGradient containerClassName="rounded-full"
-                        as="button"
-                        className="dark:bg-black bg-white text-black dark:text-white flex items-center space-x-2">
-                        <Link href={"/auth/login"}>
-                            Sign in
-                        </Link>
-                    </HoverBorderGradient>
 
 
                 </header>
@@ -152,7 +154,7 @@ export default function LandingPage() {
                             {/* Portrait Image Card */}
                             <div className="hidden md:flex col-span-1 sm:col-span-1 h-36 sm:h-auto rounded-[1.5rem] overflow-hidden relative group border">
                                 <Image
-                                    src="/images/NanaKwateng.jpg"
+                                    src="/screenshots/desktop.png"
                                     alt="Portrait"
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                     fill
@@ -201,7 +203,7 @@ export default function LandingPage() {
                                                     <Circle ref={centerRef} className="h-16 w-16 border-2 border-white bg-white shadow-xl">
                                                         <Avatar className="h-14 w-14">
                                                             <AvatarImage src="/images/NanaKwateng.jpg" />
-                                                            <AvatarFallback>AI</AvatarFallback>
+                                                            <AvatarFallback>HOP</AvatarFallback>
                                                         </Avatar>
                                                     </Circle>
                                                 </div>

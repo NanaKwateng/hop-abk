@@ -132,6 +132,7 @@ export const EXPORTABLE_COLUMNS: {
         { label: "Group", value: "memberGroup" },
         { label: "Occupation", value: "occupationType" },
         { label: "Membership ID", value: "membershipId" },
+        { label: "Nickname", value: "nickname" }, // ✅ ADDED
         { label: "Address Comments", value: "addressComments" },
         { label: "Role Comments", value: "roleComments" },
         { label: "Date Added", value: "createdAt" },

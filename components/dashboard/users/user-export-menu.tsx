@@ -50,7 +50,7 @@ interface UserExportMenuProps {
     currentFilters: FilterConfig[];
 }
 
-// Default columns for quick exports
+// Default columns for quick exports - ✅ ADDED nickname
 const DEFAULT_EXPORT_COLUMNS: (keyof Member)[] = [
     "firstName",
     "lastName",
@@ -62,6 +62,7 @@ const DEFAULT_EXPORT_COLUMNS: (keyof Member)[] = [
     "memberGroup",
     "occupationType",
     "membershipId",
+    "nickname", // ✅ ADDED
 ];
 
 export function UserExportMenu({
