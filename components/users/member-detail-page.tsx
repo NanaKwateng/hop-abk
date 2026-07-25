@@ -237,8 +237,9 @@ export function MemberDetailPage({
                         <Separator />
 
                         {/* Actions */}
+                        {/* Actions */}
                         <div className="flex w-full flex-col gap-2">
-                            {/* ✅ FIXED: Use gpsLat and gpsLng instead of latitude and longitude */}
+                            {/* Location Button - Only shows if GPS coordinates exist */}
                             <MemberLocationButton
                                 memberId={member.id}
                                 memberName={`${member.firstName} ${member.lastName}`}
@@ -246,13 +247,7 @@ export function MemberDetailPage({
                                 placeOfStay={member.placeOfStay}
                                 hasCoordinates={!!(member.gpsLat && member.gpsLng)}
                             />
-                            <MemberLocationButton
-                                memberId={member.id}
-                                memberName={`${member.firstName} ${member.lastName}`}
-                                houseNumber={member.houseNumber}
-                                placeOfStay={member.placeOfStay}
-                                hasCoordinates={!!member.gpsLat && !!member.gpsLng}
-                            />
+
                             <Button
                                 variant="outline"
                                 className="w-full justify-start"
@@ -261,6 +256,7 @@ export function MemberDetailPage({
                                 <Pencil className="mr-2 h-4 w-4" />
                                 Edit Member
                             </Button>
+
                             <Button
                                 variant="outline"
                                 className="w-full justify-start"
@@ -270,6 +266,7 @@ export function MemberDetailPage({
                                 <Copy className="mr-2 h-4 w-4" />
                                 {isDuplicating ? "Duplicating…" : "Duplicate"}
                             </Button>
+
                             <Button
                                 variant="outline"
                                 className="w-full justify-start text-destructive hover:text-destructive"

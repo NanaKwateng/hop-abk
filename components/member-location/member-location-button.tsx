@@ -24,6 +24,7 @@ export function MemberLocationButton({
 }: MemberLocationButtonProps) {
     const [open, setOpen] = useState(false);
 
+    // If no coordinates, don't render anything
     if (!hasCoordinates) {
         return null;
     }
@@ -32,8 +33,7 @@ export function MemberLocationButton({
         <>
             <Button
                 variant="outline"
-                size="sm"
-                className="gap-2"
+                className="w-full justify-start gap-2"
                 onClick={() => setOpen(true)}
             >
                 <MapPin className="h-4 w-4" />

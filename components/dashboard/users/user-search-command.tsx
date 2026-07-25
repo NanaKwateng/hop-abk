@@ -168,12 +168,11 @@ export function UserSearchTrigger() {
     return (
         <>
             <Button
-                variant="outline"
+                variant="ghost"
                 className="relative h-9 w-full justify-start rounded-md bg-muted/50 text-sm text-muted-foreground shadow-none sm:w-64"
                 onClick={() => setOpen(true)}
             >
                 <SearchIcon className="mr-2 size-4" />
-                Search members...
                 <kbd className="pointer-events-none absolute right-1.5 top-1/2 hidden -translate-y-1/2 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium sm:flex">
                     <span className="text-xs">⌘</span>K
                 </kbd>

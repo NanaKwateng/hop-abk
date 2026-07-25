@@ -36,6 +36,7 @@ import {
 } from "@/lib/constants";
 import { FilterIcon, SearchIcon, XIcon, PlusIcon } from "lucide-react";
 import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
+import { BulkImportDialog } from "@/components/bulk-import";
 
 interface UserToolbarProps {
     table: Table<Member>;
@@ -214,7 +215,6 @@ export function UserToolbar({
                             </div>
                         </PopoverContent>
                     </Popover>
-
                     <DataTableViewOptions table={table} />
 
                     <UserExportMenu
@@ -226,6 +226,7 @@ export function UserToolbar({
                         currentFilters={currentFilters}
                     />
 
+                    <BulkImportDialog />
                     <HoverBorderGradient
                         containerClassName="rounded-md"
                         as="button"
