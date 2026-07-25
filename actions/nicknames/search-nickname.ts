@@ -1,5 +1,3 @@
-// actions/nicknames/search-nickname.ts
-
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
@@ -8,35 +6,40 @@ import type { NicknameSearchResult, NicknameMember } from "@/lib/types/nickname"
 
 export async function searchMembersByNickname(
     query: string,
-    limit: number = 10
+    limit: number = 50
 ): Promise<NicknameSearchResult> {
     const supabase = await createClient();
 
-    // Validate input
     const validated = nicknameSearchSchema.parse({ query, limit });
 
-    // Search by nickname (exact match or partial)
-    const { data, error, count } = await supabase
+    let dbQuery = supabase
         .from("members")
         .select(
             `
-            id,
-            first_name,
-            last_name,
-            membership_id,
-            avatar_url,
-            nickname,
-            email,
-            phone,
-            member_group,
-            member_position
-        `,
+      id,
+      first_name,
+      last_name,
+      membership_id,
+      avatar_url,
+      nickname,
+      email,
+      phone,
+      member_group,
+      member_position
+    `,
             { count: "exact" }
         )
-        .ilike("nickname", `%${validated.query}%`)
+        .not("nickname", "is", null)
         .is("deleted_at", null)
         .order("nickname", { ascending: true })
         .limit(validated.limit);
+
+    // Apply ilike only if search string exists
+    if (validated.query && validated.query.trim().length >= 2) {
+        dbQuery = dbQuery.ilike("nickname", `%${validated.query.trim()}%`);
+    }
+
+    const { data, error, count } = await dbQuery;
 
     if (error) {
         console.error("[Nickname Search] Error:", error);
@@ -71,24 +74,24 @@ export async function searchMembersByNicknameExact(
         .from("members")
         .select(
             `
-            id,
-            first_name,
-            last_name,
-            membership_id,
-            avatar_url,
-            nickname,
-            email,
-            phone,
-            member_group,
-            member_position
-        `
+      id,
+      first_name,
+      last_name,
+      membership_id,
+      avatar_url,
+      nickname,
+      email,
+      phone,
+      member_group,
+      member_position
+    `
         )
         .eq("nickname", nickname)
         .is("deleted_at", null)
         .single();
 
     if (error) {
-        if (error.code === "PGRST116") return null; // Not found
+        if (error.code === "PGRST116") return null;
         console.error("[Nickname Exact Search] Error:", error);
         throw new Error(`Failed to search nickname: ${error.message}`);
     }

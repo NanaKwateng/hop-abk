@@ -1,67 +1,30 @@
-// app/admin/nicknames/page.tsx
-
 import { Suspense } from "react";
-import { NicknameSearch } from "@/components/nicknames/nickname-search";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { NicknameList } from "@/components/nicknames/nickname-list";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-    title: "Nicknames",
-    description: "Search members by nickname and manage nicknames.",
+    title: "Nicknames Studio",
+    description: "Search members by nickname with fluid glass interactions.",
 };
 
 export default function NicknamesPage() {
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Nicknames</h1>
-                <p className="text-muted-foreground">
-                    Search for members by their nickname, view their details, and manage nicknames.
-                </p>
-            </div>
+        <main className="relative min-h-[85vh] w-full overflow-hidden rounded-3xl border border-white/10 bg-slate-950 p-6 sm:p-10 text-slate-100 shadow-2xl backdrop-blur-3xl selection:bg-indigo-500 selection:text-white">
+            {/* Ambient background glow accents (Gemini style) */}
+            <div className="pointer-events-none absolute -top-40 -left-40 h-96 w-96 rounded-full bg-indigo-600/20 blur-[120px]" />
+            <div className="pointer-events-none absolute top-1/2 -right-40 h-96 w-96 rounded-full bg-fuchsia-600/15 blur-[120px]" />
+            <div className="pointer-events-none absolute -bottom-40 left-1/3 h-96 w-96 rounded-full bg-cyan-600/15 blur-[120px]" />
 
-            <div className="grid gap-6 md:grid-cols-2">
-                {/* Search Section */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Search by Nickname</CardTitle>
-                        <CardDescription>
-                            Type a nickname to find the member. Click on a result to go to their profile.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <NicknameSearch
-                            placeholder="Search by nickname..."
-                            className="w-full"
-                        />
-                    </CardContent>
-                </Card>
-
-                {/* Quick Stats or Info */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>About Nicknames</CardTitle>
-                        <CardDescription>
-                            Nicknames are alternative names that members may be known by.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-2 text-sm text-muted-foreground">
-                        <p>• Each nickname must be unique across all members</p>
-                        <p>• Nicknames can be 2-50 characters long</p>
-                        <p>• Only letters, numbers, spaces, hyphens, and underscores are allowed</p>
-                        <p>• Members can be searched by their nickname from anywhere in the app</p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* List all members with nicknames */}
-            <div className="mt-6">
-                <Suspense fallback={<div className="text-center py-8 text-muted-foreground">Loading nicknames...</div>}>
-                    <NicknameList />
-                </Suspense>
-            </div>
-        </div>
+            <Suspense
+                fallback={
+                    <div className="flex h-[400px] items-center justify-center text-sm font-medium text-slate-400 animate-pulse">
+                        Initializing Liquid Interface...
+                    </div>
+                }
+            >
+                <NicknameList />
+            </Suspense>
+        </main>
     );
 }

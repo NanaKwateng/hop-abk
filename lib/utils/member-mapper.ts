@@ -43,6 +43,8 @@ export function rowToMember(row: MemberRow): Member {
         membershipId: row.membership_id || null,
         createdBy: row.created_by || null,
         createdAt: row.created_at || null,
+        gpsLat: row.gps_lat || null,
+        gpsLng: row.gps_lng || null,
     };
 }
 
@@ -82,6 +84,8 @@ export function memberFormToRow(
     if (data.avatarUrl !== undefined) row.avatar_url = data.avatarUrl;
     if (data.nickname !== undefined) row.nickname = data.nickname;
     if (data.membershipId !== undefined) row.membership_id = data.membershipId;
+    if (data.gpsLat !== undefined) row.gps_lat = data.gpsLat;
+    if (data.gpsLng !== undefined) row.gps_lng = data.gpsLng;
 
     return row;
 }

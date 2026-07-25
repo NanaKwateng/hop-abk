@@ -54,6 +54,8 @@ export interface MemberRow {
     role_comments: string | null;
     email: string | null;
     avatar_url: string | null;
+    gps_lat: number | null;
+    gps_lng: number | null;
     nickname: string | null;
     membership_id: string | null;
     created_by: string | null;
@@ -84,6 +86,8 @@ export interface Member {
     membershipId: string | null;
     createdBy: string | null;
     createdAt: string | null;
+    gpsLat: number | null;
+    gpsLng: number | null;
 }
 
 /**
@@ -108,6 +112,8 @@ export interface MemberFormData {
     nickname?: string;
     membershipId?: string;
     registrationDate?: string;
+    gpsLat?: number;
+    gpsLng?: number;
 }
 
 /**

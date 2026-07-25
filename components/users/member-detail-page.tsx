@@ -1,4 +1,5 @@
 // components/users/member-detail-page.tsx
+
 "use client";
 
 import { useState } from "react";
@@ -58,6 +59,7 @@ import type { Member } from "@/lib/types";
 import type { MonthPayment, PaymentAnalytics } from "@/lib/types/payments";
 import type { Testimonial } from "@/lib/types/testimonials";
 import { NicknameManage } from "../nicknames/nickname-manage";
+import { MemberLocationButton } from "../member-location";
 
 interface MemberDetailPageProps {
     member: Member;
@@ -179,17 +181,6 @@ export function MemberDetailPage({
                             />
                         </div>
 
-                        <div className="flex items-center gap-4">
-                            <h2 className="text-xl font-bold">
-                                {member.firstName} {member.lastName}
-                            </h2>
-                            <NicknameManage
-                                memberId={member.id}
-                                nickname={member.nickname}
-                                memberName={`${member.firstName} ${member.lastName}`}
-                            />
-                        </div>
-
                         <div className="flex flex-wrap justify-center gap-2">
                             {member.memberPosition && (
                                 <Badge variant="default" className="capitalize">
@@ -247,7 +238,14 @@ export function MemberDetailPage({
 
                         {/* Actions */}
                         <div className="flex w-full flex-col gap-2">
-                            {/* ✅ FIXED: Separate button controlling the edit sheet state */}
+                            {/* ✅ FIXED: Use gpsLat and gpsLng instead of latitude and longitude */}
+                            <MemberLocationButton
+                                memberId={member.id}
+                                memberName={`${member.firstName} ${member.lastName}`}
+                                houseNumber={member.houseNumber}
+                                placeOfStay={member.placeOfStay}
+                                hasCoordinates={!!(member.gpsLat && member.gpsLng)}
+                            />
                             <Button
                                 variant="outline"
                                 className="w-full justify-start"
