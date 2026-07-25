@@ -246,6 +246,13 @@ export function MemberDetailPage({
                                 placeOfStay={member.placeOfStay}
                                 hasCoordinates={!!(member.gpsLat && member.gpsLng)}
                             />
+                            <MemberLocationButton
+                                memberId={member.id}
+                                memberName={`${member.firstName} ${member.lastName}`}
+                                houseNumber={member.houseNumber}
+                                placeOfStay={member.placeOfStay}
+                                hasCoordinates={!!member.gpsLat && !!member.gpsLng}
+                            />
                             <Button
                                 variant="outline"
                                 className="w-full justify-start"
