@@ -113,7 +113,7 @@ export function BulkImportDialog({
     const defaultTrigger = (
         <Button className="gap-2">
             <Upload className="h-4 w-4" />
-            Bulk Import Members
+            Import Members
         </Button>
     );
 
@@ -126,7 +126,7 @@ export function BulkImportDialog({
                 <DialogHeader className="shrink-0">
                     <DialogTitle className="flex items-center gap-2">
                         <FileSpreadsheet className="h-5 w-5 text-primary" />
-                        Bulk Import Members
+                        Import Members
                     </DialogTitle>
                     <DialogDescription>
                         Upload a CSV or Excel file to import multiple members at once.
