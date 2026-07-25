@@ -1,4 +1,5 @@
 // app/admin/[slug]/doc-content-renderer.tsx
+
 import { Suspense } from "react";
 import type { DocContent } from "@/lib/docs-content";
 
@@ -15,6 +16,7 @@ import CustomizePage from "../customize/page";
 import AdminFlowPage from "../admin-flow/page";
 import BranchesPage from "../branches/page";
 import TasksPage from "../task/page";
+import NicknamesPage from "../nicknames/page"; // ✅ ADDED
 
 interface DocContentRendererProps {
     slug: string;
@@ -22,33 +24,6 @@ interface DocContentRendererProps {
 }
 
 export function DocContentRenderer({ slug, content }: DocContentRendererProps) {
-    // ════════════════════════════════════════════════════════════════
-    // HOW THIS WORKS:
-    // 
-    // 1. User clicks a sidebar link, e.g. href="/admin/admin-settings"
-    // 2. Next.js matches app/admin/[slug]/page.tsx
-    // 3. slug = "admin-settings" (the URL segment after /admin/)
-    // 4. This switch must match EXACTLY that URL slug
-    //
-    // IMPORTANT: The case values must be the URL path segment,
-    // NOT the display title from navigation.ts.
-    //
-    // Navigation href:           → URL slug extracted:
-    // /admin/introduction        → "introduction"
-    // /admin/users               → "users"  
-    // /admin/register-member     → "register-member"
-    // /admin/all-workflows       → "all-workflows"
-    // /admin/finance             → "finance"
-    // /admin/admin-settings      → "admin-settings"
-    // /admin/customize           → "customize"
-    // /admin/admin-flow          → "admin-flow"
-    //
-    // NOTE: /admin/accounts/settings is a NESTED route (has its own
-    // page.tsx at app/admin/accounts/settings/page.tsx), so it does
-    // NOT go through [slug]. The slug would only be "accounts" if
-    // someone hit /admin/accounts directly.
-    // ════════════════════════════════════════════════════════════════
-
     switch (slug) {
         // --- Getting Started ---
         case "introduction":
@@ -67,44 +42,26 @@ export function DocContentRenderer({ slug, content }: DocContentRendererProps) {
         case "finance":
             return <FinancialContent />;
 
+        // ✅ ADDED: Nicknames page
+        case "nicknames":
+            return <NicknamesContent />;
+
         // --- Settings ---
-        // ✅ FIX: Was "Manage accounts" (display title).
-        // This slug won't normally be hit because /admin/accounts/settings
-        // has its own nested route. But if the sidebar ever links to
-        // /admin/accounts, this catches it.
         case "accounts":
             return <ManageAccounts />;
 
-        // ✅ FIX: This case was COMPLETELY MISSING.
-        // The sidebar links to /admin/admin-settings → slug = "admin-settings"
-        // Without this case, it fell through to GenericContent (the "Generic fallback..." 
-        // you see in the production screenshot).
         case "admin-settings":
             return <ManageAdmin />;
 
-        // ✅ FIX: This case was COMPLETELY MISSING.
-        // The sidebar links to /admin/admin-settings → slug = "admin-settings"
-        // Without this case, it fell through to GenericContent (the "Generic fallback..." 
-        // you see in the production screenshot).
         case "branches":
             return <Branches />;
 
-        // ✅ FIX: Was "Customize Settings" (display title).
-        // The sidebar links to /admin/customize → slug = "customize"
         case "customize":
             return <Customization />;
 
-        // ✅ FIX: Was "admin flow" (with a space, not a hyphen).
-        // The sidebar links to /admin/admin-flow → slug = "admin-flow"
-        // Also: was previously mapped to <ManageAdmin /> (wrong component).
-        // Now correctly maps to <AdminFlow /> which renders AdminFlowPage.
         case "admin-flow":
             return <AdminFlow />;
 
-        // ✅ FIX: Was "admin flow" (with a space, not a hyphen).
-        // The sidebar links to /admin/admin-flow → slug = "admin-flow"
-        // Also: was previously mapped to <ManageAdmin /> (wrong component).
-        // Now correctly maps to <AdminFlow /> which renders AdminFlowPage.
         case "task":
             return <ManageTasks />;
 
@@ -160,6 +117,15 @@ function AllWorkFlows() {
     );
 }
 
+// ✅ ADDED: Nicknames content component
+function NicknamesContent() {
+    return (
+        <div className="min-h-[60vh] bg-background">
+            <NicknamesPage />
+        </div>
+    );
+}
+
 function ManageAccounts() {
     return (
         <div className="min-h-screen w-full">
@@ -200,8 +166,6 @@ function Branches() {
     );
 }
 
-// ✅ FIX: This function existed before but was never referenced 
-// in the switch statement. Now it's used by case "admin-flow".
 function AdminFlow() {
     return (
         <div className="min-h-screen w-full">

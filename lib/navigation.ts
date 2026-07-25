@@ -60,7 +60,14 @@ export const navigation: NavCategory[] = [
                 icon: FiUserPlus,
                 iconBg: "bg-green-100 dark:bg-green-500/20",
                 iconColor: "text-green-600 dark:text-green-400"
-            }
+            },
+            {
+                title: "Nicknames",
+                href: "/admin/nicknames",
+                icon: FiTag,
+                iconBg: "bg-purple-100 dark:bg-purple-500/20",
+                iconColor: "text-purple-600 dark:text-purple-400"
+            },
         ],
     },
     {
@@ -93,14 +100,6 @@ export const navigation: NavCategory[] = [
                 icon: FiPieChart,
                 iconBg: "bg-pink-500 dark:bg-pink-700",
                 iconColor: "text-white dark:text-white/70"
-            },
-            // ✅ FIX: Nickname item moved inside items array
-            {
-                title: "Nicknames",
-                href: "/admin/nicknames",
-                icon: FiTag,
-                iconBg: "bg-purple-100 dark:bg-purple-500/20",
-                iconColor: "text-purple-600 dark:text-purple-400"
             },
         ],
     },
