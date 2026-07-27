@@ -6,8 +6,16 @@ import { useState, useEffect } from "react";
 import { getMemberLocation } from "@/actions/location";
 import type { GeocodeResult } from "@/lib/types/location";
 
-export function useMemberLocation(memberId: string) {
+interface UseMemberLocationReturn {
+    location: GeocodeResult | null;
+    source: "gps" | "address" | "none";
+    isLoading: boolean;
+    error: string | null;
+}
+
+export function useMemberLocation(memberId: string): UseMemberLocationReturn {
     const [location, setLocation] = useState<GeocodeResult | null>(null);
+    const [source, setSource] = useState<"gps" | "address" | "none">("none");
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -23,10 +31,12 @@ export function useMemberLocation(memberId: string) {
 
             try {
                 const result = await getMemberLocation(memberId);
-                setLocation(result);
+                setLocation(result.location);
+                setSource(result.source);
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to load location");
                 setLocation(null);
+                setSource("none");
             } finally {
                 setIsLoading(false);
             }
@@ -35,5 +45,5 @@ export function useMemberLocation(memberId: string) {
         fetchLocation();
     }, [memberId]);
 
-    return { location, isLoading, error };
+    return { location, source, isLoading, error };
 }

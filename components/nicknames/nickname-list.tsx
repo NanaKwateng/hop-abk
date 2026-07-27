@@ -48,7 +48,7 @@ export function NicknameList() {
             {/* 1. Dynamic Glass Search Pill (Top-Right Corner Positioned) */}
             <motion.div
                 layout
-                className="relative self-end rounded-full border border-slate-200 dark:border-white/10 bg-slate-100/70 dark:bg-slate-900/40 shadow-inner backdrop-blur-xl transition-all hover:border-slate-300 dark:hover:border-white/20 focus-within:border-indigo-400/50 dark:focus-within:border-indigo-500/50"
+                className="relative rounded-full border border-slate-200 dark:border-white/10 bg-slate-100/70 dark:bg-slate-900/40 shadow-inner backdrop-blur-xl transition-all hover:border-slate-300 dark:hover:border-white/20 focus-within:border-indigo-400/50 dark:focus-within:border-indigo-500/50"
             >
                 <div className="relative flex items-center px-4 w-72">
                     <div className="text-slate-400">

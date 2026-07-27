@@ -19,15 +19,12 @@ import { useMemberLocation } from "@/hooks/use-member-location";
 import { formatCoordinates, getGoogleMapsUrl, getOpenStreetMapUrl } from "@/lib/utils/location-utils";
 import {
     MapPin,
-    ExternalLink,
     Navigation,
-    Home,
-    Map,
     Globe,
     X,
     CheckCircle2,
+    AlertCircle,
 } from "lucide-react";
-import type { GeocodeResult } from "@/lib/types/location";
 
 interface MemberLocationDrawerProps {
     open: boolean;
@@ -36,6 +33,7 @@ interface MemberLocationDrawerProps {
     memberName: string;
     houseNumber?: string | null;
     placeOfStay?: string | null;
+    hasGpsCoordinates: boolean;
 }
 
 export function MemberLocationDrawer({
@@ -45,27 +43,9 @@ export function MemberLocationDrawer({
     memberName,
     houseNumber,
     placeOfStay,
+    hasGpsCoordinates,
 }: MemberLocationDrawerProps) {
-    const { location, isLoading, error } = useMemberLocation(memberId);
-    const [addressParts, setAddressParts] = useState<{
-        neighborhood?: string;
-        city?: string;
-        region?: string;
-        country?: string;
-        postalCode?: string;
-    }>({});
-
-    useEffect(() => {
-        if (location) {
-            setAddressParts({
-                neighborhood: location.neighborhood,
-                city: location.city,
-                region: location.region,
-                country: location.country,
-                postalCode: location.postalCode,
-            });
-        }
-    }, [location]);
+    const { location, source, isLoading, error } = useMemberLocation(memberId);
 
     const handleOpenInGoogleMaps = () => {
         if (location) {
@@ -79,6 +59,8 @@ export function MemberLocationDrawer({
         }
     };
 
+    const formattedAddress = location?.formattedAddress || placeOfStay || "Location not found";
+
     return (
         <Drawer open={open} onOpenChange={onOpenChange}>
             <DrawerContent className="h-[95dvh] max-h-[95dvh] rounded-t-2xl">
@@ -91,8 +73,28 @@ export function MemberLocationDrawer({
                                     <MapPin className="h-5 w-5 text-primary" />
                                     {memberName}'s Location
                                 </DrawerTitle>
-                                <DrawerDescription>
-                                    View the GPS location and address of this member
+                                <DrawerDescription className="flex items-center gap-2">
+                                    {source === "gps" && (
+                                        <Badge variant="default" className="text-xs gap-1">
+                                            <CheckCircle2 className="h-3 w-3" />
+                                            GPS Verified
+                                        </Badge>
+                                    )}
+                                    {source === "address" && (
+                                        <Badge variant="secondary" className="text-xs gap-1">
+                                            <MapPin className="h-3 w-3" />
+                                            From Address
+                                        </Badge>
+                                    )}
+                                    {source === "none" && !isLoading && (
+                                        <Badge variant="outline" className="text-xs gap-1 text-muted-foreground">
+                                            <AlertCircle className="h-3 w-3" />
+                                            Location Not Found
+                                        </Badge>
+                                    )}
+                                    <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                                        {formattedAddress}
+                                    </span>
                                 </DrawerDescription>
                             </div>
                             <Button
@@ -113,11 +115,11 @@ export function MemberLocationDrawer({
                         ) : error ? (
                             <div className="flex flex-col items-center justify-center py-12 text-center">
                                 <div className="rounded-full bg-destructive/10 p-4">
-                                    <MapPin className="h-8 w-8 text-destructive" />
+                                    <AlertCircle className="h-8 w-8 text-destructive" />
                                 </div>
                                 <h3 className="mt-4 text-lg font-semibold">Location Not Available</h3>
                                 <p className="mt-2 text-sm text-muted-foreground max-w-sm">
-                                    {error || "This member does not have GPS coordinates set."}
+                                    {error || "Could not find location for this member."}
                                 </p>
                             </div>
                         ) : location ? (
@@ -131,6 +133,40 @@ export function MemberLocationDrawer({
                                     />
                                 </div>
 
+                                {/* Location Source Info */}
+                                <div className="rounded-lg border p-4 bg-muted/30">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-medium">Location Source</span>
+                                        {source === "gps" ? (
+                                            <Badge className="gap-1">
+                                                <CheckCircle2 className="h-3 w-3" />
+                                                GPS Coordinates
+                                            </Badge>
+                                        ) : source === "address" ? (
+                                            <Badge variant="secondary" className="gap-1">
+                                                <MapPin className="h-3 w-3" />
+                                                Geocoded from Address
+                                            </Badge>
+                                        ) : (
+                                            <Badge variant="outline" className="gap-1">
+                                                <AlertCircle className="h-3 w-3" />
+                                                Unknown
+                                            </Badge>
+                                        )}
+                                    </div>
+                                    {source === "address" && (
+                                        <p className="text-xs text-muted-foreground mt-2">
+                                            Location was derived from the member's address:{" "}
+                                            <strong>{formattedAddress}</strong>
+                                        </p>
+                                    )}
+                                    {source === "gps" && (
+                                        <p className="text-xs text-muted-foreground mt-2">
+                                            Location is based on exact GPS coordinates provided by the member.
+                                        </p>
+                                    )}
+                                </div>
+
                                 {/* Address Details */}
                                 <div className="grid gap-4 md:grid-cols-2">
                                     <div className="space-y-3">
@@ -139,29 +175,29 @@ export function MemberLocationDrawer({
                                             {location.formattedAddress && (
                                                 <p className="text-sm">{location.formattedAddress}</p>
                                             )}
-                                            {addressParts.neighborhood && (
+                                            {placeOfStay && (
                                                 <p className="text-sm text-muted-foreground">
-                                                    <span className="font-medium">Neighborhood:</span> {addressParts.neighborhood}
+                                                    <span className="font-medium">Place of Stay:</span> {placeOfStay}
                                                 </p>
                                             )}
-                                            {addressParts.city && (
+                                            {houseNumber && (
                                                 <p className="text-sm text-muted-foreground">
-                                                    <span className="font-medium">City:</span> {addressParts.city}
+                                                    <span className="font-medium">House Number:</span> {houseNumber}
                                                 </p>
                                             )}
-                                            {addressParts.region && (
+                                            {location.city && (
                                                 <p className="text-sm text-muted-foreground">
-                                                    <span className="font-medium">Region:</span> {addressParts.region}
+                                                    <span className="font-medium">City:</span> {location.city}
                                                 </p>
                                             )}
-                                            {addressParts.country && (
+                                            {location.region && (
                                                 <p className="text-sm text-muted-foreground">
-                                                    <span className="font-medium">Country:</span> {addressParts.country}
+                                                    <span className="font-medium">Region:</span> {location.region}
                                                 </p>
                                             )}
-                                            {addressParts.postalCode && (
+                                            {location.country && (
                                                 <p className="text-sm text-muted-foreground">
-                                                    <span className="font-medium">Postal Code:</span> {addressParts.postalCode}
+                                                    <span className="font-medium">Country:</span> {location.country}
                                                 </p>
                                             )}
                                         </div>
@@ -193,27 +229,6 @@ export function MemberLocationDrawer({
                                     </div>
                                 </div>
 
-                                {/* Member Info */}
-                                {(houseNumber || placeOfStay) && (
-                                    <div className="rounded-lg border p-4 bg-muted/30">
-                                        <h4 className="text-sm font-semibold mb-2">🏠 Member Address Info</h4>
-                                        <div className="grid gap-2 text-sm">
-                                            {houseNumber && (
-                                                <div className="flex items-center gap-2">
-                                                    <Home className="h-4 w-4 text-muted-foreground" />
-                                                    <span>House Number: <span className="font-medium">{houseNumber}</span></span>
-                                                </div>
-                                            )}
-                                            {placeOfStay && (
-                                                <div className="flex items-center gap-2">
-                                                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                                                    <span>Place of Stay: <span className="font-medium">{placeOfStay}</span></span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
                                 {/* Actions */}
                                 <div className="flex flex-wrap gap-2 pt-2">
                                     <Button
@@ -239,9 +254,18 @@ export function MemberLocationDrawer({
                                 <div className="rounded-full bg-muted p-4">
                                     <MapPin className="h-8 w-8 text-muted-foreground" />
                                 </div>
-                                <h3 className="mt-4 text-lg font-semibold">No Location Set</h3>
+                                <h3 className="mt-4 text-lg font-semibold">No Location Found</h3>
                                 <p className="mt-2 text-sm text-muted-foreground max-w-sm">
-                                    This member doesn't have GPS coordinates set. Please update their profile with location information.
+                                    {placeOfStay ? (
+                                        <>
+                                            Could not find coordinates for <strong>{placeOfStay}</strong>.
+                                            {houseNumber && ` (${houseNumber})`}
+                                            <br />
+                                            Please check the address or add GPS coordinates manually.
+                                        </>
+                                    ) : (
+                                        "This member doesn't have an address or GPS coordinates set."
+                                    )}
                                 </p>
                             </div>
                         )}

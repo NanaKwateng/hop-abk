@@ -3,5 +3,7 @@
 export {
     reverseGeocodeLocation,
     getMemberLocation,
-    searchLocationByAddress
+    geocodeAddress,
+    searchLocationByAddress,
+    batchGeocodeAddresses
 } from "./geocode-location";

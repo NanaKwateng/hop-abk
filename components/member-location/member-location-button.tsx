@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { MapPin } from "lucide-react";
+import { MapPin, Loader2 } from "lucide-react";
 import { MemberLocationDrawer } from "./member-location-drawer";
 
 interface MemberLocationButtonProps {
@@ -12,7 +12,9 @@ interface MemberLocationButtonProps {
     memberName: string;
     houseNumber?: string | null;
     placeOfStay?: string | null;
-    hasCoordinates: boolean;
+    hasGpsCoordinates: boolean;
+    hasAddress: boolean;
+    isLoading?: boolean;
 }
 
 export function MemberLocationButton({
@@ -20,12 +22,14 @@ export function MemberLocationButton({
     memberName,
     houseNumber,
     placeOfStay,
-    hasCoordinates,
+    hasGpsCoordinates,
+    hasAddress,
+    isLoading = false,
 }: MemberLocationButtonProps) {
     const [open, setOpen] = useState(false);
 
-    // If no coordinates, don't render anything
-    if (!hasCoordinates) {
+    // If no location data at all, don't render
+    if (!hasGpsCoordinates && !hasAddress) {
         return null;
     }
 
@@ -35,9 +39,23 @@ export function MemberLocationButton({
                 variant="outline"
                 className="w-full justify-start gap-2"
                 onClick={() => setOpen(true)}
+                disabled={isLoading}
             >
-                <MapPin className="h-4 w-4" />
-                View Location
+                {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                    <MapPin className="h-4 w-4" />
+                )}
+                {isLoading ? "Loading location..." : "View Location"}
+                {hasGpsCoordinates ? (
+                    <span className="ml-auto text-xs text-green-600 dark:text-green-400">
+                        GPS
+                    </span>
+                ) : hasAddress ? (
+                    <span className="ml-auto text-xs text-blue-600 dark:text-blue-400">
+                        Address
+                    </span>
+                ) : null}
             </Button>
 
             <MemberLocationDrawer
@@ -47,6 +65,7 @@ export function MemberLocationButton({
                 memberName={memberName}
                 houseNumber={houseNumber}
                 placeOfStay={placeOfStay}
+                hasGpsCoordinates={hasGpsCoordinates}
             />
         </>
     );

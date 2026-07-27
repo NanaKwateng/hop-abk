@@ -245,7 +245,8 @@ export function MemberDetailPage({
                                 memberName={`${member.firstName} ${member.lastName}`}
                                 houseNumber={member.houseNumber}
                                 placeOfStay={member.placeOfStay}
-                                hasCoordinates={!!(member.gpsLat && member.gpsLng)}
+                                hasGpsCoordinates={!!(member.gpsLat && member.gpsLng)}
+                                hasAddress={!!(member.placeOfStay || member.houseNumber)}
                             />
 
                             <Button
