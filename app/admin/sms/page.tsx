@@ -27,7 +27,7 @@ export default function SMSPage() {
             </div>
 
             <Tabs defaultValue="compose" className="space-y-4">
-                <TabsList className="bg-transparent w-full justify-start gap-2">
+                <TabsList className="bg-transparent w-1/4 py-2 rounded-full justify-start gap-2">
                     <TabsTrigger value="compose" className="gap-2">
                         <Send className="h-4 w-4" />
                         Compose
@@ -42,19 +42,19 @@ export default function SMSPage() {
                     </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="compose">
+                <TabsContent value="compose" className="border-0 outline-none shadow-none">
                     <Suspense fallback={<SMSComposerSkeleton />}>
                         <SMSComposer />
                     </Suspense>
                 </TabsContent>
 
-                <TabsContent value="history">
+                <TabsContent value="history" className="border-0 outline-none shadow-none">
                     <Suspense fallback={<SMSHistorySkeleton />}>
                         <SMSHistory />
                     </Suspense>
                 </TabsContent>
 
-                <TabsContent value="analytics">
+                <TabsContent value="analytics" className="border-0 outline-none shadow-none">
                     <Suspense fallback={<SMSAnalyticsSkeleton />}>
                         <SMSAnalytics />
                     </Suspense>
