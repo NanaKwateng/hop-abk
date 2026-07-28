@@ -27,16 +27,16 @@ export default function SMSPage() {
             </div>
 
             <Tabs defaultValue="compose" className="space-y-4">
-                <TabsList className="bg-transparent w-full justify-start gap-2">
-                    <TabsTrigger value="compose" className="gap-2">
+                <TabsList className="bg-transparent w-full max-w-sm justify-start gap-2">
+                    <TabsTrigger value="compose" className="gap-2 border-2 rounded-full py-1">
                         <Send className="h-4 w-4" />
                         Compose
                     </TabsTrigger>
-                    <TabsTrigger value="history" className="gap-2">
+                    <TabsTrigger value="history" className="gap-2 border-2 rounded-full py-1">
                         <History className="h-4 w-4" />
                         History
                     </TabsTrigger>
-                    <TabsTrigger value="analytics" className="gap-2">
+                    <TabsTrigger value="analytics" className="gap-2 border-2 rounded-full py-1">
                         <BarChart3 className="h-4 w-4" />
                         Analytics
                     </TabsTrigger>
