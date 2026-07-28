@@ -27,7 +27,7 @@ export default function SMSPage() {
             </div>
 
             <Tabs defaultValue="compose" className="space-y-4">
-                <TabsList className="bg-transparent w-1/4 max-w-sm py-2 rounded-full justify-start gap-2">
+                <TabsList className="bg-transparent w-1/4 max-w-sm rounded-full justify-start gap-2">
                     <TabsTrigger value="compose" className="gap-2">
                         <Send className="h-4 w-4" />
                         Compose

@@ -142,7 +142,7 @@ export function SMSComposer() {
             transition={spring}
             className="w-full max-w-4xl mx-auto"
         >
-            <Card className="border-0 overflow-hidden">
+            <Card className="border-0 ring-0 overflow-hidden">
                 <CardHeader className=" border-b">
                     <div className="flex items-center justify-between">
                         <div>
