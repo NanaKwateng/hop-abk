@@ -1,9 +1,6 @@
-// components/sms/sms-recipient-selector.tsx
-
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { useState, useMemo, useCallback } from "react";
 import { useSMS } from "@/hooks/use-sms";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,34 +27,42 @@ import {
     Users2,
     User,
     Filter,
-    Check,
-    X,
     Search,
-    Loader2,
+    X,
+    UserCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const GROUP_OPTIONS = [
+export type RecipientType = "all" | "group" | "individual" | "filtered";
+
+interface GroupOption {
+    value: string;
+    label: string;
+}
+
+const DEFAULT_GROUP_OPTIONS: GroupOption[] = [
     { value: "mens_fellowship", label: "Men's Fellowship" },
     { value: "womens_fellowship", label: "Women's Fellowship" },
     { value: "youth_fellowship", label: "Youth Fellowship" },
 ];
 
+// Updated Member interface to allow nullable membershipId
+interface Member {
+    id: string;
+    firstName: string;
+    lastName: string;
+    membershipId?: string | null;
+}
+
 interface SMSRecipientSelectorProps {
-    value: "all" | "group" | "individual" | "filtered";
-    onValueChange: (value: "all" | "group" | "individual" | "filtered") => void;
+    value: RecipientType;
+    onValueChange: (value: RecipientType) => void;
     selectedGroup: string;
     onGroupChange: (value: string) => void;
     selectedMembers: string[];
     onMembersChange: (members: string[]) => void;
+    groupOptions?: GroupOption[];
 }
-
-const spring = {
-    type: "spring" as const,
-    stiffness: 350,
-    damping: 25,
-    mass: 0.8,
-};
 
 export function SMSRecipientSelector({
     value,
@@ -66,246 +71,229 @@ export function SMSRecipientSelector({
     onGroupChange,
     selectedMembers,
     onMembersChange,
+    groupOptions = DEFAULT_GROUP_OPTIONS,
 }: SMSRecipientSelectorProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [isMemberPickerOpen, setIsMemberPickerOpen] = useState(false);
     const { useRecipients } = useSMS();
 
-    // Fetch recipients for member picker
     const { data: allMembersData, isLoading: membersLoading } = useRecipients("all");
-    const allMembers = allMembersData?.recipients || [];
+    const allMembers: Member[] = allMembersData?.recipients || [];
 
-    // Filter members by search
     const filteredMembers = useMemo(() => {
         if (!searchQuery.trim()) return allMembers;
+        const query = searchQuery.toLowerCase();
         return allMembers.filter((m) =>
             `${m.firstName} ${m.lastName} ${m.membershipId || ""}`
                 .toLowerCase()
-                .includes(searchQuery.toLowerCase())
+                .includes(query)
         );
     }, [allMembers, searchQuery]);
 
-    // Toggle member selection
-    const toggleMember = (memberId: string) => {
-        if (selectedMembers.includes(memberId)) {
-            onMembersChange(selectedMembers.filter((id) => id !== memberId));
-        } else {
-            onMembersChange([...selectedMembers, memberId]);
-        }
-    };
+    const toggleMember = useCallback(
+        (memberId: string) => {
+            if (selectedMembers.includes(memberId)) {
+                onMembersChange(selectedMembers.filter((id) => id !== memberId));
+            } else {
+                onMembersChange([...selectedMembers, memberId]);
+            }
+        },
+        [selectedMembers, onMembersChange]
+    );
 
-    // Select all members
-    const selectAllMembers = () => {
-        const ids = filteredMembers.map((m) => m.id);
-        onMembersChange(ids);
-    };
-
-    // Clear all members
-    const clearAllMembers = () => {
-        onMembersChange([]);
-    };
-
-    // Get display text for recipient type
-    const getRecipientLabel = () => {
-        switch (value) {
-            case "all":
-                return "All Members";
-            case "group":
-                return GROUP_OPTIONS.find((g) => g.value === selectedGroup)?.label || "Group";
-            case "individual":
-                return `${selectedMembers.length} Member${selectedMembers.length > 1 ? "s" : ""}`;
-            case "filtered":
-                return "Filtered Members";
-            default:
-                return "Select Recipients";
-        }
-    };
+    const selectedMemberObjects = useMemo(() => {
+        const set = new Set(selectedMembers);
+        return allMembers.filter((m) => set.has(m.id));
+    }, [allMembers, selectedMembers]);
 
     return (
         <div className="space-y-3">
-            <Label className="text-sm font-medium flex items-center gap-2">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                Recipients
-            </Label>
-
-            <div className="flex flex-wrap items-center gap-2">
-                {/* Recipient Type Selector */}
-                <Select
-                    value={value}
-                    onValueChange={(v) => onValueChange(v as any)}
-                >
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue>
-                            <span className="flex items-center gap-2">
-                                {value === "all" && <Users className="h-4 w-4" />}
-                                {value === "group" && <Users2 className="h-4 w-4" />}
-                                {value === "individual" && <User className="h-4 w-4" />}
-                                {value === "filtered" && <Filter className="h-4 w-4" />}
-                                {getRecipientLabel()}
-                            </span>
-                        </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">
-                            <span className="flex items-center gap-2">
-                                <Users className="h-4 w-4" />
-                                All Members
-                            </span>
-                        </SelectItem>
-                        <SelectItem value="group">
-                            <span className="flex items-center gap-2">
-                                <Users2 className="h-4 w-4" />
-                                By Group
-                            </span>
-                        </SelectItem>
-                        <SelectItem value="individual">
-                            <span className="flex items-center gap-2">
-                                <User className="h-4 w-4" />
-                                Select Members
-                            </span>
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
-
-                {/* Group Selector */}
-                {value === "group" && (
-                    <Select value={selectedGroup} onValueChange={onGroupChange}>
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Select group" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {GROUP_OPTIONS.map((group) => (
-                                <SelectItem key={group.value} value={group.value}>
-                                    {group.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                )}
-
-                {/* Individual Member Picker */}
-                {value === "individual" && (
-                    <Popover open={isMemberPickerOpen} onOpenChange={setIsMemberPickerOpen}>
-                        <PopoverTrigger asChild>
-                            <Button variant="outline" size="sm" className="gap-2">
-                                <User className="h-4 w-4" />
-                                {selectedMembers.length > 0
-                                    ? `${selectedMembers.length} selected`
-                                    : "Select members"}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[400px] p-0" align="start">
-                            <div className="p-3 border-b border-border/40">
-                                <div className="flex items-center gap-2">
-                                    <div className="relative flex-1">
-                                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                                        <Input
-                                            placeholder="Search members..."
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="pl-9 h-9"
-                                        />
-                                    </div>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={selectAllMembers}
-                                    >
-                                        All
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={clearAllMembers}
-                                    >
-                                        Clear
-                                    </Button>
-                                </div>
-                            </div>
-
-                            <ScrollArea className="h-[300px]">
-                                {membersLoading ? (
-                                    <div className="p-4 space-y-2">
-                                        {Array.from({ length: 5 }).map((_, i) => (
-                                            <Skeleton key={i} className="h-12 w-full" />
-                                        ))}
-                                    </div>
-                                ) : filteredMembers.length === 0 ? (
-                                    <div className="p-8 text-center text-muted-foreground">
-                                        {searchQuery ? "No members found" : "No members available"}
-                                    </div>
-                                ) : (
-                                    <div className="p-2 space-y-1">
-                                        {filteredMembers.map((member) => (
-                                            <div
-                                                key={member.id}
-                                                className={cn(
-                                                    "flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer transition-colors",
-                                                    selectedMembers.includes(member.id)
-                                                        ? "bg-primary/10"
-                                                        : "hover:bg-muted/50"
-                                                )}
-                                                onClick={() => toggleMember(member.id)}
-                                            >
-                                                <Checkbox
-                                                    checked={selectedMembers.includes(member.id)}
-                                                    onCheckedChange={() => toggleMember(member.id)}
-                                                    className="pointer-events-none"
-                                                />
-                                                <Avatar className="h-8 w-8">
-                                                    <AvatarImage
-                                                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${member.firstName} ${member.lastName}`}
-                                                    />
-                                                    <AvatarFallback>
-                                                        {member.firstName[0]}
-                                                        {member.lastName[0]}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium truncate">
-                                                        {member.firstName} {member.lastName}
-                                                    </p>
-                                                    <p className="text-xs text-muted-foreground truncate">
-                                                        {member.membershipId || "No ID"}
-                                                    </p>
-                                                </div>
-                                                {selectedMembers.includes(member.id) && (
-                                                    <Check className="h-4 w-4 text-primary" />
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </ScrollArea>
-
-                            <div className="p-3 border-t border-border/40 flex items-center justify-between">
-                                <span className="text-sm text-muted-foreground">
-                                    {selectedMembers.length} members selected
-                                </span>
-                                <Button
-                                    size="sm"
-                                    onClick={() => setIsMemberPickerOpen(false)}
-                                >
-                                    Done
-                                </Button>
-                            </div>
-                        </PopoverContent>
-                    </Popover>
-                )}
+            <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <Users className="h-3.5 w-3.5 text-primary" />
+                    Target Audience
+                </Label>
+                <span className="text-xs text-muted-foreground font-medium">
+                    {value === "all"
+                        ? "All active members"
+                        : value === "group"
+                            ? `${groupOptions.find((g) => g.value === selectedGroup)?.label || "Group"} members`
+                            : `${selectedMembers.length} selected`}
+                </span>
             </div>
 
-            {/* Selected count badge */}
-            <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="gap-1">
-                    {value === "all" && <Users className="h-3 w-3" />}
-                    {value === "group" && <Users2 className="h-3 w-3" />}
-                    {value === "individual" && <User className="h-3 w-3" />}
-                    {value === "group" ? GROUP_OPTIONS.find((g) => g.value === selectedGroup)?.label || "Group" : getRecipientLabel()}
-                </Badge>
-                {value === "individual" && selectedMembers.length > 0 && (
-                    <Badge variant="outline" className="gap-1">
-                        {selectedMembers.length} members
-                    </Badge>
+            <div className="p-3 rounded-2xl bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/10 backdrop-blur-md space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                    {/* Main Recipient Type Selector */}
+                    <Select
+                        value={value}
+                        onValueChange={(v) => onValueChange(v as RecipientType)}
+                    >
+                        <SelectTrigger className="w-[170px] h-9 rounded-xl bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-xs font-medium">
+                            <SelectValue>
+                                <span className="flex items-center gap-2">
+                                    {value === "all" && <Users className="h-3.5 w-3.5 text-primary" />}
+                                    {value === "group" && <Users2 className="h-3.5 w-3.5 text-primary" />}
+                                    {value === "individual" && <User className="h-3.5 w-3.5 text-primary" />}
+                                    {value === "filtered" && <Filter className="h-3.5 w-3.5 text-primary" />}
+                                    {value === "all"
+                                        ? "All Members"
+                                        : value === "group"
+                                            ? "By Fellowship"
+                                            : "Individual"}
+                                </span>
+                            </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="rounded-2xl border-white/10 backdrop-blur-xl">
+                            <SelectItem value="all" className="rounded-xl text-xs">
+                                <span className="flex items-center gap-2">
+                                    <Users className="h-3.5 w-3.5" /> All Members
+                                </span>
+                            </SelectItem>
+                            <SelectItem value="group" className="rounded-xl text-xs">
+                                <span className="flex items-center gap-2">
+                                    <Users2 className="h-3.5 w-3.5" /> By Group/Fellowship
+                                </span>
+                            </SelectItem>
+                            <SelectItem value="individual" className="rounded-xl text-xs">
+                                <span className="flex items-center gap-2">
+                                    <User className="h-3.5 w-3.5" /> Pick Specific Members
+                                </span>
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    {/* Group Dropdown */}
+                    {value === "group" && (
+                        <Select value={selectedGroup} onValueChange={onGroupChange}>
+                            <SelectTrigger className="w-[180px] h-9 rounded-xl bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-xs font-medium">
+                                <SelectValue placeholder="Select group" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-2xl border-white/10 backdrop-blur-xl">
+                                {groupOptions.map((group) => (
+                                    <SelectItem key={group.value} value={group.value} className="rounded-xl text-xs">
+                                        {group.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+
+                    {/* Member Picker Popover */}
+                    {value === "individual" && (
+                        <Popover open={isMemberPickerOpen} onOpenChange={setIsMemberPickerOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-9 rounded-xl bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-xs font-medium gap-1.5"
+                                >
+                                    <UserCheck className="h-3.5 w-3.5 text-primary" />
+                                    {selectedMembers.length > 0
+                                        ? `Selected (${selectedMembers.length})`
+                                        : "Choose Recipients"}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[360px] p-0 rounded-3xl border-black/10 dark:border-white/10 bg-white/80 dark:bg-slate-900/90 backdrop-blur-2xl shadow-2xl" align="start">
+                                <div className="p-3 border-b border-black/5 dark:border-white/10">
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Search member..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="pl-8 h-8 rounded-xl bg-black/5 dark:bg-white/5 border-none text-xs"
+                                        />
+                                    </div>
+                                </div>
+
+                                <ScrollArea className="h-[240px]">
+                                    {membersLoading ? (
+                                        <div className="p-3 space-y-2">
+                                            {Array.from({ length: 4 }).map((_, i) => (
+                                                <Skeleton key={i} className="h-10 w-full rounded-xl" />
+                                            ))}
+                                        </div>
+                                    ) : filteredMembers.length === 0 ? (
+                                        <div className="p-6 text-center text-xs text-muted-foreground">
+                                            No members matching "{searchQuery}"
+                                        </div>
+                                    ) : (
+                                        <div className="p-2 space-y-1">
+                                            {filteredMembers.map((member) => {
+                                                const isSelected = selectedMembers.includes(member.id);
+                                                return (
+                                                    <div
+                                                        key={member.id}
+                                                        onClick={() => toggleMember(member.id)}
+                                                        className={cn(
+                                                            "flex items-center gap-2.5 p-2 rounded-xl cursor-pointer transition-colors text-xs",
+                                                            isSelected
+                                                                ? "bg-primary/10 text-foreground"
+                                                                : "hover:bg-black/5 dark:hover:bg-white/5 text-muted-foreground"
+                                                        )}
+                                                    >
+                                                        <Checkbox checked={isSelected} className="rounded-md" />
+                                                        <Avatar className="h-6 w-6">
+                                                            <AvatarImage
+                                                                src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
+                                                                    `${member.firstName} ${member.lastName}`
+                                                                )}`}
+                                                            />
+                                                            <AvatarFallback className="text-[10px]">
+                                                                {member.firstName[0]}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <span className="font-medium truncate flex-1">
+                                                            {member.firstName} {member.lastName}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </ScrollArea>
+
+                                <div className="p-2.5 border-t border-black/5 dark:border-white/10 flex items-center justify-between bg-black/5 dark:bg-white/5 rounded-b-3xl">
+                                    <span className="text-[11px] text-muted-foreground pl-2">
+                                        {selectedMembers.length} selected
+                                    </span>
+                                    <Button
+                                        size="sm"
+                                        className="h-7 text-xs rounded-xl px-3"
+                                        onClick={() => setIsMemberPickerOpen(false)}
+                                    >
+                                        Done
+                                    </Button>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                    )}
+                </div>
+
+                {/* Selected Member Badges View */}
+                {value === "individual" && selectedMemberObjects.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                        {selectedMemberObjects.map((member) => (
+                            <Badge
+                                key={member.id}
+                                variant="secondary"
+                                className="pl-1.5 pr-1 py-0.5 rounded-full text-[11px] bg-primary/10 text-primary border border-primary/20 flex items-center gap-1"
+                            >
+                                <span>
+                                    {member.firstName} {member.lastName}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => toggleMember(member.id)}
+                                    className="p-0.5 hover:bg-primary/20 rounded-full transition-colors"
+                                    aria-label={`Remove ${member.firstName}`}
+                                >
+                                    <X className="h-3 w-3" />
+                                </button>
+                            </Badge>
+                        ))}
+                    </div>
                 )}
             </div>
         </div>

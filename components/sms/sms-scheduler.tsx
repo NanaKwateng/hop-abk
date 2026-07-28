@@ -1,9 +1,6 @@
-// components/sms/sms-scheduler.tsx
-
 "use client";
 
-import { useState } from "react";
-import { format } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import {
     Popover,
@@ -13,9 +10,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Clock, Calendar as CalendarIcon, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Clock, Calendar as CalendarIcon, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Input } from "../ui/input";
 
 interface SMSSchedulerProps {
     value: Date | null;
@@ -23,14 +20,12 @@ interface SMSSchedulerProps {
 }
 
 export function SMSScheduler({ value, onChange }: SMSSchedulerProps) {
-    const [isEnabled, setIsEnabled] = useState(!!value);
+    const isEnabled = !!value;
 
     const handleToggle = (enabled: boolean) => {
-        setIsEnabled(enabled);
         if (!enabled) {
             onChange(null);
         } else {
-            // Set default to 1 hour from now
             const defaultDate = new Date();
             defaultDate.setHours(defaultDate.getHours() + 1);
             onChange(defaultDate);
@@ -39,11 +34,9 @@ export function SMSScheduler({ value, onChange }: SMSSchedulerProps) {
 
     const handleDateSelect = (date: Date | undefined) => {
         if (date) {
-            // Preserve the time from the current value if it exists
             const currentTime = value || new Date();
             const newDate = new Date(date);
-            newDate.setHours(currentTime.getHours());
-            newDate.setMinutes(currentTime.getMinutes());
+            newDate.setHours(currentTime.getHours(), currentTime.getMinutes());
             onChange(newDate);
         }
     };
@@ -52,81 +45,79 @@ export function SMSScheduler({ value, onChange }: SMSSchedulerProps) {
         if (!value) return;
         const [hours, minutes] = e.target.value.split(":").map(Number);
         const newDate = new Date(value);
-        newDate.setHours(hours);
-        newDate.setMinutes(minutes);
+        newDate.setHours(hours, minutes);
         onChange(newDate);
     };
 
-    const clearSchedule = () => {
-        onChange(null);
-        setIsEnabled(false);
-    };
+    const today = startOfDay(new Date());
 
     return (
-        <div className="space-y-3">
-            <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
+        <div className="p-3.5 rounded-2xl bg-white/40 dark:bg-white/5 border border-black/5 dark:border-white/10 backdrop-blur-md transition-all">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
                     <Switch
                         id="schedule-sms"
                         checked={isEnabled}
                         onCheckedChange={handleToggle}
+                        className="data-[state=checked]:bg-primary"
                     />
-                    <Label htmlFor="schedule-sms" className="text-sm font-medium">
-                        <Clock className="inline h-4 w-4 mr-1.5 text-muted-foreground" />
-                        Schedule for later
+                    <Label
+                        htmlFor="schedule-sms"
+                        className="text-xs font-semibold cursor-pointer flex items-center gap-1.5 text-foreground"
+                    >
+                        <Clock className="h-3.5 w-3.5 text-primary" />
+                        Schedule Delivery
                     </Label>
                 </div>
-                {value && (
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={clearSchedule}
-                        className="h-6 px-2 text-muted-foreground"
-                    >
-                        <X className="h-3 w-3" />
-                    </Button>
+
+                {isEnabled && (
+                    <span className="text-[11px] font-medium text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20">
+                        Automated
+                    </span>
                 )}
             </div>
 
             {isEnabled && value && (
-                <div className="flex flex-wrap items-center gap-3 pl-6">
-                    {/* Date Picker */}
+                <div className="flex flex-wrap items-center gap-2.5 pt-3 mt-2 border-t border-black/5 dark:border-white/10">
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button
                                 variant="outline"
                                 size="sm"
-                                className="gap-2"
+                                className="h-8 rounded-xl bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-xs font-medium gap-1.5"
                             >
-                                <CalendarIcon className="h-4 w-4" />
+                                <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
                                 {format(value, "MMM dd, yyyy")}
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent
+                            className="w-auto p-0 rounded-3xl border-black/10 dark:border-white/10 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl shadow-xl"
+                            align="start"
+                        >
                             <Calendar
                                 mode="single"
                                 selected={value}
                                 onSelect={handleDateSelect}
                                 initialFocus
-                                disabled={(date) => date < new Date()}
+                                disabled={(date) => date < today}
+                                className="p-3"
                             />
                         </PopoverContent>
                     </Popover>
 
-                    {/* Time Picker */}
-                    <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center gap-1.5 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-2.5 h-8">
+                        <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                         <Input
                             type="time"
                             value={format(value, "HH:mm")}
                             onChange={handleTimeChange}
-                            className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                            className="h-6 w-[80px] border-none bg-transparent p-0 text-xs focus-visible:ring-0"
                         />
                     </div>
 
-                    <span className="text-xs text-muted-foreground">
-                        {format(value, "EEEE, MMMM do 'at' h:mm a")}
-                    </span>
+                    <p className="text-[11px] text-muted-foreground font-medium ml-auto">
+                        Will send: <span className="text-foreground">{format(value, "EEE, MMM d 'at' h:mm a")}</span>
+                    </p>
                 </div>
             )}
         </div>
