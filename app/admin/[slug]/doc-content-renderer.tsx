@@ -17,6 +17,7 @@ import AdminFlowPage from "../admin-flow/page";
 import BranchesPage from "../branches/page";
 import TasksPage from "../task/page";
 import NicknamesPage from "../nicknames/page"; // ✅ ADDED
+import SMSPage from "../sms/page";
 
 interface DocContentRendererProps {
     slug: string;
@@ -122,6 +123,14 @@ function NicknamesContent() {
     return (
         <div className="min-h-[60vh] bg-background">
             <NicknamesPage />
+        </div>
+    );
+}
+// ✅ ADDED: Nicknames content component
+function SMSContent() {
+    return (
+        <div className="min-h-[60vh] bg-background">
+            <SMSPage />
         </div>
     );
 }

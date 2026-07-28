@@ -2,7 +2,8 @@
 import { IconType } from "react-icons";
 import {
     FiHome, FiUsers, FiUserPlus, FiPieChart, FiSettings,
-    FiTag
+    FiTag,
+    FiMessageSquare
 } from "react-icons/fi";
 import { FaPalette, FaUserShield } from "react-icons/fa6";
 import {
@@ -67,6 +68,13 @@ export const navigation: NavCategory[] = [
                 icon: FiTag,
                 iconBg: "bg-purple-100 dark:bg-purple-500/20",
                 iconColor: "text-purple-600 dark:text-purple-400"
+            },
+            {
+                title: "SMS",
+                href: "/admin/sms",
+                icon: FiMessageSquare,
+                iconBg: "bg-blue-100 dark:bg-blue-500/20",
+                iconColor: "text-blue-600 dark:text-blue-400"
             },
         ],
     },
