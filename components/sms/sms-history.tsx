@@ -2,10 +2,11 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { useSMS } from "@/hooks/use-sms";
+import { useQuery } from "@tanstack/react-query";
+import { getMessageHistory } from "@/actions/sms/get-message-history";
 import {
     Card,
     CardContent,
@@ -40,8 +41,9 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Search, Eye, Users, Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { Search, Eye, Users, Clock, CheckCircle2, XCircle, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const STATUS_COLORS: Record<string, string> = {
     sent: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
@@ -70,8 +72,21 @@ export function SMSHistory() {
     const [statusFilter, setStatusFilter] = useState<string>("");
     const [searchQuery, setSearchQuery] = useState("");
 
-    const { useMessageHistory } = useSMS();
-    const { data, isLoading, isFetching } = useMessageHistory(page, pageSize, statusFilter, searchQuery);
+    const { data, isLoading, isError, error, refetch } = useQuery({
+        queryKey: ["sms-history", page, pageSize, statusFilter, searchQuery],
+        queryFn: () => getMessageHistory(page, pageSize, statusFilter || undefined, searchQuery || undefined),
+        staleTime: 30000,
+        retry: 1,
+    });
+
+    // Show error toast if query fails
+    useEffect(() => {
+        if (isError && error) {
+            toast.error("Failed to load message history", {
+                description: error instanceof Error ? error.message : "Please try again",
+            });
+        }
+    }, [isError, error]);
 
     const messages = data?.messages || [];
     const totalPages = data?.totalPages || 1;
@@ -101,6 +116,30 @@ export function SMSHistory() {
         }
         return message.recipient_type;
     };
+
+    // Handle retry
+    const handleRetry = () => {
+        refetch();
+    };
+
+    if (isError) {
+        return (
+            <Card>
+                <CardContent className="py-12 flex flex-col items-center justify-center text-center">
+                    <div className="rounded-full bg-destructive/10 p-3 mb-4">
+                        <AlertCircle className="h-6 w-6 text-destructive" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">Failed to load messages</h3>
+                    <p className="text-sm text-muted-foreground max-w-sm mb-4">
+                        {error instanceof Error ? error.message : "There was an error loading the message history"}
+                    </p>
+                    <Button onClick={handleRetry} variant="outline">
+                        Try Again
+                    </Button>
+                </CardContent>
+            </Card>
+        );
+    }
 
     return (
         <Card>

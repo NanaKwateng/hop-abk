@@ -3,9 +3,16 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { getSMSAnalytics } from "@/actions/sms/get-sms-analytics";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+    ChartContainer,
+    ChartTooltip,
+    ChartTooltipContent,
+} from "@/components/ui/chart";
 import {
     BarChart,
     Bar,
@@ -19,63 +26,76 @@ import {
     Cell,
     Legend,
 } from "recharts";
-import { Mail, Users, CheckCircle2, XCircle, Clock, TrendingUp } from "lucide-react";
-
-// Mock analytics - replace with actual data fetching
-async function getSMSAnalytics() {
-    // In production, this would fetch from your analytics endpoint
-    return {
-        totalSent: 1250,
-        totalDelivered: 1180,
-        totalFailed: 45,
-        totalPending: 25,
-        monthlyData: [
-            { month: "Jan", sent: 120, delivered: 115 },
-            { month: "Feb", sent: 150, delivered: 142 },
-            { month: "Mar", sent: 180, delivered: 170 },
-            { month: "Apr", sent: 200, delivered: 188 },
-            { month: "May", sent: 220, delivered: 205 },
-            { month: "Jun", sent: 380, delivered: 360 },
-        ],
-        statusDistribution: [
-            { name: "Delivered", value: 1180 },
-            { name: "Failed", value: 45 },
-            { name: "Pending", value: 25 },
-        ],
-        topGroups: [
-            { name: "Men's Fellowship", count: 320 },
-            { name: "Women's Fellowship", count: 280 },
-            { name: "Youth Fellowship", count: 250 },
-        ],
-    };
-}
+import { Mail, Users, CheckCircle2, XCircle, Clock, TrendingUp, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 const COLORS = ["#10b981", "#ef4444", "#f59e0b", "#3b82f6"];
 
 export function SMSAnalytics() {
-    const { data, isLoading } = useQuery({
+    const [refreshing, setRefreshing] = useState(false);
+
+    const { data, isLoading, isError, error, refetch } = useQuery({
         queryKey: ["sms-analytics"],
         queryFn: getSMSAnalytics,
-        staleTime: 60 * 1000,
+        staleTime: 60000,
+        retry: 1,
     });
 
-    if (isLoading) {
-        return <SMSAnalyticsSkeleton />;
-    }
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        try {
+            await refetch();
+            toast.success("Analytics refreshed");
+        } catch (err) {
+            toast.error("Failed to refresh analytics");
+        } finally {
+            setRefreshing(false);
+        }
+    };
 
-    if (!data) {
+    if (isError) {
         return (
             <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
-                    No analytics data available
+                <CardContent className="py-12 flex flex-col items-center justify-center text-center">
+                    <div className="rounded-full bg-destructive/10 p-3 mb-4">
+                        <XCircle className="h-6 w-6 text-destructive" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">Failed to load analytics</h3>
+                    <p className="text-sm text-muted-foreground max-w-sm mb-4">
+                        {error instanceof Error ? error.message : "There was an error loading the analytics"}
+                    </p>
+                    <Button onClick={handleRefresh} variant="outline" disabled={refreshing}>
+                        <RefreshCw className={cn("h-4 w-4 mr-2", refreshing && "animate-spin")} />
+                        Try Again
+                    </Button>
                 </CardContent>
             </Card>
         );
     }
 
-    const deliveryRate = data.totalSent > 0
-        ? Math.round((data.totalDelivered / data.totalSent) * 100)
-        : 0;
+    if (isLoading) {
+        return <SMSAnalyticsSkeleton />;
+    }
+
+    if (!data || data.totalSent === 0) {
+        return (
+            <Card>
+                <CardContent className="py-12 flex flex-col items-center justify-center text-center">
+                    <div className="rounded-full bg-muted p-3 mb-4">
+                        <Mail className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">No SMS data yet</h3>
+                    <p className="text-sm text-muted-foreground max-w-sm">
+                        Start sending messages to see analytics here
+                    </p>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    const statusData = data.statusDistribution.filter((s) => s.value > 0);
 
     return (
         <div className="space-y-6">
@@ -98,7 +118,7 @@ export function SMSAnalytics() {
                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-green-600">{deliveryRate}%</div>
+                        <div className="text-2xl font-bold text-green-600">{data.deliveryRate}%</div>
                         <p className="text-xs text-muted-foreground">{data.totalDelivered} delivered</p>
                     </CardContent>
                 </Card>
@@ -135,16 +155,29 @@ export function SMSAnalytics() {
                         <CardDescription>Messages sent over the last 6 months</CardDescription>
                     </CardHeader>
                     <CardContent className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={data.monthlyData}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                <XAxis dataKey="month" />
-                                <YAxis />
-                                <Tooltip />
-                                <Bar dataKey="sent" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="delivered" fill="#10b981" radius={[4, 4, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
+                        {data.monthlyData.length > 0 ? (
+                            <ChartContainer
+                                config={{
+                                    sent: { label: "Sent", color: "hsl(var(--primary))" },
+                                    delivered: { label: "Delivered", color: "hsl(var(--success))" },
+                                }}
+                            >
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={data.monthlyData}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                        <XAxis dataKey="month" />
+                                        <YAxis />
+                                        <ChartTooltip content={<ChartTooltipContent />} />
+                                        <Bar dataKey="sent" fill="var(--color-sent)" radius={[4, 4, 0, 0]} />
+                                        <Bar dataKey="delivered" fill="var(--color-delivered)" radius={[4, 4, 0, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </ChartContainer>
+                        ) : (
+                            <div className="flex h-full items-center justify-center text-muted-foreground">
+                                No monthly data available
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 
@@ -155,26 +188,32 @@ export function SMSAnalytics() {
                         <CardDescription>Breakdown by delivery status</CardDescription>
                     </CardHeader>
                     <CardContent className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie
-                                    data={data.statusDistribution}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                                    outerRadius={100}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                >
-                                    {data.statusDistribution.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                                <Legend />
-                            </PieChart>
-                        </ResponsiveContainer>
+                        {statusData.length > 0 ? (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={statusData}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                        outerRadius={100}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                    >
+                                        {statusData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                    <Legend />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        ) : (
+                            <div className="flex h-full items-center justify-center text-muted-foreground">
+                                No status data available
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 
@@ -185,24 +224,30 @@ export function SMSAnalytics() {
                         <CardDescription>Most active recipient groups</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-4">
-                            {data.topGroups.map((group, index) => (
-                                <div key={group.name} className="space-y-1">
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="font-medium">{group.name}</span>
-                                        <span className="text-muted-foreground">{group.count} members</span>
+                        {data.topGroups.length > 0 ? (
+                            <div className="space-y-4">
+                                {data.topGroups.map((group, index) => (
+                                    <div key={group.name} className="space-y-1">
+                                        <div className="flex items-center justify-between text-sm">
+                                            <span className="font-medium">{group.name}</span>
+                                            <span className="text-muted-foreground">{group.count} messages</span>
+                                        </div>
+                                        <div className="h-2 rounded-full bg-muted overflow-hidden">
+                                            <div
+                                                className="h-full rounded-full bg-primary transition-all"
+                                                style={{
+                                                    width: `${(group.count / data.topGroups[0].count) * 100}%`,
+                                                }}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="h-2 rounded-full bg-muted overflow-hidden">
-                                        <div
-                                            className="h-full rounded-full bg-primary transition-all"
-                                            style={{
-                                                width: `${(group.count / data.topGroups[0].count) * 100}%`,
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center text-muted-foreground py-4">
+                                No group data available
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
