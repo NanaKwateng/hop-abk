@@ -11,19 +11,62 @@ export function formatCoordinates(lat: number, lng: number): string {
     return `${Math.abs(lat).toFixed(6)}°${latDir}, ${Math.abs(lng).toFixed(6)}°${lngDir}`;
 }
 
+// ─── MAPBOX (Primary) ───
+
 /**
- * Get Google Maps URL for coordinates
+ * Get Mapbox Directions URL (Primary)
+ */
+export function getMapboxDirectionsUrl(lat: number, lng: number): string {
+    return `https://www.mapbox.com/directions?destination=${lng},${lat}`;
+}
+
+/**
+ * Get Mapbox Static Map URL
+ */
+export function getMapboxStaticMapUrl(
+    lat: number,
+    lng: number,
+    zoom: number = 15,
+    width: number = 600,
+    height: number = 400,
+    marker: boolean = true
+): string {
+    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+    if (!token) return "";
+
+    const style = process.env.NEXT_PUBLIC_MAPBOX_STYLE || "mapbox://styles/mapbox/streets-v12";
+    const markerStyle = marker ? `pin-s+10b981(${lng},${lat})` : "";
+    const center = `${lng},${lat},${zoom}`;
+
+    return `https://api.mapbox.com/styles/v1/mapbox/${style}/static/${markerStyle}/${center}/${width}x${height}@2x?access_token=${token}`;
+}
+
+/**
+ * Get Mapbox Search URL (for address lookup)
+ */
+export function getMapboxSearchUrl(query: string): string {
+    return `https://www.mapbox.com/search?q=${encodeURIComponent(query)}`;
+}
+
+// ─── GOOGLE MAPS (Fallback) ───
+
+/**
+ * Get Google Maps URL (Fallback)
  */
 export function getGoogleMapsUrl(lat: number, lng: number): string {
     return `https://www.google.com/maps?q=${lat},${lng}`;
 }
 
 /**
- * Get Google Maps embed URL for iframe
+ * Get Google Maps embed URL
  */
 export function getGoogleMapsEmbedUrl(lat: number, lng: number): string {
-    return `https://www.google.com/maps/embed/v1/place?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&q=${lat},${lng}&zoom=15`;
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) return `https://www.google.com/maps?q=${lat},${lng}`;
+    return `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${lat},${lng}&zoom=15`;
 }
+
+// ─── OPENSTREETMAP (Open Source Fallback) ───
 
 /**
  * Get OpenStreetMap URL
@@ -31,6 +74,8 @@ export function getGoogleMapsEmbedUrl(lat: number, lng: number): string {
 export function getOpenStreetMapUrl(lat: number, lng: number): string {
     return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}&zoom=15`;
 }
+
+// ─── UTILITY FUNCTIONS ───
 
 /**
  * Check if coordinates are valid
@@ -74,4 +119,18 @@ export function formatDistance(km: number): string {
         return `${Math.round(km * 1000)}m`;
     }
     return `${km.toFixed(1)}km`;
+}
+
+/**
+ * Get the best map URL based on available services
+ * Priority: Mapbox → Google Maps → OpenStreetMap
+ */
+export function getBestMapUrl(lat: number, lng: number): string {
+    // Check if Mapbox is available
+    const hasMapbox = !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+    if (hasMapbox) {
+        return getMapboxDirectionsUrl(lat, lng);
+    }
+    // Fallback to Google Maps
+    return getGoogleMapsUrl(lat, lng);
 }

@@ -13,10 +13,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { MemberLocationMap } from "./member-location-map";
+import { MapboxMap } from "@/components/mapbox/mapbox-map";
 import { MemberLocationSkeleton } from "./member-location-skeleton";
 import { useMemberLocation } from "@/hooks/use-member-location";
-import { formatCoordinates, getGoogleMapsUrl, getOpenStreetMapUrl } from "@/lib/utils/location-utils";
+import {
+    formatCoordinates,
+    getGoogleMapsUrl,
+    getOpenStreetMapUrl,
+    getMapboxDirectionsUrl,
+    getBestMapUrl,
+} from "@/lib/utils/location-utils";
 import {
     MapPin,
     Navigation,
@@ -24,6 +30,7 @@ import {
     X,
     CheckCircle2,
     AlertCircle,
+    Map,
 } from "lucide-react";
 
 interface MemberLocationDrawerProps {
@@ -46,6 +53,22 @@ export function MemberLocationDrawer({
     hasGpsCoordinates,
 }: MemberLocationDrawerProps) {
     const { location, source, isLoading, error } = useMemberLocation(memberId);
+
+    // Determine which maps are available
+    const hasMapbox = !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+    const hasGoogleMaps = !!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+    const handleOpenInBestMap = () => {
+        if (location) {
+            window.open(getBestMapUrl(location.lat, location.lng), "_blank");
+        }
+    };
+
+    const handleOpenInMapbox = () => {
+        if (location) {
+            window.open(getMapboxDirectionsUrl(location.lat, location.lng), "_blank");
+        }
+    };
 
     const handleOpenInGoogleMaps = () => {
         if (location) {
@@ -73,7 +96,7 @@ export function MemberLocationDrawer({
                                     <MapPin className="h-5 w-5 text-primary" />
                                     {memberName}'s Location
                                 </DrawerTitle>
-                                <DrawerDescription className="flex items-center gap-2">
+                                <DrawerDescription className="flex items-center gap-2 flex-wrap">
                                     {source === "gps" && (
                                         <Badge variant="default" className="text-xs gap-1">
                                             <CheckCircle2 className="h-3 w-3" />
@@ -124,12 +147,25 @@ export function MemberLocationDrawer({
                             </div>
                         ) : location ? (
                             <>
-                                {/* Map */}
+                                {/* Map - Mapbox Primary */}
                                 <div className="rounded-lg overflow-hidden border">
-                                    <MemberLocationMap
-                                        coordinates={{ lat: location.lat, lng: location.lng }}
-                                        address={location.formattedAddress}
+                                    <MapboxMap
+                                        lng={location.lng}
+                                        lat={location.lat}
+                                        zoom={15}
+                                        marker={true}
+                                        markerColor="#10b981"
                                         height="300px"
+                                        interactive={true}
+                                        showControls={true}
+                                        popupContent={
+                                            <div className="p-1">
+                                                <p className="font-semibold text-sm">{memberName}</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    {location.formattedAddress || placeOfStay}
+                                                </p>
+                                            </div>
+                                        }
                                     />
                                 </div>
 
@@ -229,24 +265,56 @@ export function MemberLocationDrawer({
                                     </div>
                                 </div>
 
-                                {/* Actions */}
-                                <div className="flex flex-wrap gap-2 pt-2">
-                                    <Button
-                                        variant="default"
-                                        className="flex-1 gap-2"
-                                        onClick={handleOpenInGoogleMaps}
-                                    >
-                                        <Navigation className="h-4 w-4" />
-                                        Open in Google Maps
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        className="flex-1 gap-2"
-                                        onClick={handleOpenInOSM}
-                                    >
-                                        <Globe className="h-4 w-4" />
-                                        Open in OpenStreetMap
-                                    </Button>
+                                {/* Map Actions - Mapbox Primary with Fallbacks */}
+                                <div className="space-y-2">
+                                    <div className="flex flex-wrap gap-2">
+                                        {/* Primary: Mapbox */}
+                                        <Button
+                                            variant="default"
+                                            className="flex-1 gap-2 min-w-[120px]"
+                                            onClick={handleOpenInMapbox}
+                                        >
+                                            <Map className="h-4 w-4" />
+                                            Open in Mapbox
+                                            {!hasMapbox && (
+                                                <span className="text-xs opacity-70">(unavailable)</span>
+                                            )}
+                                        </Button>
+
+                                        {/* Fallback: Google Maps */}
+                                        <Button
+                                            variant="outline"
+                                            className="flex-1 gap-2 min-w-[120px]"
+                                            onClick={handleOpenInGoogleMaps}
+                                        >
+                                            <Navigation className="h-4 w-4" />
+                                            Google Maps
+                                            {!hasGoogleMaps && (
+                                                <span className="text-xs opacity-70">(unavailable)</span>
+                                            )}
+                                        </Button>
+
+                                        {/* Fallback: OpenStreetMap */}
+                                        <Button
+                                            variant="outline"
+                                            className="flex-1 gap-2 min-w-[120px]"
+                                            onClick={handleOpenInOSM}
+                                        >
+                                            <Globe className="h-4 w-4" />
+                                            OpenStreetMap
+                                        </Button>
+                                    </div>
+
+                                    {/* Smart suggestion based on available services */}
+                                    <div className="text-xs text-muted-foreground text-center">
+                                        {hasMapbox ? (
+                                            <span>📍 Mapbox is your primary map provider</span>
+                                        ) : hasGoogleMaps ? (
+                                            <span>📍 Using Google Maps as fallback</span>
+                                        ) : (
+                                            <span>📍 Using OpenStreetMap as fallback</span>
+                                        )}
+                                    </div>
                                 </div>
                             </>
                         ) : (
@@ -267,6 +335,24 @@ export function MemberLocationDrawer({
                                         "This member doesn't have an address or GPS coordinates set."
                                     )}
                                 </p>
+                                {placeOfStay && (
+                                    <Button
+                                        variant="outline"
+                                        className="mt-4 gap-2"
+                                        onClick={() => {
+                                            const address = houseNumber
+                                                ? `${houseNumber}, ${placeOfStay}`
+                                                : placeOfStay;
+                                            window.open(
+                                                `https://www.mapbox.com/search?q=${encodeURIComponent(address)}`,
+                                                "_blank"
+                                            );
+                                        }}
+                                    >
+                                        <Map className="h-4 w-4" />
+                                        Search on Mapbox
+                                    </Button>
+                                )}
                             </div>
                         )}
                     </div>

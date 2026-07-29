@@ -3,160 +3,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { geocodeAddress, reverseGeocode, batchGeocodeAddresses } from "@/lib/services/mapbox";
 import type { GeocodeResult } from "@/lib/types/location";
-
-interface ReverseGeocodeResponse {
-    results: Array<{
-        formatted_address: string;
-        place_id: string;
-        geometry: {
-            location: {
-                lat: number;
-                lng: number;
-            };
-        };
-        address_components: Array<{
-            long_name: string;
-            short_name: string;
-            types: string[];
-        }>;
-    }>;
-    status: string;
-}
-
-interface GeocodeResponse {
-    results: Array<{
-        formatted_address: string;
-        place_id: string;
-        geometry: {
-            location: {
-                lat: number;
-                lng: number;
-            };
-        };
-    }>;
-    status: string;
-}
-
-/**
- * Geocode an address to get coordinates
- */
-export async function geocodeAddress(address: string): Promise<GeocodeResult | null> {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-    if (!apiKey) {
-        console.warn("Google Maps API key not configured");
-        return null;
-    }
-
-    if (!address || address.trim().length < 3) {
-        return null;
-    }
-
-    try {
-        const encodedAddress = encodeURIComponent(address.trim());
-        const response = await fetch(
-            `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${apiKey}`,
-            { next: { revalidate: 86400 } } // Cache for 24 hours
-        );
-
-        const data: GeocodeResponse = await response.json();
-
-        if (data.status === "OK" && data.results.length > 0) {
-            const result = data.results[0];
-            return {
-                formattedAddress: result.formatted_address,
-                lat: result.geometry.location.lat,
-                lng: result.geometry.location.lng,
-                placeId: result.place_id,
-            };
-        }
-
-        return null;
-    } catch (error) {
-        console.error("[Geocode Address] Error:", error);
-        return null;
-    }
-}
-
-/**
- * Search for location by address (alias for geocodeAddress)
- */
-export async function searchLocationByAddress(address: string): Promise<GeocodeResult | null> {
-    return geocodeAddress(address);
-}
-
-/**
- * Get address from coordinates using Google Maps API
- */
-export async function reverseGeocodeLocation(
-    lat: number,
-    lng: number
-): Promise<GeocodeResult | null> {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-    if (!apiKey) {
-        console.warn("Google Maps API key not configured");
-        return null;
-    }
-
-    try {
-        const response = await fetch(
-            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`,
-            { next: { revalidate: 86400 } } // Cache for 24 hours
-        );
-
-        const data: ReverseGeocodeResponse = await response.json();
-
-        if (data.status === "OK" && data.results.length > 0) {
-            const result = data.results[0];
-            const components = result.address_components || [];
-
-            // Extract address components
-            let neighborhood: string | undefined;
-            let city: string | undefined;
-            let region: string | undefined;
-            let country: string | undefined;
-            let postalCode: string | undefined;
-
-            for (const comp of components) {
-                const types = comp.types;
-                if (types.includes("neighborhood") || types.includes("sublocality")) {
-                    neighborhood = comp.long_name;
-                }
-                if (types.includes("locality")) {
-                    city = comp.long_name;
-                }
-                if (types.includes("administrative_area_level_1")) {
-                    region = comp.long_name;
-                }
-                if (types.includes("country")) {
-                    country = comp.long_name;
-                }
-                if (types.includes("postal_code")) {
-                    postalCode = comp.long_name;
-                }
-            }
-
-            return {
-                formattedAddress: result.formatted_address,
-                lat: result.geometry.location.lat,
-                lng: result.geometry.location.lng,
-                placeId: result.place_id,
-                neighborhood,
-                city,
-                region,
-                country,
-                postalCode,
-            };
-        }
-
-        return null;
-    } catch (error) {
-        console.error("[Reverse Geocode] Error:", error);
-        return null;
-    }
-}
 
 /**
  * Get location data for a member by their GPS coordinates or address
@@ -183,9 +31,22 @@ export async function getMemberLocation(memberId: string): Promise<{
 
     // 1. Try GPS coordinates first (most accurate)
     if (gps_lat && gps_lng) {
-        const location = await reverseGeocodeLocation(gps_lat, gps_lng);
+        const location = await reverseGeocode(gps_lng, gps_lat);
         if (location) {
-            return { location, source: "gps" };
+            return {
+                location: {
+                    lat: location.coordinates[1],
+                    lng: location.coordinates[0],
+                    formattedAddress: location.address,
+                    placeId: location.id,
+                    city: location.city,
+                    region: location.region,
+                    country: location.country,
+                    postalCode: location.postalCode,
+                    neighborhood: location.neighborhood,
+                },
+                source: "gps",
+            };
         }
     }
 
@@ -197,15 +58,43 @@ export async function getMemberLocation(memberId: string): Promise<{
             fullAddress = `${house_number}, ${place_of_stay}`;
         }
 
-        const location = await geocodeAddress(fullAddress);
-        if (location) {
-            return { location, source: "address" };
+        const results = await geocodeAddress(fullAddress);
+        if (results && results.length > 0) {
+            const result = results[0];
+            return {
+                location: {
+                    lat: result.coordinates[1],
+                    lng: result.coordinates[0],
+                    formattedAddress: result.address,
+                    placeId: result.id,
+                    city: result.city,
+                    region: result.region,
+                    country: result.country,
+                    postalCode: result.postalCode,
+                    neighborhood: result.neighborhood,
+                },
+                source: "address",
+            };
         }
 
         // Try with just the place of stay
-        const fallbackLocation = await geocodeAddress(place_of_stay);
-        if (fallbackLocation) {
-            return { location: fallbackLocation, source: "address" };
+        const fallbackResults = await geocodeAddress(place_of_stay);
+        if (fallbackResults && fallbackResults.length > 0) {
+            const result = fallbackResults[0];
+            return {
+                location: {
+                    lat: result.coordinates[1],
+                    lng: result.coordinates[0],
+                    formattedAddress: result.address,
+                    placeId: result.id,
+                    city: result.city,
+                    region: result.region,
+                    country: result.country,
+                    postalCode: result.postalCode,
+                    neighborhood: result.neighborhood,
+                },
+                source: "address",
+            };
         }
     }
 
@@ -213,28 +102,44 @@ export async function getMemberLocation(memberId: string): Promise<{
 }
 
 /**
- * Batch geocode multiple addresses
+ * Geocode an address (wrapper for Mapbox geocoding)
  */
-export async function batchGeocodeAddresses(
+export async function geocodeMemberAddress(address: string): Promise<{
+    lat: number;
+    lng: number;
+    formattedAddress: string;
+} | null> {
+    const results = await geocodeAddress(address);
+    if (!results || results.length === 0) return null;
+
+    const result = results[0];
+    return {
+        lat: result.coordinates[1],
+        lng: result.coordinates[0],
+        formattedAddress: result.address,
+    };
+}
+
+/**
+ * Batch geocode multiple member addresses
+ */
+export async function batchGeocodeMemberAddresses(
     addresses: string[]
-): Promise<Map<string, GeocodeResult | null>> {
-    const results = new Map<string, GeocodeResult | null>();
+): Promise<Record<string, { lat: number; lng: number; formattedAddress: string } | null>> {
+    const results = await batchGeocodeAddresses(addresses);
+    const formattedResults: Record<string, { lat: number; lng: number; formattedAddress: string } | null> = {};
 
-    // Process in parallel with rate limiting
-    const promises = addresses.map(async (address) => {
-        if (!address || address.trim().length < 3) {
-            results.set(address, null);
-            return;
+    for (const [address, result] of Object.entries(results)) {
+        if (result) {
+            formattedResults[address] = {
+                lat: result.coordinates[1],
+                lng: result.coordinates[0],
+                formattedAddress: result.address,
+            };
+        } else {
+            formattedResults[address] = null;
         }
+    }
 
-        try {
-            const result = await geocodeAddress(address);
-            results.set(address, result);
-        } catch {
-            results.set(address, null);
-        }
-    });
-
-    await Promise.all(promises);
-    return results;
+    return formattedResults;
 }
