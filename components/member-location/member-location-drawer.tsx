@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { MapboxMap } from "@/components/mapbox/mapbox-map";
+import { MemberLocationMap } from "./member-location-map"; // ✅ This now uses Mapbox
 import { MemberLocationSkeleton } from "./member-location-skeleton";
 import { useMemberLocation } from "@/hooks/use-member-location";
 import {
@@ -21,7 +21,6 @@ import {
     getGoogleMapsUrl,
     getOpenStreetMapUrl,
     getMapboxDirectionsUrl,
-    getBestMapUrl,
 } from "@/lib/utils/location-utils";
 import {
     MapPin,
@@ -54,15 +53,8 @@ export function MemberLocationDrawer({
 }: MemberLocationDrawerProps) {
     const { location, source, isLoading, error } = useMemberLocation(memberId);
 
-    // Determine which maps are available
+    // Check if Mapbox is available
     const hasMapbox = !!process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-    const hasGoogleMaps = !!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-    const handleOpenInBestMap = () => {
-        if (location) {
-            window.open(getBestMapUrl(location.lat, location.lng), "_blank");
-        }
-    };
 
     const handleOpenInMapbox = () => {
         if (location) {
@@ -118,6 +110,12 @@ export function MemberLocationDrawer({
                                     <span className="text-xs text-muted-foreground truncate max-w-[200px]">
                                         {formattedAddress}
                                     </span>
+                                    {hasMapbox && (
+                                        <Badge variant="outline" className="text-xs gap-1 text-primary border-primary">
+                                            <Map className="h-3 w-3" />
+                                            Mapbox
+                                        </Badge>
+                                    )}
                                 </DrawerDescription>
                             </div>
                             <Button
@@ -147,25 +145,16 @@ export function MemberLocationDrawer({
                             </div>
                         ) : location ? (
                             <>
-                                {/* Map - Mapbox Primary */}
+                                {/* Map - Now using Mapbox! */}
                                 <div className="rounded-lg overflow-hidden border">
-                                    <MapboxMap
-                                        lng={location.lng}
-                                        lat={location.lat}
-                                        zoom={15}
-                                        marker={true}
-                                        markerColor="#10b981"
+                                    <MemberLocationMap
+                                        coordinates={{ lat: location.lat, lng: location.lng }}
+                                        address={location.formattedAddress || placeOfStay || undefined}
                                         height="300px"
+                                        zoom={15}
                                         interactive={true}
                                         showControls={true}
-                                        popupContent={
-                                            <div className="p-1">
-                                                <p className="font-semibold text-sm">{memberName}</p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    {location.formattedAddress || placeOfStay}
-                                                </p>
-                                            </div>
-                                        }
+                                        markerColor="#10b981"
                                     />
                                 </div>
 
@@ -201,6 +190,9 @@ export function MemberLocationDrawer({
                                             Location is based on exact GPS coordinates provided by the member.
                                         </p>
                                     )}
+                                    <div className="text-xs text-muted-foreground mt-2">
+                                        Powered by <span className="font-medium text-primary">Mapbox</span>
+                                    </div>
                                 </div>
 
                                 {/* Address Details */}
@@ -265,7 +257,7 @@ export function MemberLocationDrawer({
                                     </div>
                                 </div>
 
-                                {/* Map Actions - Mapbox Primary with Fallbacks */}
+                                {/* Map Actions - Primary Mapbox with Fallbacks */}
                                 <div className="space-y-2">
                                     <div className="flex flex-wrap gap-2">
                                         {/* Primary: Mapbox */}
@@ -289,9 +281,6 @@ export function MemberLocationDrawer({
                                         >
                                             <Navigation className="h-4 w-4" />
                                             Google Maps
-                                            {!hasGoogleMaps && (
-                                                <span className="text-xs opacity-70">(unavailable)</span>
-                                            )}
                                         </Button>
 
                                         {/* Fallback: OpenStreetMap */}
@@ -305,14 +294,18 @@ export function MemberLocationDrawer({
                                         </Button>
                                     </div>
 
-                                    {/* Smart suggestion based on available services */}
+                                    {/* Status indicator */}
                                     <div className="text-xs text-muted-foreground text-center">
                                         {hasMapbox ? (
-                                            <span>📍 Mapbox is your primary map provider</span>
-                                        ) : hasGoogleMaps ? (
-                                            <span>📍 Using Google Maps as fallback</span>
+                                            <span className="flex items-center justify-center gap-1">
+                                                <Map className="h-3 w-3 text-primary" />
+                                                Mapbox is your primary map provider
+                                            </span>
                                         ) : (
-                                            <span>📍 Using OpenStreetMap as fallback</span>
+                                            <span className="flex items-center justify-center gap-1 text-yellow-600">
+                                                <AlertCircle className="h-3 w-3" />
+                                                Mapbox not configured. Please add NEXT_PUBLIC_MAPBOX_TOKEN
+                                            </span>
                                         )}
                                     </div>
                                 </div>

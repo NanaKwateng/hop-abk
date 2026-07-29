@@ -6,7 +6,6 @@ import mbxGeocoding from "@mapbox/mapbox-sdk/services/geocoding";
 
 // Client-side token
 const PUBLIC_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-const SECRET_TOKEN = process.env.MAPBOX_SECRET_TOKEN;
 
 export interface GeocodeResult {
     id: string;
@@ -64,7 +63,7 @@ export async function geocodeAddress(
             .forwardGeocode({
                 query: address,
                 limit,
-                countries: ["gh"], // Restrict to Ghana
+                countries: ["gh"],
                 types: ["address", "place", "neighborhood"],
             })
             .send();
@@ -77,7 +76,6 @@ export async function geocodeAddress(
             const props = feature.properties || {};
             const context = feature.context || [];
 
-            // Extract address components
             let city, region, country, postalCode, neighborhood;
 
             for (const ctx of context) {
@@ -88,7 +86,6 @@ export async function geocodeAddress(
                 if (ctx.id.includes("neighborhood")) neighborhood = ctx.text;
             }
 
-            // Parse address
             const addressParts = feature.place_name?.split(",") || [];
             const houseNoStr = props.address ? String(props.address) : undefined;
             const streetName = houseNoStr || addressParts[0] || "";
@@ -129,7 +126,6 @@ export async function reverseGeocode(
         const geocodingClient = mbxGeocoding({ accessToken: PUBLIC_TOKEN });
         const response = await geocodingClient
             .reverseGeocode({
-                // Explicit assertion prevents the 'number[]' to 'string' / '[number, number]' mismatch in SDK type definitions
                 query: [lng, lat] as any,
                 types: ["address", "place", "neighborhood"],
                 limit: 1,
