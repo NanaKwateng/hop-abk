@@ -118,18 +118,19 @@ async function buildContextData(supabase: any): Promise<Record<string, any>> {
         taskCount,
         branchCount,
     ] = await Promise.all([
-        supabase.from("members").select("count", { count: "exact", head: true }).is("deleted_at", null),
-        supabase.from("member_payments").select("count", { count: "exact", head: true }),
-        supabase.from("tasks").select("count", { count: "exact", head: true }),
-        supabase.from("branches").select("count", { count: "exact", head: true }),
+        supabase.from("members").select("*", { count: "exact", head: true }).is("deleted_at", null),
+        supabase.from("member_payments").select("*", { count: "exact", head: true }),
+        supabase.from("tasks").select("*", { count: "exact", head: true }),
+        supabase.from("branches").select("*", { count: "exact", head: true }),
     ]);
 
     const currentMonth = new Date().getMonth() + 1;
     const currentYear = new Date().getFullYear();
 
-    const { data: paidThisMonth } = await supabase
+    // ✅ FIX: destructure `count`, not `data` — `data` is always null on head requests
+    const { count: paidThisMonth } = await supabase
         .from("member_payments")
-        .select("count", { count: "exact", head: true })
+        .select("*", { count: "exact", head: true })
         .eq("month", currentMonth)
         .eq("year", currentYear)
         .eq("status", "paid");
@@ -139,7 +140,7 @@ async function buildContextData(supabase: any): Promise<Record<string, any>> {
         totalPayments: paymentCount.count || 0,
         totalTasks: taskCount.count || 0,
         totalBranches: branchCount.count || 0,
-        paidThisMonth: paidThisMonth.count || 0,
+        paidThisMonth: paidThisMonth || 0, // ✅ no longer calling `.count` on null
         currentMonth,
         currentYear,
     };
