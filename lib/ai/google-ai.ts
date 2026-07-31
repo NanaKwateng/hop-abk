@@ -12,7 +12,8 @@ import type { AIQuery, AIResponse, AIIntent } from "@/lib/types/ai";
 let genAI: GoogleGenerativeAI | null = null;
 let model: GenerativeModel | null = null;
 
-export function isGoogleAIConfigured(): boolean {
+// SAFE FIX: Converted to an async function because files marked with "use server" require all exports to be Server Actions (async)
+export async function isGoogleAIConfigured(): Promise<boolean> {
     return !!AI_CONFIG.google.apiKey && AI_CONFIG.google.apiKey.length > 0;
 }
 
