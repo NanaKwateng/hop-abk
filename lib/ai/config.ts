@@ -15,7 +15,7 @@ export const AI_CONFIG = {
         timeout: 30000,
     },
 
-    // Grok (xAI)
+    // Grok (xAI) - Fallback (optional)
     grok: {
         apiKey: process.env.XAI_API_KEY,
         model: process.env.XAI_MODEL || 'grok-1',

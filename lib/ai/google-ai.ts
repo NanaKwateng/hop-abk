@@ -12,6 +12,10 @@ import type { AIQuery, AIResponse, AIIntent } from "@/lib/types/ai";
 let genAI: GoogleGenerativeAI | null = null;
 let model: GenerativeModel | null = null;
 
+export function isGoogleAIConfigured(): boolean {
+    return !!AI_CONFIG.google.apiKey && AI_CONFIG.google.apiKey.length > 0;
+}
+
 function getGeminiClient(): GenerativeModel {
     if (!genAI) {
         const apiKey = AI_CONFIG.google.apiKey;
