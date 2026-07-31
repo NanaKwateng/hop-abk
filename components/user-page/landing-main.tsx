@@ -59,7 +59,7 @@ export default function LandingPage() {
                 {/* Top Branding */}
                 <header className="flex flex-col md:flex-row justify-between items-start gap-3 mb-10 relative z-10">
                     <div className="block">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-black">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" className="text-blue-500">
                             <path d="M12 2L13.5 10.5L22 12L13.5 13.5L12 22L10.5 13.5L2 12L10.5 10.5L12 2Z" />
                         </svg>
                         <span className="font-bold tracking-tight text-xl uppercase">House of Power Min. Int'l</span>
@@ -83,14 +83,14 @@ export default function LandingPage() {
                 </header>
 
                 {/* Hero Section */}
-                <section className="relative w-full h-[55vh] md:h-[100vh] lg:h-[600px] rounded-3xl overflow-hidden mb-8 bg-neutral-200">
-                    <Image
+                <section className="relative w-full h-[55vh] md:h-[150vh] lg:h-[600px] overflow-hidden mb-8">
+                    {/* <Image
                         src="/images/hero.png"
                         alt="Hero"
                         className="w-full h-full object-cover"
                         fill
                         priority
-                    />
+                    /> */}
                     <div className="absolute inset-0 pointer-events-none overflow-hidden">
                         <svg viewBox="0 0 1200 400" className="w-full h-full object-cover opacity-90">
                             <defs>

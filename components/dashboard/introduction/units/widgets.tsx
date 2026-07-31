@@ -6,15 +6,8 @@ import Weather from "@/components/widgets/weather";
 export default function Widgets() {
     return (
         <main className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
-
-            {/* 'col-span-2' forces this component to take the full width of the 2-column grid */}
-            <div className="col-span-2">
-                <Productivity />
-            </div>
-
             {/* These will sit side-by-side in the 2-column grid */}
             <div className="space-y-1 space-x-2">
-
                 <Calendar />
                 <Clock />
                 <Weather />
