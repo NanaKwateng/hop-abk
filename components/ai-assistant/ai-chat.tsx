@@ -54,7 +54,7 @@ export function AIChat() {
         {
             id: "welcome",
             role: "assistant",
-            content: "👋 Hello! I'm your AI assistant for HOP. I can help you with members, payments, tasks, and more. What would you like to know?",
+            content: "👋 Heaven ooo! I'm your AI assistant for HOP. I can help you with members, payments, tasks, and more. What would you like to know?",
             timestamp: new Date(),
             suggestions: [
                 "How many members do we have?",
@@ -158,7 +158,7 @@ export function AIChat() {
             {
                 id: "welcome",
                 role: "assistant",
-                content: "👋 Hello! I'm your AI assistant. How can I help you today?",
+                content: "👋 Heaven ooo! I'm your AI assistant. How can I help you today?",
                 timestamp: new Date(),
                 suggestions: [
                     "How many members do we have?",
@@ -222,7 +222,7 @@ export function AIChat() {
                                         </Badge>
                                     </h3>
                                     <p className="text-xs text-muted-foreground">
-                                        Powered by Gemini AI
+                                        Powered by Gemini
                                     </p>
                                 </div>
                             </div>
