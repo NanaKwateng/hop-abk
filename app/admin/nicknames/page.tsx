@@ -1,3 +1,4 @@
+// app/nicknames/page.tsx
 import { Suspense } from "react";
 import { NicknameList } from "@/components/nicknames/nickname-list";
 
@@ -10,38 +11,33 @@ export const metadata = {
 
 export default function NicknamesPage() {
     return (
-        // Clean background supporting light/dark, minimal layout constraints
-        <div className="w-full min-h-[calc(100vh-80px)] p-6 md:p-10 text-slate-900 dark:text-slate-100 selection:bg-indigo-200 dark:selection:bg-indigo-800">
-            <div className="max-w-7xl mx-auto grid gap-10 md:grid-cols-[2fr,1fr] xl:gap-16">
+        /* Overhauled Background: Deep solid dark base layout node optimizing high vibrance contrast ratios */
+        <div className="w-full min-h-screen bg-[#0a0a0c] p-6 md:p-12 text-white antialiased selection:bg-indigo-600/30">
+            <div className="max-w-7xl mx-auto flex flex-col gap-10">
 
-                {/* Left Section: Context & Constraints (Static) */}
-                <div className="space-y-10 md:sticky md:top-24 md:self-start">
-                    <div className="space-y-2">
-                        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-                            Member Nicknames
-                        </h1>
-                        <p className="text-base text-slate-600 dark:text-slate-400 max-w-xl">
-                            Search for registered alias tags across your network, view details, and manage assigned nicknames in real-time.
-                        </p>
-                    </div>
-
+                {/* Left Top Hero Brand Lockup Section */}
+                <div className="max-w-2xl space-y-3 pt-4">
+                    <h1 className="text-5xl md:text-6xl font-black tracking-tighter text-white leading-tight">
+                        Achieve <br className="hidden sm:inline" />Your Goals
+                    </h1>
+                    <p className="text-base md:text-lg font-medium text-neutral-400 tracking-tight leading-relaxed max-w-md">
+                        Supercharge your fitness, weight, steps, focus, and healthy routines.
+                    </p>
                 </div>
 
-                {/* Right Section: Interactive Area (Dynamic) */}
-                <div className="relative min-h-[400px]">
-                    {/* Subtle halo glow localized in the right area */}
-                    <div className="pointer-events-none absolute -top-40 -right-40 h-96 w-96 rounded-full bg-indigo-500/10 dark:bg-indigo-600/20 blur-[120px] opacity-70" />
-
+                {/* Main Dashboard Layout Area */}
+                <div className="relative min-h-[500px] mt-2">
                     <Suspense
                         fallback={
-                            <div className="flex h-full items-center justify-center text-sm font-medium text-slate-400 animate-pulse">
-                                Initializing search...
+                            <div className="flex h-[400px] w-full items-center justify-center text-sm font-semibold text-neutral-500 animate-pulse">
+                                Initializing network directories...
                             </div>
                         }
                     >
                         <NicknameList />
                     </Suspense>
                 </div>
+
             </div>
         </div>
     );
