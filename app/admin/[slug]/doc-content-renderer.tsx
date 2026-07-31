@@ -18,6 +18,7 @@ import BranchesPage from "../branches/page";
 import TasksPage from "../task/page";
 import NicknamesPage from "../nicknames/page"; // ✅ ADDED
 import SMSPage from "../sms/page";
+import AIAssistantPage from "../ai-assistance/page";
 
 interface DocContentRendererProps {
     slug: string;
@@ -65,6 +66,9 @@ export function DocContentRenderer({ slug, content }: DocContentRendererProps) {
 
         case "task":
             return <ManageTasks />;
+
+        case "ai-assistance":
+            return <AIAssistant />;
 
         // Fallback for anything not explicitly listed
         default:
@@ -118,7 +122,7 @@ function AllWorkFlows() {
     );
 }
 
-// ✅ ADDED: Nicknames content component
+
 function NicknamesContent() {
     return (
         <div className="min-h-[60vh] bg-background">
@@ -126,7 +130,7 @@ function NicknamesContent() {
         </div>
     );
 }
-// ✅ ADDED: Nicknames content component
+
 function SMSContent() {
     return (
         <div className="min-h-[60vh] bg-background">
@@ -179,6 +183,14 @@ function AdminFlow() {
     return (
         <div className="min-h-screen w-full">
             <AdminFlowPage />
+        </div>
+    );
+}
+
+function AIAssistant() {
+    return (
+        <div className="min-h-screen w-full">
+            <AIAssistantPage />
         </div>
     );
 }

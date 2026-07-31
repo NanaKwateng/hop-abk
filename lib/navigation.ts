@@ -14,6 +14,8 @@ import {
 } from "react-icons/tb";
 import { PiGitBranchBold } from "react-icons/pi";
 import { MdOutlineSecurity } from "react-icons/md";
+import { RiWechatChannelsLine } from "react-icons/ri";
+
 
 export interface NavItem {
     title: string;
@@ -73,6 +75,13 @@ export const navigation: NavCategory[] = [
                 title: "SMS",
                 href: "/admin/sms",
                 icon: FiMessageSquare,
+                iconBg: "bg-blue-100 dark:bg-blue-500/20",
+                iconColor: "text-blue-600 dark:text-blue-400"
+            },
+            {
+                title: "AI Assistant",
+                href: "/admin/ai-assistance",
+                icon: RiWechatChannelsLine,
                 iconBg: "bg-blue-100 dark:bg-blue-500/20",
                 iconColor: "text-blue-600 dark:text-blue-400"
             },
