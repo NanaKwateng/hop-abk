@@ -5,6 +5,7 @@ import { QueryProvider } from "@/components/providers/query-provider";
 import { CustomizationProvider } from "@/lib/context/customization-context";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AssistiveTouch } from "@/components/dashboard/assistive-touch";
+import { AIChat } from "@/components/ai-assistant/ai-chat";
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     return (
 
@@ -24,6 +25,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             {children}
                             <AssistiveTouch />
                         </main>
+
+                        <AIChat />
                     </SidebarInset>
                 </div>
             </QueryProvider>

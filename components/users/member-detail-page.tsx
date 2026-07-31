@@ -407,55 +407,27 @@ export function MemberDetailPage({
 
             {/* ── Delete dialog ── */}
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <AlertDialogContent className="relative overflow-hidden border bg-card text-card-foreground shadow-xl transition-all duration-200">
-                    {/* SVG Background Layer - Focuses on red/warm shards to match destructive intent */}
-                    <div className="absolute inset-0 pointer-events-none select-none z-0 overflow-hidden">
-                        {/* Smooth mask to ensure sharp contrast over dialog text */}
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-transparent via-background/60 to-background dark:via-background/80 dark:to-background z-10" />
-
-                        <svg
-                            xmlns="http://w3.org"
-                            viewBox="0 0 600 400"
-                            className="absolute -top-10 -right-10 w-[80%] h-auto opacity-[0.14] dark:opacity-[0.1] rotate-[45deg] transform-gpu"
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete this member?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently remove{" "}
+                            <strong>{member.firstName} {member.lastName}</strong>{" "}
+                            and all their payment records and testimonials.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                         >
-                            {/* Sharp red, orange, and hot pink shard clusters from original card art */}
-                            <polygon points="300,0 450,40 380,120" fill="#d90429" />
-                            <polygon points="450,40 600,0 550,140" fill="#ff4d6d" />
-                            <polygon points="380,120 550,140 460,240" fill="#fb8500" />
-                            <polygon points="450,40 550,140 380,120" fill="#f72585" />
-
-                            {/* Deep background foundational low-poly vectors */}
-                            <polygon points="200,50 300,0 380,120" fill="#7209b7" className="opacity-40" />
-                            <polygon points="380,120 460,240 320,280" fill="#212529" className="opacity-50" />
-                        </svg>
-                    </div>
-
-                    {/* Content Container - Layered cleanly on z-10 above the vector accents */}
-                    <div className="relative z-10">
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Delete this member?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This will permanently remove{" "}
-                                <strong>{member.firstName} {member.lastName}</strong>{" "}
-                                and all their payment records and testimonials.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter className="mt-4">
-                            <AlertDialogCancel disabled={isDeleting} className="bg-background/60 backdrop-blur-sm dark:bg-background/40">
-                                Cancel
-                            </AlertDialogCancel>
-                            <AlertDialogAction
-                                onClick={handleDelete}
-                                disabled={isDeleting}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm"
-                            >
-                                {isDeleting ? "Deleting…" : "Delete"}
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </div>
+                            {isDeleting ? "Deleting…" : "Delete"}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-
         </div>
     );
 }
