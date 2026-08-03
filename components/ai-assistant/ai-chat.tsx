@@ -142,7 +142,7 @@ function MetaAITriggerLogo() {
             />
             <div className="relative w-7 h-7 rounded-full bg-transparent p-[2px] shadow-sm">
                 <div className="w-full h-full bg-transparent rounded-full flex items-center justify-center">
-                    <TfiInfinite className="w-3.5 h-3.5 text-pink-300" />
+                    <TfiInfinite className="w-5 h-5 text-black dark:text-white" />
                 </div>
             </div>
         </div>
