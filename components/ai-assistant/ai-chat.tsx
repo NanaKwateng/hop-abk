@@ -15,7 +15,6 @@ import { useAIAssistant } from "@/hooks/use-ai-assistant";
 import { PiUserLight } from "react-icons/pi";
 import { TfiInfinite } from "react-icons/tfi";
 import {
-    Send,
     Sparkles,
     X,
     Minimize2,
@@ -141,9 +140,9 @@ function MetaAITriggerLogo() {
                 }}
                 className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 opacity-80 blur-[2px]"
             />
-            <div className="relative w-7 h-7 rounded-full bg-gradient-to-tr from-cyan-400 via-indigo-500 to-pink-500 p-[2px] shadow-sm">
-                <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center">
-                    <Sparkles className="w-3.5 h-3.5 text-pink-300" />
+            <div className="relative w-7 h-7 rounded-full bg-transparent p-[2px] shadow-sm">
+                <div className="w-full h-full bg-transparent rounded-full flex items-center justify-center">
+                    <TfiInfinite className="w-3.5 h-3.5 text-pink-300" />
                 </div>
             </div>
         </div>
