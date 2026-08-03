@@ -49,7 +49,7 @@ export async function TabsDemo() {
 
     return (
         <Tabs defaultValue="overview" className="w-full space-y-6">
-            <TabsList className="grid w-full max-w-md grid-cols-2 md:grid-cols-4 lg:max-w-xl">
+            <TabsList className="grid w-full max-w-md grid-cols-2 md:grid-cols-4 lg:max-w-xl bg-transparent rounded-full">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="analytics">Analytics</TabsTrigger>
                 <TabsTrigger value="reports">Reports</TabsTrigger>
@@ -58,7 +58,7 @@ export async function TabsDemo() {
 
             {/* ── Tab 1: Overview → Member Registrations Line Chart ── */}
             <TabsContent value="overview" className="w-full">
-                <Card className="w-full bg-transparent py-1">
+                <Card className="w-full bg-transparent border-none ring-0 py-1">
                     <CardHeader>
                         <CardTitle>Membership Overview</CardTitle>
                         <CardDescription>
@@ -90,7 +90,7 @@ export async function TabsDemo() {
 
             {/* ── Tab 3: Reports → Payment Collections Bar Chart ── */}
             <TabsContent value="reports" className="w-full">
-                <Card className="w-full">
+                <Card className="w-full bg-transparent border-none ring-0 py-1">
                     <CardHeader>
                         <CardTitle>Payment Reports</CardTitle>
                         <CardDescription>
@@ -106,7 +106,7 @@ export async function TabsDemo() {
 
             {/* ── Tab 4: Usage → Gender Distribution Area Chart ── */}
             <TabsContent value="settings" className="w-full">
-                <Card className="w-full">
+                <Card className="w-full bg-transparent border-none ring-0 py-1">
                     <CardHeader>
                         <CardTitle>Gender Distribution</CardTitle>
                         <CardDescription>
