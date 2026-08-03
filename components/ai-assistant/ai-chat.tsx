@@ -72,8 +72,8 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
                 mass: 0.5,
             }}
             className={cn(
-                "group inline-flex items-center justify-center rounded-full relative overflow-hidden bg-neutral-50/90 dark:bg-black/90 backdrop-blur-md border border-neutral-200 dark:border-[#222]",
-                "text-neutral-900 dark:text-neutral-100 font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-950 disabled:pointer-events-none disabled:opacity-50",
+                "group inline-flex items-center justify-center rounded-full relative overflow-hidden bg-transparent dark:bg-transparent backdrop-blur-md border border-neutral-200 dark:border-neutral-200",
+                "text-neutral-900 dark:text-neutral-100 font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
                 "[--shine:rgba(0,0,0,.66)] dark:[--shine:rgba(255,255,255,.66)]",
                 className
             )}
@@ -138,7 +138,7 @@ function MetaAITriggerLogo() {
                     rotate: { duration: 8, repeat: Infinity, ease: "linear" },
                     scale: { duration: 3, repeat: Infinity, ease: "easeInOut" },
                 }}
-                className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 opacity-80 blur-[2px]"
+                className="absolute inset-0 rounded-full bg-transparent blur-[2px]"
             />
             <div className="relative w-7 h-7 rounded-full bg-transparent p-[2px] shadow-sm">
                 <div className="w-full h-full bg-transparent rounded-full flex items-center justify-center">
