@@ -16,7 +16,6 @@ export interface InteractiveBookProps {
     coverImage: string;
     bookTitle?: string;
     bookAuthor?: string;
-    title?: string;
     pages: BookPage[];
     className?: string;
     width?: number | string;

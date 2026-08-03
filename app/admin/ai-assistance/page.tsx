@@ -1,5 +1,5 @@
 // app/admin/ai-assistant/page.tsx
-import AIAssistantClient from "./ai-assistant-client";
+import InteractiveBook from "./ai-assistant-client";
 
 export const metadata = {
     title: "AI Assistant",
@@ -7,5 +7,24 @@ export const metadata = {
 };
 
 export default function AIAssistantPage() {
-    return <AIAssistantClient />;
+    return (
+        <div>
+            <InteractiveBook
+                coverImage="/images/logo.png" // Add your image path here
+                pages={[
+                    {
+                        pageNumber: 1,
+                        title: "Page 1",
+                        content: "First page content"
+                    },
+                    {
+                        pageNumber: 2,
+                        title: "Page 2",
+                        content: "Second page content"
+                    },
+                ]}
+            />
+
+        </div>
+    );
 }
