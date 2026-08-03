@@ -26,7 +26,6 @@ export default async function WelcomeText() {
     return (
         <main className="max-w-sm space-y-3">
             <h2>
-                Welcome aboard 👋 <br />
                 <span className=" text-5xl max-w-sm tracking-wide">
                     {fullName}
                 </span>

@@ -58,7 +58,7 @@ export async function TabsDemo() {
 
             {/* ── Tab 1: Overview → Member Registrations Line Chart ── */}
             <TabsContent value="overview" className="w-full">
-                <Card className="w-full">
+                <Card className="w-full bg-transparent py-1">
                     <CardHeader>
                         <CardTitle>Membership Overview</CardTitle>
                         <CardDescription>
