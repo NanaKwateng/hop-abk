@@ -352,7 +352,7 @@ export function AIChat() {
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
                         transition={spring}
                         className={cn(
-                            "fixed z-50 w-[420px] max-w-[calc(100vw-2rem)] rounded-3xl bg-transparent dark:bg-transparent backdrop-blur-md text-slate-900 dark:text-slate-100 border border-slate-200/80 dark:border-gray-200 shadow-xl overflow-hidden flex flex-col font-sans",
+                            "fixed z-50 w-[420px] max-w-[calc(100vw-2rem)] rounded-3xl bg-transparent dark:bg-transparent backdrop-blur-md text-slate-900 dark:text-slate-100 border border-slate-200/80 dark:border-gray-700 shadow-xl overflow-hidden flex flex-col font-sans",
                             isMinimized ? "bottom-6 right-6 h-auto" : "bottom-6 right-6"
                         )}
                     >
