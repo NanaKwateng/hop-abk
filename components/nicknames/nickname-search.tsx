@@ -64,9 +64,9 @@ export function NicknameSearch({
     };
 
     return (
-        <div className={cn("relative w-1/4 max-w-md", className)}>
+        <div className={cn("relative w-full max-w-[25vw]", className)}>
             {/* Search Input */}
-            <div className="relative">
+            <div className="relative w-full">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                     type="text"
@@ -81,7 +81,7 @@ export function NicknameSearch({
                         }
                     }}
                     onFocus={handleFocus}
-                    className="pl-9 pr-10"
+                    className="pl-9 pr-10 w-full truncate"
                 />
                 {query && (
                     <button
