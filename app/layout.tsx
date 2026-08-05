@@ -9,6 +9,7 @@ import { PWAProvider } from "@/components/pwa/pwa-provider";
 import { ErrorBoundary } from "@/components/pwa/error-boundary";
 import { RouteTracker } from "@/components/route-tracker";
 import { ConnectivityBanner } from "@/components/connectivity-banner";
+import { OfflineProvider } from "@/components/providers/offline-provider";
 
 const figtree = Figtree({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -98,11 +99,13 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               <RouteTracker />
-              {children}
+              <OfflineProvider>
+                {children}
+                <Toaster />
+              </OfflineProvider>
               <ConnectivityBanner />
             </ThemeProvider>
 
-            <Toaster />
           </PWAProvider>
         </ErrorBoundary>
       </body>
