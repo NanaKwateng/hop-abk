@@ -13,7 +13,7 @@ export const STORES = {
 export type StoreName = typeof STORES[keyof typeof STORES];
 
 export interface SyncQueueItem {
-    id?: number; // Auto-increment, so it's a number
+    id?: number;
     operation: 'create' | 'update' | 'delete';
     table: string;
     data: any;
@@ -33,12 +33,21 @@ export interface SyncMetadata {
     hash: string;
 }
 
+// ✅ Check if we're in the browser
+const isBrowser = typeof window !== 'undefined' && typeof window.indexedDB !== 'undefined';
+
 class OfflineDB {
     private db: IDBPDatabase | null = null;
     private dbName = 'hop-offline';
     private dbVersion = 1;
 
-    async init(): Promise<IDBPDatabase> {
+    async init(): Promise<IDBPDatabase | null> {
+        // ✅ Return null if not in browser
+        if (!isBrowser) {
+            console.log('[OfflineDB] Not in browser, skipping init');
+            return null;
+        }
+
         if (this.db) return this.db;
 
         this.db = await openDB(this.dbName, this.dbVersion, {
@@ -111,17 +120,22 @@ class OfflineDB {
         return this.db;
     }
 
-    async getDB(): Promise<IDBPDatabase> {
+    async getDB(): Promise<IDBPDatabase | null> {
+        if (!isBrowser) {
+            return null;
+        }
         if (!this.db) {
             await this.init();
         }
         return this.db!;
     }
 
-    // --- Generic CRUD operations (for string IDs) ---
+    // --- Generic CRUD operations ---
 
-    async put<T extends { id: string }>(storeName: StoreName, data: T): Promise<T> {
+    async put<T extends { id: string }>(storeName: StoreName, data: T): Promise<T | null> {
         const db = await this.getDB();
+        if (!db) return null;
+
         const tx = db.transaction(storeName, 'readwrite');
         const store = tx.objectStore(storeName);
         await store.put(data);
@@ -131,6 +145,8 @@ class OfflineDB {
 
     async get<T>(storeName: StoreName, id: string): Promise<T | null> {
         const db = await this.getDB();
+        if (!db) return null;
+
         const tx = db.transaction(storeName, 'readonly');
         const store = tx.objectStore(storeName);
         const result = await store.get(id);
@@ -140,6 +156,8 @@ class OfflineDB {
 
     async getAll<T>(storeName: StoreName): Promise<T[]> {
         const db = await this.getDB();
+        if (!db) return [];
+
         const tx = db.transaction(storeName, 'readonly');
         const store = tx.objectStore(storeName);
         const results = await store.getAll();
@@ -149,6 +167,8 @@ class OfflineDB {
 
     async delete(storeName: StoreName, id: string): Promise<void> {
         const db = await this.getDB();
+        if (!db) return;
+
         const tx = db.transaction(storeName, 'readwrite');
         const store = tx.objectStore(storeName);
         await store.delete(id);
@@ -157,16 +177,20 @@ class OfflineDB {
 
     async clear(storeName: StoreName): Promise<void> {
         const db = await this.getDB();
+        if (!db) return;
+
         const tx = db.transaction(storeName, 'readwrite');
         const store = tx.objectStore(storeName);
         await store.clear();
         await tx.done;
     }
 
-    // --- Queue operations (for number IDs from auto-increment) ---
+    // --- Queue operations ---
 
-    async addToQueue(item: Omit<SyncQueueItem, 'id' | 'timestamp'>): Promise<number> {
+    async addToQueue(item: Omit<SyncQueueItem, 'id' | 'timestamp'>): Promise<number | null> {
         const db = await this.getDB();
+        if (!db) return null;
+
         const tx = db.transaction(STORES.QUEUE, 'readwrite');
         const store = tx.objectStore(STORES.QUEUE);
         const result = await store.add({
@@ -181,6 +205,8 @@ class OfflineDB {
 
     async getPendingQueueItems(): Promise<SyncQueueItem[]> {
         const db = await this.getDB();
+        if (!db) return [];
+
         const tx = db.transaction(STORES.QUEUE, 'readonly');
         const store = tx.objectStore(STORES.QUEUE);
         const index = store.index('by_status');
@@ -189,9 +215,10 @@ class OfflineDB {
         return results as SyncQueueItem[];
     }
 
-    // ✅ Get queue item by number ID
     async getQueueItem(id: number): Promise<SyncQueueItem | null> {
         const db = await this.getDB();
+        if (!db) return null;
+
         const tx = db.transaction(STORES.QUEUE, 'readonly');
         const store = tx.objectStore(STORES.QUEUE);
         const result = await store.get(id);
@@ -199,9 +226,10 @@ class OfflineDB {
         return result as SyncQueueItem || null;
     }
 
-    // ✅ Update queue item by number ID
     async updateQueueItem(id: number, updates: Partial<SyncQueueItem>): Promise<void> {
         const db = await this.getDB();
+        if (!db) return;
+
         const tx = db.transaction(STORES.QUEUE, 'readwrite');
         const store = tx.objectStore(STORES.QUEUE);
         const item = await store.get(id);
@@ -211,27 +239,22 @@ class OfflineDB {
         await tx.done;
     }
 
-    // ✅ Remove queue item by number ID
     async removeQueueItem(id: number): Promise<void> {
         const db = await this.getDB();
+        if (!db) return;
+
         const tx = db.transaction(STORES.QUEUE, 'readwrite');
         const store = tx.objectStore(STORES.QUEUE);
         await store.delete(id);
         await tx.done;
     }
 
-    // ✅ Get queue item by string ID (for when we need to use string)
-    async getQueueItemByStringId(id: string): Promise<SyncQueueItem | null> {
-        // Convert string to number and use the number method
-        const numId = parseInt(id, 10);
-        if (isNaN(numId)) return null;
-        return this.getQueueItem(numId);
-    }
-
     // --- Metadata operations ---
 
     async getMetadata(table: string, recordId: string): Promise<SyncMetadata | null> {
         const db = await this.getDB();
+        if (!db) return null;
+
         const tx = db.transaction(STORES.METADATA, 'readonly');
         const store = tx.objectStore(STORES.METADATA);
         const index = store.index('by_record_id');

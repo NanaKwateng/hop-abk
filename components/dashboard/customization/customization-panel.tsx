@@ -1,4 +1,5 @@
 // components/dashboard/customization/customization-panel.tsx
+
 "use client";
 
 import { useState } from "react";
@@ -54,6 +55,7 @@ import {
     ArrowRight,
     CheckCircle2,
     AlertCircle,
+    Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -94,6 +96,57 @@ const MODES: {
 // ═══════════════════════════════════════════
 
 export function CustomizationPanel() {
+    // ✅ Safely use the hook with try-catch
+    let customization;
+    let error = null;
+
+    try {
+        customization = useCustomization();
+    } catch (err) {
+        error = err instanceof Error ? err.message : "Customization provider not found";
+        console.error("[CustomizationPanel] Error:", error);
+    }
+
+    const [previewCheck, setPreviewCheck] = useState(true);
+    const [previewSwitch, setPreviewSwitch] = useState(true);
+
+    // ✅ If error, show fallback UI
+    if (error || !customization) {
+        return (
+            <div className="p-6 md:p-8 max-w-6xl mx-auto">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Sparkles className="h-5 w-5 text-primary" />
+                            Customization
+                        </CardTitle>
+                        <CardDescription>
+                            Personalize the look and feel of your admin dashboard.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="rounded-lg border border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950/30 p-6 text-center">
+                            <div className="flex items-center justify-center gap-2 mb-4">
+                                <Loader2 className="h-8 w-8 text-yellow-600 dark:text-yellow-400 animate-spin" />
+                            </div>
+                            <h3 className="text-lg font-semibold mb-2">Loading Customization</h3>
+                            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                                The customization settings are being loaded. This should only take a moment.
+                            </p>
+                            <Button
+                                variant="outline"
+                                className="mt-4"
+                                onClick={() => window.location.reload()}
+                            >
+                                Refresh Page
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
     const {
         preferences,
         setMode,
@@ -104,10 +157,7 @@ export function CustomizationPanel() {
         setReducedMotion,
         resetToDefaults,
         isHydrated,
-    } = useCustomization();
-
-    const [previewCheck, setPreviewCheck] = useState(true);
-    const [previewSwitch, setPreviewSwitch] = useState(true);
+    } = customization;
 
     function handleReset() {
         resetToDefaults();
