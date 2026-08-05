@@ -1,13 +1,10 @@
-// app/admin/sms/page.tsx
-
 import { Suspense } from "react";
-import { SMSComposer } from "@/components/sms/sms-composer";
-import { SMSHistory } from "@/components/sms/sms-history";
+import { SMSWorkspace } from "@/components/sms/sms-workspace";
 import { SMSAnalytics } from "@/components/sms/sms-analytics";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Send, History, BarChart3 } from "lucide-react";
+import { MessageSquare, BarChart3 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -21,20 +18,14 @@ export default function SMSPage() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">SMS Messaging</h1>
-                <p className="text-muted-foreground">
-                    Send messages to members via SMS
-                </p>
+                <p className="text-muted-foreground">Send messages to members via SMS</p>
             </div>
 
-            <Tabs defaultValue="compose" className="space-y-4">
-                <TabsList className="bg-transparent w-1/4 max-w-sm rounded-full justify-start gap-2">
-                    <TabsTrigger value="compose" className="gap-2">
-                        <Send className="h-4 w-4" />
-                        Compose
-                    </TabsTrigger>
-                    <TabsTrigger value="history" className="gap-2">
-                        <History className="h-4 w-4" />
-                        History
+            <Tabs defaultValue="messages" className="space-y-4">
+                <TabsList className="bg-transparent w-fit rounded-full justify-start gap-2">
+                    <TabsTrigger value="messages" className="gap-2">
+                        <MessageSquare className="h-4 w-4" />
+                        Messages
                     </TabsTrigger>
                     <TabsTrigger value="analytics" className="gap-2">
                         <BarChart3 className="h-4 w-4" />
@@ -42,15 +33,9 @@ export default function SMSPage() {
                     </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="compose" className="border-0 outline-none shadow-none">
-                    <Suspense fallback={<SMSComposerSkeleton />}>
-                        <SMSComposer />
-                    </Suspense>
-                </TabsContent>
-
-                <TabsContent value="history" className="border-0 outline-none shadow-none">
-                    <Suspense fallback={<SMSHistorySkeleton />}>
-                        <SMSHistory />
+                <TabsContent value="messages" className="border-0 outline-none shadow-none">
+                    <Suspense fallback={<WorkspaceSkeleton />}>
+                        <SMSWorkspace />
                     </Suspense>
                 </TabsContent>
 
@@ -64,37 +49,8 @@ export default function SMSPage() {
     );
 }
 
-// Skeletons
-function SMSComposerSkeleton() {
-    return (
-        <Card>
-            <CardHeader>
-                <Skeleton className="h-6 w-48" />
-                <Skeleton className="h-4 w-64" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-32 w-full" />
-                <Skeleton className="h-10 w-full" />
-            </CardContent>
-        </Card>
-    );
-}
-
-function SMSHistorySkeleton() {
-    return (
-        <Card>
-            <CardHeader>
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-4 w-48" />
-            </CardHeader>
-            <CardContent className="space-y-3">
-                {Array.from({ length: 5 }).map((_, i) => (
-                    <Skeleton key={i} className="h-16 w-full" />
-                ))}
-            </CardContent>
-        </Card>
-    );
+function WorkspaceSkeleton() {
+    return <Skeleton className="h-[calc(100vh-9rem)] w-full rounded-2xl" />;
 }
 
 function SMSAnalyticsSkeleton() {
