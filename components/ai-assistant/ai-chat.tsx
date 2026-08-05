@@ -1,3 +1,5 @@
+// components/ai-assistant/ai-chat.tsx
+
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
@@ -5,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area"; // ✅ ADDED
 import {
     Conversation,
     ConversationContent,
@@ -25,24 +28,11 @@ import { GrSend } from "react-icons/gr";
 
 const spring = { type: "spring" as const, stiffness: 350, damping: 25 };
 
-// ✅ FIXED: Use AgentState type from Orb component
-// The Orb component uses AgentState type which likely accepts:
-// 'idle' | 'thinking' | 'talking' | 'loading' | 'error' | 'success'
 type OrbState = "idle" | "thinking" | "talking";
 
-// Map our state to the Orb component's expected state
-const mapOrbState = (state: OrbState): string => {
-    switch (state) {
-        case "idle":
-            return "idle";
-        case "thinking":
-            return "thinking";
-        case "talking":
-            return "talking";
-        default:
-            return "idle";
-    }
-};
+function OrbWrapper({ state, className }: { state: OrbState; className?: string }) {
+    return <Orb className={className} agentState={state as any} />;
+}
 
 interface Message {
     id: string;
@@ -56,7 +46,6 @@ interface Message {
     isStreaming?: boolean;
 }
 
-// Reveals real text word-by-word so the reply feels live
 function useWordReveal(fullText: string, active: boolean, onDone: () => void) {
     const [revealed, setRevealed] = useState("");
 
@@ -98,16 +87,9 @@ function StreamingBubble({ message, onDone }: { message: Message; onDone: () => 
     );
 }
 
-// ✅ FIXED: Wrapper component that maps our OrbState to AgentState
-function OrbWrapper({ state, className }: { state: OrbState; className?: string }) {
-    // Use type assertion to tell TypeScript this is compatible
-    return <Orb className={className} agentState={state as any} />;
-}
-
 export function AIChat() {
     const [isOpen, setIsOpen] = useState(false);
     const [isMinimized, setIsMinimized] = useState(false);
-    // ✅ FIXED: Use "idle" as initial state
     const [orbState, setOrbState] = useState<OrbState>("idle");
     const [messages, setMessages] = useState<Message[]>([
         {
@@ -129,10 +111,17 @@ export function AIChat() {
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
     const { processQuery } = useAIAssistant();
 
+    // ✅ FIXED: Auto-scroll using ScrollArea
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        if (scrollAreaRef.current) {
+            const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+            if (scrollElement) {
+                scrollElement.scrollTop = scrollElement.scrollHeight;
+            }
+        }
     }, [messages, isLoading]);
 
     useEffect(() => {
@@ -239,7 +228,6 @@ export function AIChat() {
                     onClick={() => setIsOpen(true)}
                     className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-background"
                 >
-                    {/* ✅ FIXED: Use OrbWrapper instead of direct Orb */}
                     <OrbWrapper state={orbState} className="h-full w-full" />
                 </button>
             )}
@@ -264,7 +252,6 @@ export function AIChat() {
                         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/50 dark:border-slate-800/60 shrink-0">
                             <div className="flex items-center gap-2">
                                 <div className="h-8 w-8 rounded-full overflow-hidden ring-1 ring-border">
-                                    {/* ✅ FIXED: Use OrbWrapper */}
                                     <OrbWrapper state={orbState} className="h-full w-full" />
                                 </div>
                                 <span className="text-xs font-semibold tracking-wide text-slate-800 dark:text-slate-200">
@@ -302,60 +289,61 @@ export function AIChat() {
 
                         {!isMinimized && (
                             <>
-                                <div className="flex-1 min-h-0">
-                                    <Conversation>
-                                        <ConversationContent>
-                                            {messages.length === 0 ? (
-                                                <ConversationEmptyState
-                                                    icon={<OrbWrapper state="idle" className="size-12" />}
-                                                    title="Ready to explore?"
-                                                    description="Ask about members, payments, tasks, or trends"
-                                                />
-                                            ) : (
-                                                messages.map((message) => (
-                                                    <Message from={message.role} key={message.id}>
-                                                        <MessageContent>
-                                                            {message.role === "assistant" ? (
-                                                                <StreamingBubble
-                                                                    message={message}
-                                                                    onDone={() => handleStreamDone(message.id)}
-                                                                />
-                                                            ) : (
-                                                                <Response>{message.content}</Response>
+                                <div className="flex-1 min-h-0 relative">
+                                    {/* ✅ FIXED: Wrap Conversation with ScrollArea */}
+                                    <ScrollArea className="h-full" ref={scrollAreaRef}>
+                                        <Conversation>
+                                            <ConversationContent>
+                                                {messages.length === 0 ? (
+                                                    <ConversationEmptyState
+                                                        icon={<OrbWrapper state="idle" className="size-12" />}
+                                                        title="Ready to explore?"
+                                                        description="Ask about members, payments, tasks, or trends"
+                                                    />
+                                                ) : (
+                                                    messages.map((message) => (
+                                                        <Message from={message.role} key={message.id}>
+                                                            <MessageContent>
+                                                                {message.role === "assistant" ? (
+                                                                    <StreamingBubble
+                                                                        message={message}
+                                                                        onDone={() => handleStreamDone(message.id)}
+                                                                    />
+                                                                ) : (
+                                                                    <Response>{message.content}</Response>
+                                                                )}
+                                                            </MessageContent>
+                                                            {message.role === "assistant" && (
+                                                                <div className="ring-border size-7 overflow-hidden rounded-full ring-1 shrink-0">
+                                                                    <OrbWrapper
+                                                                        state={message.isStreaming ? "talking" : "idle"}
+                                                                        className="h-full w-full"
+                                                                    />
+                                                                </div>
                                                             )}
+                                                            {message.role === "user" && (
+                                                                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-200/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300">
+                                                                    <PiUserLight className="h-3.5 w-3.5" />
+                                                                </div>
+                                                            )}
+                                                        </Message>
+                                                    ))
+                                                )}
+                                                {isLoading && (
+                                                    <Message from="assistant">
+                                                        <MessageContent>
+                                                            <Response>{"\u200B"}</Response>
                                                         </MessageContent>
-                                                        {message.role === "assistant" && (
-                                                            <div className="ring-border size-7 overflow-hidden rounded-full ring-1 shrink-0">
-                                                                {/* ✅ FIXED: Use OrbWrapper */}
-                                                                <OrbWrapper
-                                                                    state={message.isStreaming ? "talking" : "idle"}
-                                                                    className="h-full w-full"
-                                                                />
-                                                            </div>
-                                                        )}
-                                                        {message.role === "user" && (
-                                                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-200/80 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300">
-                                                                <PiUserLight className="h-3.5 w-3.5" />
-                                                            </div>
-                                                        )}
+                                                        <div className="ring-border size-7 overflow-hidden rounded-full ring-1 shrink-0">
+                                                            <OrbWrapper state="thinking" className="h-full w-full" />
+                                                        </div>
                                                     </Message>
-                                                ))
-                                            )}
-                                            {isLoading && (
-                                                <Message from="assistant">
-                                                    <MessageContent>
-                                                        <Response>{"\u200B"}</Response>
-                                                    </MessageContent>
-                                                    <div className="ring-border size-7 overflow-hidden rounded-full ring-1 shrink-0">
-                                                        {/* ✅ FIXED: Use OrbWrapper */}
-                                                        <OrbWrapper state="thinking" className="h-full w-full" />
-                                                    </div>
-                                                </Message>
-                                            )}
-                                            <div ref={messagesEndRef} />
-                                        </ConversationContent>
-                                        <ConversationScrollButton />
-                                    </Conversation>
+                                                )}
+                                                <div ref={messagesEndRef} />
+                                            </ConversationContent>
+                                            <ConversationScrollButton />
+                                        </Conversation>
+                                    </ScrollArea>
                                 </div>
 
                                 {messages.length > 0 && messages[messages.length - 1].suggestions && !isLoading && (

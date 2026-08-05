@@ -1,7 +1,7 @@
 // app/admin/ai-assistant/page.tsx
 // Server Component
 
-import { InteractiveBook } from "@/components/ui/interactive-book";
+import InteractiveBook from "@/components/ui/interactive-book";
 
 export const metadata = {
     title: "User Guide",
@@ -105,18 +105,24 @@ Welcome to HOP Church Management System. We're here to help you serve your churc
 export default function AIAssistantPage() {
     return (
         <div className="container mx-auto py-8 px-4">
-            <div className="mb-8">
+            <div className="mb-8 text-center">
                 <h1 className="text-4xl font-bold tracking-tight">User Guide</h1>
                 <p className="text-muted-foreground mt-2">
                     Learn how to use the HOP Church Management System
                 </p>
             </div>
 
-            <InteractiveBook
-                coverImage="/images/logo.png"
-                pages={GUIDE_PAGES}
-                className="w-full"
-            />
+            <div className="flex justify-center">
+                <InteractiveBook
+                    coverImage="/images/logo.png"
+                    bookTitle="HOP User Guide"
+                    bookAuthor="House of Power Ministry"
+                    pages={GUIDE_PAGES}
+                    width={400}
+                    height={550}
+                    className="w-full max-w-5xl"
+                />
+            </div>
         </div>
     );
 }
