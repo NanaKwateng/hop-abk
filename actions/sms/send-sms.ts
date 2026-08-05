@@ -23,7 +23,7 @@ export async function sendSMS(input: SendSMSInput): Promise<SMSSendResult> {
         const validated = sendSMSSchema.parse(input);
 
         // Get recipients
-        const { getRecipients } = await import("./get-recipients");
+        const { getRecipients } = await import("./get-recipient");
         const { recipients, totalCount } = await getRecipients(
             validated.recipientType,
             validated.recipientGroup,

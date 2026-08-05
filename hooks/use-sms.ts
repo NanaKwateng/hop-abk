@@ -8,7 +8,7 @@ import { sendSMS } from "@/actions/sms/send-sms";
 import { getTemplates } from "@/actions/sms/get-templates";
 import { saveTemplate } from "@/actions/sms/save-template";
 import { getMessageHistory } from "@/actions/sms/get-message-history";
-import { getRecipients } from "@/actions/sms/get-recipients";
+import { getRecipients } from "@/actions/sms/get-recipient";
 import { getDeliveryStatus } from "@/actions/sms/get-delivery-status";
 import type { SendSMSInput, TemplateInput } from "@/lib/types/sms";
 import { toast } from "sonner";

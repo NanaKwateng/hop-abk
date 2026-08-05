@@ -45,6 +45,3 @@ export async function GET() {
         },
     });
 }
-
-
-//offline status

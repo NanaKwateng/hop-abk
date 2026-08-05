@@ -1,6 +1,4 @@
 // app/admin/ai-assistant/loading.tsx
-"use client"
-
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
 
@@ -12,8 +10,9 @@ export default function Loading() {
             <div className="absolute inset-0 pointer-events-none select-none z-0 overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-transparent via-background/60 to-background dark:via-background/80 dark:to-background z-10" />
 
+                {/* Top-Right Shard Cluster */}
                 <svg
-                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns="http://w3.org"
                     viewBox="0 0 400 400"
                     className="absolute -top-12 -right-12 w-[35vw] max-w-[400px] h-auto opacity-[0.14] dark:opacity-[0.08] rotate-12 transform-gpu"
                 >
@@ -24,8 +23,9 @@ export default function Loading() {
                     <polygon points="200,0 240,75 175,55" fill="#ffb703" />
                 </svg>
 
+                {/* Bottom-Left Shard Cluster */}
                 <svg
-                    xmlns="http://www.w3.org/2000/svg"
+                    xmlns="http://w3.org"
                     viewBox="0 0 400 400"
                     className="absolute -bottom-12 -left-12 w-[35vw] max-w-[400px] h-auto opacity-[0.14] dark:opacity-[0.08] -rotate-12 transform-gpu"
                 >
@@ -39,39 +39,33 @@ export default function Loading() {
             {/* ── LOADING CONTENT LAYER ── */}
             <div className="relative flex flex-col items-center justify-center text-center gap-6 z-10 px-4">
 
+                {/* Server GIF Container */}
                 <figure className="relative w-[180px] h-[180px] md:w-[220px] md:h-[220px] flex items-center justify-center">
-                    {/* 
-                      IMPORTANT: verify /public/images/server.gif exists with
-                      this EXACT case on disk (git is case-sensitive on Vercel's
-                      Linux build even if it looked fine on macOS/Windows).
-                      Run: git ls-files public/images  → confirm exact filename.
-                    */}
                     <Image
                         src="/images/server.gif"
-                        alt="Connecting to server"
+                        alt="server query"
                         fill
-                        sizes="(max-width: 768px) 180px, 220px"
+                        sizes="(max-w-md) 180px, 220px"
                         className="object-contain"
                         priority
-                        unoptimized
-                        onError={(e) => {
-                            console.error("Failed to load /images/server.gif — check case-sensitivity and that the file is committed.");
-                            (e.currentTarget as HTMLImageElement).style.display = "none";
-                        }}
+                        unoptimized // Recommended for loaded system local .gifs to ensure runtime loop playback
                     />
                 </figure>
 
+                {/* Status indicator texts & skeletons */}
                 <div className="space-y-3 flex flex-col items-center">
                     <figcaption className="text-sm font-medium tracking-wide text-muted-foreground animate-pulse">
                         Connecting to the server, please wait...
                     </figcaption>
 
+                    {/* Animated horizontal parsing progress bar */}
                     <div className="flex gap-1 w-24 justify-center">
                         <Skeleton className="h-1.5 w-full rounded-full bg-muted-foreground/20 animate-pulse duration-700" />
                         <Skeleton className="h-1.5 w-full rounded-full bg-muted-foreground/20 animate-pulse duration-1000" />
                         <Skeleton className="h-1.5 w-full rounded-full bg-muted-foreground/20 animate-pulse duration-500" />
                     </div>
                 </div>
+
             </div>
         </div>
     );

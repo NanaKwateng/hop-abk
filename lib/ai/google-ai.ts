@@ -1,13 +1,18 @@
+// lib/ai/google-ai.ts
+
 "use server";
 
 import { GoogleGenerativeAI, GenerativeModel } from "@google/generative-ai";
 import { AI_CONFIG } from "./config";
-import { QUERY_ANALYSIS_PROMPT } from "./prompts";
-import type { AIQuery, AIQueryAnalysis, AIIntent } from "@/lib/types/ai";
+import { DATABASE_SCHEMA, QUERY_EXAMPLES } from "./schema";
+import { SYSTEM_PROMPT } from "./prompts";
+import type { AIQuery, AIResponse, AIIntent } from "@/lib/types/ai";
 
+// Initialize Google AI
 let genAI: GoogleGenerativeAI | null = null;
 let model: GenerativeModel | null = null;
 
+// SAFE FIX: Converted to an async function because files marked with "use server" require all exports to be Server Actions (async)
 export async function isGoogleAIConfigured(): Promise<boolean> {
     return !!AI_CONFIG.google.apiKey && AI_CONFIG.google.apiKey.length > 0;
 }
@@ -15,9 +20,12 @@ export async function isGoogleAIConfigured(): Promise<boolean> {
 function getGeminiClient(): GenerativeModel {
     if (!genAI) {
         const apiKey = AI_CONFIG.google.apiKey;
-        if (!apiKey) throw new Error("GOOGLE_AI_API_KEY is not configured");
+        if (!apiKey) {
+            throw new Error("GOOGLE_AI_API_KEY is not configured");
+        }
         genAI = new GoogleGenerativeAI(apiKey);
     }
+
     if (!model) {
         const config = AI_CONFIG.google;
         model = genAI.getGenerativeModel({
@@ -30,85 +38,108 @@ function getGeminiClient(): GenerativeModel {
             },
         });
     }
+
     return model;
 }
 
-const VALID_INTENTS: AIIntent[] = [
-    "member_query", "payment_query", "task_query", "workflow_query",
-    "branch_query", "sms_query", "analytics_query", "search_query", "general_query",
-];
-
-/** Phase 1 ONLY — intent + entities. Gemini never sees real data or writes the final answer. */
-export async function analyzeQueryWithGemini(query: AIQuery): Promise<AIQueryAnalysis> {
+/**
+ * Process a query using Google Gemini
+ */
+export async function processWithGoogleGemini(query: AIQuery): Promise<AIResponse> {
     try {
         const client = getGeminiClient();
-        const previousMessages = query.context?.previousMessages || [];
-        const conversationContext = previousMessages.length > 0
-            ? previousMessages.map((m) => `${m.role}: ${m.content}`).join("\n")
-            : "None";
 
-        const prompt = QUERY_ANALYSIS_PROMPT
-            .replace("{query}", query.query)
-            .replace("{context}", conversationContext);
+        // Build the prompt
+        const prompt = buildPrompt(query);
 
+        // Call Gemini with function calling
         const result = await client.generateContent({
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            contents: [
+                {
+                    role: "user",
+                    parts: [{ text: prompt }],
+                },
+            ],
             generationConfig: {
-                temperature: 0.2,
-                maxOutputTokens: 512,
+                temperature: AI_CONFIG.google.temperature,
+                maxOutputTokens: AI_CONFIG.google.maxTokens,
                 responseMimeType: "application/json",
             },
         });
 
-        const text = result.response.text();
-        let parsed: any;
-        try {
-            parsed = JSON.parse(text);
-        } catch {
-            console.error("[Google AI] Non-JSON analysis response:", text);
-            return fallbackAnalysis();
-        }
+        const response = result.response;
+        const text = response.text();
 
-        const intent: AIIntent = VALID_INTENTS.includes(parsed.intent) ? parsed.intent : "general_query";
+        // Parse the response
+        let parsedResponse;
+        try {
+            parsedResponse = JSON.parse(text);
+        } catch {
+            // If not JSON, return as text
+            return {
+                success: true,
+                message: text,
+                confidence: 0.9,
+                intent: "general_query",
+            };
+        }
 
         return {
             success: true,
-            intent,
-            entities: parsed.entities || {},
-            requiresData: !!parsed.requiresData,
-            chartType: parsed.chartType || null,
-            confidence: typeof parsed.confidence === "number" ? parsed.confidence : 0.7,
-            followUp: parsed.followUp || [],
+            message: parsedResponse.message || "I processed your query.",
+            data: parsedResponse.data,
+            chart: parsedResponse.chart,
+            intent: parsedResponse.intent || "general_query",
+            confidence: parsedResponse.confidence || 0.9,
+            suggestions: parsedResponse.suggestions || [],
         };
     } catch (error) {
-        console.error("[Google AI] Analysis error:", error);
-        return fallbackAnalysis();
+        console.error("[Google AI] Error:", error);
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : "Failed to process query with Google AI",
+            confidence: 0,
+            intent: "general_query",
+        };
     }
 }
 
-function fallbackAnalysis(): AIQueryAnalysis {
-    return { success: false, intent: "general_query", entities: {}, requiresData: false, chartType: null, confidence: 0, followUp: [] };
+/**
+ * Build the prompt for Gemini
+ */
+function buildPrompt(query: AIQuery): string {
+    const context = query.context || {};
+
+    // SAFE FIX: Extract array safely with fallback to prevent undefined errors
+    const previousMessages = context.previousMessages || [];
+
+    const conversationContext = previousMessages.length > 0
+        ? `\n## Previous Conversation\n${previousMessages.map((m: any) => `${m.role}: ${m.content}`).join('\n')}`
+        : '';
+
+    return `
+${SYSTEM_PROMPT.replace('{currentDate}', new Date().toISOString().split('T')[0])}
+
+## Database Schema
+${DATABASE_SCHEMA}
+
+## Example Queries
+${QUERY_EXAMPLES}
+
+## Conversation Context
+${conversationContext}
+
+## User Query
+${query.query}
+
+Please analyze this query and provide a response. Return a JSON object with the following structure:
+{
+    "message": "Your response to the user",
+    "data": null or data retrieved,
+    "chart": null or chart configuration,
+    "intent": "member_query|payment_query|task_query|analytics_query|search_query|general_query",
+    "confidence": 0.9,
+    "suggestions": ["suggestion1", "suggestion2"]
 }
-
-/** Free-text conversational reply for general_query — no DB, low stakes if imperfect. */
-export async function chatReplyWithGemini(query: AIQuery): Promise<string> {
-    try {
-        const client = getGeminiClient();
-        const previousMessages = query.context?.previousMessages || [];
-        const history = previousMessages.map((m) => `${m.role}: ${m.content}`).join("\n");
-
-        const result = await client.generateContent({
-            contents: [{
-                role: "user",
-                parts: [{
-                    text: `You are a warm, concise assistant for a church admin tool. Conversation so far:\n${history}\n\nUser: ${query.query}\n\nReply in 1-3 sentences. Never invent statistics or names.`,
-                }],
-            }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 256 },
-        });
-        return result.response.text();
-    } catch (error) {
-        console.error("[Google AI] Chat reply error:", error);
-        return "I'm here to help — could you rephrase that?";
-    }
+`;
 }

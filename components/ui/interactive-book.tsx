@@ -1,16 +1,13 @@
-// components/ui/interactive-book.tsx
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, RefreshCcw, X, BookOpen } from 'lucide-react';
-import { Button } from "@/components/ui/button";
 
 export interface BookPage {
     title?: string;
-    content: string;
+    content: React.ReactNode;
     backContent?: React.ReactNode;
     pageNumber: number;
 }
@@ -27,8 +24,8 @@ export interface InteractiveBookProps {
 
 export default function InteractiveBook({
     coverImage,
-    bookTitle = "HOP User Guide",
-    bookAuthor = "House of Power Ministry",
+    bookTitle = "Book Title",
+    bookAuthor = "Author Name",
     pages,
     className,
     width = 350,
@@ -38,9 +35,12 @@ export default function InteractiveBook({
     const [currentPageIndex, setCurrentPageIndex] = useState(-1);
     const [isHovering, setIsHovering] = useState(false);
 
+    // Calculate dynamic width/height values for animations
     const widthNum = typeof width === 'number' ? width : 350;
+
+    // Sync container shift with cover open
     const BOOK_OPEN_DURATION = 1.5;
-    const EASING: [number, number, number, number] = [0.25, 0, 0, 1];
+    const EASING: [number, number, number, number] = [0.25, 0, 0, 1]; // milder smoothing
 
     const handleOpenBook = () => setIsOpen(true);
 
@@ -69,6 +69,10 @@ export default function InteractiveBook({
         setCurrentPageIndex(-1);
     };
 
+    const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setCurrentPageIndex(parseInt(e.target.value, 10));
+    };
+
     // Keyboard navigation
     useEffect(() => {
         if (!isOpen) return;
@@ -81,44 +85,24 @@ export default function InteractiveBook({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isOpen, currentPageIndex]);
 
-    // ✅ Convert pages to the format expected by the book component
-    const bookPages = pages.map((page, index) => ({
-        title: page.title,
-        content: (
-            <div className="prose prose-neutral prose-sm max-w-none font-serif text-neutral-700 leading-relaxed select-none">
-                {typeof page.content === 'string' ? (
-                    page.content.split('\n').map((paragraph, i) => (
-                        <p key={i} className="mb-2">{paragraph}</p>
-                    ))
-                ) : (
-                    page.content
-                )}
-            </div>
-        ),
-        backContent: (
-            <div className="flex-1 flex flex-col items-center justify-center text-center opacity-40">
-                <p className="font-serif text-neutral-500 italic">Continued...</p>
-            </div>
-        ),
-        pageNumber: index + 1,
-    }));
-
     return (
         <div
             className={cn("relative flex items-center justify-center perspective-[2000px]", className)}
             style={{
                 width: typeof width === 'number' ? width * 3.5 : '100%',
-                height: typeof height === 'number' ? height + 100 : 'auto',
-                minHeight: '500px',
+                height: typeof height === 'number' ? height + 100 : 'auto'
             }}
         >
             <motion.div
-                className="relative preserve-3d"
+                className={cn(
+                    "relative preserve-3d"
+                )}
                 style={{ width, height }}
                 initial={{ x: 0 }}
                 animate={{ x: isOpen ? widthNum / 2 : 0 }}
                 transition={{ duration: BOOK_OPEN_DURATION, ease: EASING }}
             >
+
                 {/* Front Cover */}
                 <motion.div
                     className="absolute inset-0 w-full h-full origin-left"
@@ -141,6 +125,7 @@ export default function InteractiveBook({
                         className="absolute inset-0 w-full h-full backface-hidden rounded-r-md rounded-l-sm shadow-2xl cursor-pointer overflow-hidden group"
                         style={{ transform: 'translateZ(0.5px)' }}
                     >
+                        {/* Image Background */}
                         <div
                             className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                             style={{ backgroundImage: `url(${coverImage})` }}
@@ -152,6 +137,7 @@ export default function InteractiveBook({
                             <p className="text-[8px] font-sans tracking-widest opacity-90 uppercase border-t border-white/30 pt-1 inline-block">{bookAuthor}</p>
                         </div>
 
+                        {/* Spine Highlight */}
                         <div className="absolute left-0 top-0 bottom-0 w-4 bg-gradient-to-r from-white/30 to-transparent opacity-40" />
                         <div className="absolute left-[12px] top-0 bottom-0 w-[1px] bg-black/30" />
                     </div>
@@ -175,18 +161,20 @@ export default function InteractiveBook({
 
                 {/* Pages Stack */}
                 <div className="absolute inset-0 w-full h-full z-0" style={{ transformStyle: 'preserve-3d' }}>
-                    {bookPages.map((page, index) => {
+                    {pages.map((page, index) => {
                         const isFlipped = index <= currentPageIndex;
+                        // Stagger delays slightly for a realistic "whip" effect if user clicks fast, 
+                        // but mostly we want instant feedback with smooth transition.
 
                         return (
                             <motion.div
                                 key={index}
                                 className="absolute inset-0 w-full h-full origin-left bg-[#fdfbf7] rounded-r-md rounded-l-sm shadow-sm border border-neutral-100"
                                 style={{ transformStyle: 'preserve-3d' }}
-                                initial={{ rotateY: 0, zIndex: bookPages.length - index }}
+                                initial={{ rotateY: 0, zIndex: pages.length - index }}
                                 animate={{
                                     rotateY: isFlipped ? -180 : 0,
-                                    zIndex: isFlipped ? index + 1 : bookPages.length - index
+                                    zIndex: isFlipped ? index + 1 : pages.length - index
                                 }}
                                 transition={{
                                     duration: 0.6,
@@ -202,7 +190,7 @@ export default function InteractiveBook({
                                         nextPage();
                                     }}
                                 >
-                                    <div className="flex-1 overflow-y-auto">
+                                    <div className="flex-1">
                                         <div className="text-xs text-neutral-400 text-right mb-4 font-sans tracking-wider">
                                             {page.pageNumber * 2 - 1}
                                         </div>
@@ -268,6 +256,9 @@ export default function InteractiveBook({
                         </div>
                     </div>
                 </div>
+
+                {/* Controls Bar Removed */}
+
             </motion.div>
 
             {/* Side Navigation Arrows */}
@@ -283,30 +274,6 @@ export default function InteractiveBook({
                             className="absolute top-8 right-8 p-2 rounded-full bg-white/50 dark:bg-neutral-800/50 hover:bg-white dark:hover:bg-neutral-800 border border-transparent hover:border-neutral-200 dark:hover:border-neutral-700 backdrop-blur-sm text-neutral-800 dark:text-neutral-100 z-[1000] transition-all hover:scale-110 shadow-sm hover:shadow-xl"
                         >
                             <X size={24} />
-                        </motion.button>
-
-                        {/* Left Navigation Arrow */}
-                        <motion.button
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            onClick={prevPage}
-                            disabled={currentPageIndex < 0}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/50 dark:bg-neutral-800/50 hover:bg-white dark:hover:bg-neutral-800 border border-transparent hover:border-neutral-200 dark:hover:border-neutral-700 backdrop-blur-sm text-neutral-800 dark:text-neutral-100 z-[1000] transition-all hover:scale-110 shadow-sm hover:shadow-xl disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                            <ChevronLeft size={24} />
-                        </motion.button>
-
-                        {/* Right Navigation Arrow */}
-                        <motion.button
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            onClick={nextPage}
-                            disabled={currentPageIndex >= bookPages.length - 1}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/50 dark:bg-neutral-800/50 hover:bg-white dark:hover:bg-neutral-800 border border-transparent hover:border-neutral-200 dark:hover:border-neutral-700 backdrop-blur-sm text-neutral-800 dark:text-neutral-100 z-[1000] transition-all hover:scale-110 shadow-sm hover:shadow-xl disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                            <ChevronRight size={24} />
                         </motion.button>
                     </>
                 )}

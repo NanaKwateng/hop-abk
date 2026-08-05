@@ -16,7 +16,7 @@ import CustomizePage from "../customize/page";
 import AdminFlowPage from "../admin-flow/page";
 import BranchesPage from "../branches/page";
 import TasksPage from "../task/page";
-import NicknamesPage from "../nicknames/page";
+import NicknamesPage from "../nicknames/page"; // ✅ ADDED
 import SMSPage from "../sms/page";
 import AIAssistantPage from "../ai-assistance/page";
 
