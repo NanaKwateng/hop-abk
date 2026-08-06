@@ -1,5 +1,3 @@
-// actions/sms/get-recipients.ts
-
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
@@ -19,20 +17,22 @@ export async function getRecipients(
 
     let query = supabase
         .from("members")
-        .select("id, first_name, last_name, phone, membership_id, member_group, member_position, email")
+        .select(
+            "id, first_name, last_name, phone, membership_id, member_group, member_position, email",
+            { count: "exact" } // fixed: was missing, count was always null before
+        )
         .is("deleted_at", null)
         .not("phone", "is", null);
 
-    // Filter by type
     if (type === "group" && group) {
         query = query.eq("member_group", group);
     } else if (type === "individual" && ids && ids.length > 0) {
         query = query.in("id", ids);
     } else if (type === "filtered") {
-        // Apply additional filters if needed
-        // This can be extended with more filter options
+        // No filter criteria are wired up yet for this type. Rather than
+        // silently falling through to "send to everyone," fail loudly.
+        throw new Error("Filtered recipient type is not yet implemented");
     }
-    // type === "all" - no additional filter needed
 
     const { data, error, count } = await query;
 
@@ -54,6 +54,6 @@ export async function getRecipients(
 
     return {
         recipients,
-        totalCount: count || recipients.length,
+        totalCount: count ?? recipients.length,
     };
 }

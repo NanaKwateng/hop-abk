@@ -7,6 +7,8 @@ import { Toaster } from "sonner"
 import { ThemeProvider } from "@/components/theme-provider"
 import { PWAProvider } from "@/components/pwa/pwa-provider";
 import { ErrorBoundary } from "@/components/pwa/error-boundary";
+import { RouteTracker } from "@/components/route-tracker";
+import { ConnectivityBanner } from "@/components/connectivity-banner";
 
 const figtree = Figtree({ subsets: ['latin'], variable: '--font-sans' });
 
@@ -95,7 +97,9 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
+              <RouteTracker />
               {children}
+              <ConnectivityBanner />
             </ThemeProvider>
 
             <Toaster />

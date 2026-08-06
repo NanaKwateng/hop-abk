@@ -1,5 +1,3 @@
-// actions/sms/get-message-history.ts
-
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
@@ -11,6 +9,12 @@ interface GetMessageHistoryResult {
     page: number;
     pageSize: number;
     totalPages: number;
+}
+
+// PostgREST reserves , ( ) % * inside .or()/.ilike() patterns — escape them
+// so a search containing punctuation doesn't throw a parse error server-side.
+function escapeForOrFilter(input: string) {
+    return input.replace(/[,()%*]/g, (c) => `\\${c}`);
 }
 
 export async function getMessageHistory(
@@ -27,7 +31,7 @@ export async function getMessageHistory(
             .select(`
                 *,
                 profiles:created_by (first_name, last_name)
-            `, { count: 'exact' })
+            `, { count: "exact" })
             .order("created_at", { ascending: false });
 
         if (status && status !== "all") {
@@ -35,26 +39,19 @@ export async function getMessageHistory(
         }
 
         if (search && search.trim()) {
-            query = query.or(`subject.ilike.%${search.trim()}%,message.ilike.%${search.trim()}%`);
+            const safe = escapeForOrFilter(search.trim());
+            query = query.or(`subject.ilike.%${safe}%,message.ilike.%${safe}%`);
         }
 
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
-
         query = query.range(from, to);
 
         const { data, error, count } = await query;
 
         if (error) {
             console.error("[Get Message History] Error:", error);
-            // Return empty result instead of throwing
-            return {
-                messages: [],
-                totalCount: 0,
-                page,
-                pageSize,
-                totalPages: 0,
-            };
+            return { messages: [], totalCount: 0, page, pageSize, totalPages: 0 };
         }
 
         const messages: SMSMessage[] = (data || []).map((row) => ({
@@ -78,23 +75,11 @@ export async function getMessageHistory(
                 : undefined,
         }));
 
-        const totalPages = Math.ceil((count || 0) / pageSize);
+        const totalPages = Math.max(1, Math.ceil((count || 0) / pageSize));
 
-        return {
-            messages,
-            totalCount: count || 0,
-            page,
-            pageSize,
-            totalPages: totalPages || 1,
-        };
+        return { messages, totalCount: count || 0, page, pageSize, totalPages };
     } catch (error) {
         console.error("[Get Message History] Unexpected error:", error);
-        return {
-            messages: [],
-            totalCount: 0,
-            page,
-            pageSize,
-            totalPages: 1,
-        };
+        return { messages: [], totalCount: 0, page, pageSize, totalPages: 0 }; // was 1, now consistent
     }
 }

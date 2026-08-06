@@ -1,121 +1,74 @@
-// lib/ai/grok-ai.ts
-
 "use server";
 
 import OpenAI from "openai";
 import { AI_CONFIG } from "./config";
-import { DATABASE_SCHEMA, QUERY_EXAMPLES } from "./schema";
-import type { AIQuery, AIResponse } from "@/lib/types/ai";
+import { QUERY_ANALYSIS_PROMPT } from "./prompts";
+import type { AIQuery, AIQueryAnalysis, AIIntent } from "@/lib/types/ai";
 
-// Initialize Grok (xAI) client
 let grokClient: OpenAI | null = null;
 
 function getGrokClient(): OpenAI {
     if (!grokClient) {
         const apiKey = AI_CONFIG.grok.apiKey;
-        if (!apiKey) {
-            throw new Error("XAI_API_KEY is not configured");
-        }
-
-        grokClient = new OpenAI({
-            apiKey: apiKey,
-            baseURL: "https://api.x.ai/v1",
-        });
+        if (!apiKey) throw new Error("XAI_API_KEY is not configured");
+        grokClient = new OpenAI({ apiKey, baseURL: "https://api.x.ai/v1" });
     }
-
     return grokClient;
 }
 
-/**
- * Process a query using Grok (xAI)
- */
-export async function processWithGrok(query: AIQuery): Promise<AIResponse> {
-    try {
-        const client = getGrokClient();
+const VALID_INTENTS: AIIntent[] = [
+    "member_query", "payment_query", "task_query", "workflow_query",
+    "branch_query", "sms_query", "analytics_query", "search_query", "general_query",
+];
 
-        // Build the prompt
-        const prompt = buildGrokPrompt(query);
-
-        // Call Grok
-        const response = await client.chat.completions.create({
-            model: AI_CONFIG.grok.model,
-            messages: [
-                {
-                    role: "system",
-                    content: `You are a helpful AI assistant for a Church Management System. Use the following schema to answer questions about the church data.\n\n${DATABASE_SCHEMA}`,
-                },
-                {
-                    role: "user",
-                    content: prompt,
-                },
-            ],
-            temperature: AI_CONFIG.grok.temperature,
-            max_tokens: AI_CONFIG.grok.maxTokens,
-            response_format: { type: "json_object" },
-        });
-
-        const content = response.choices[0]?.message?.content || "{}";
-        const parsed = JSON.parse(content);
-
-        return {
-            success: true,
-            message: parsed.message || "I processed your query.",
-            data: parsed.data,
-            chart: parsed.chart,
-            confidence: parsed.confidence || 0.9,
-            intent: parsed.intent || "general_query",
-            suggestions: parsed.suggestions || [],
-        };
-    } catch (error) {
-        console.error("[Grok AI] Error:", error);
-        return {
-            success: false,
-            message: error instanceof Error ? error.message : "Failed to process query with Grok",
-            confidence: 0,
-            intent: "general_query",
-        };
-    }
-}
-
-/**
- * Build prompt for Grok
- */
-function buildGrokPrompt(query: AIQuery): string {
-    const context = query.context || {};
-
-    // SAFE FIX: Extract array safely with fallback to prevent undefined errors
-    const previousMessages = context.previousMessages || [];
-
+/** Phase 1 ONLY — intent + entities, same contract as Gemini's version. */
+export async function analyzeQueryWithGrok(query: AIQuery): Promise<AIQueryAnalysis> {
+    const client = getGrokClient();
+    const previousMessages = query.context?.previousMessages || [];
     const conversationContext = previousMessages.length > 0
-        ? `\nPrevious conversation:\n${previousMessages.map((m: any) => `${m.role}: ${m.content}`).join('\n')}`
-        : '';
+        ? previousMessages.map((m) => `${m.role}: ${m.content}`).join("\n")
+        : "None";
 
-    return `
-You are an AI assistant for HOP (House of Power Ministry) Church Management System.
+    const prompt = QUERY_ANALYSIS_PROMPT
+        .replace("{query}", query.query)
+        .replace("{context}", conversationContext);
 
-Your task is to answer user queries about church data.
+    const response = await client.chat.completions.create({
+        model: AI_CONFIG.grok.model,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.2,
+        max_tokens: 512,
+        response_format: { type: "json_object" },
+    });
 
-Current date: ${new Date().toISOString().split('T')[0]}
+    const content = response.choices[0]?.message?.content || "{}";
+    let parsed: any;
+    try {
+        parsed = JSON.parse(content);
+    } catch {
+        throw new Error("Grok returned non-JSON analysis response");
+    }
 
-## Database Schema
-${DATABASE_SCHEMA}
+    const intent: AIIntent = VALID_INTENTS.includes(parsed.intent) ? parsed.intent : "general_query";
 
-## Example Queries
-${QUERY_EXAMPLES}
-
-${conversationContext}
-
-## User Query
-${query.query}
-
-Respond with a JSON object:
-{
-    "message": "Your response to the user",
-    "data": null or any data retrieved,
-    "chart": null or chart configuration,
-    "intent": "member_query|payment_query|task_query|analytics_query|search_query|general_query",
-    "confidence": 0.9,
-    "suggestions": ["suggestion1", "suggestion2"]
+    return {
+        success: true,
+        intent,
+        entities: parsed.entities || {},
+        requiresData: !!parsed.requiresData,
+        chartType: parsed.chartType || null,
+        confidence: typeof parsed.confidence === "number" ? parsed.confidence : 0.7,
+        followUp: parsed.followUp || [],
+    };
 }
-`;
+
+export async function chatReplyWithGrok(query: AIQuery): Promise<string> {
+    const client = getGrokClient();
+    const response = await client.chat.completions.create({
+        model: AI_CONFIG.grok.model,
+        messages: [{ role: "user", content: query.query }],
+        temperature: 0.7,
+        max_tokens: 256,
+    });
+    return response.choices[0]?.message?.content || "I'm here to help — could you rephrase that?";
 }

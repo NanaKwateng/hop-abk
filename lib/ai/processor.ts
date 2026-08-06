@@ -1,13 +1,9 @@
-// lib/ai/processor.ts
-
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { processAIQuery } from "./index"; // ✅ FIXED: import directly
-import type { AIQuery, AIResponse, AIIntent } from "@/lib/types/ai";
-import { withActionRetry } from "@/lib/utils/action-resilience";
+import { analyzeQuery, chatReply } from "./index";
+import type { AIQuery, AIResponse } from "@/lib/types/ai";
 
-// Query executors
 import {
     executeMemberQuery,
     executePaymentQuery,
@@ -19,37 +15,25 @@ import {
     executeSMSQuery,
 } from "./query-executors";
 
-/**
- * Process a query with full database integration
- */
 export async function processQuery(query: AIQuery): Promise<AIResponse> {
     const startTime = Date.now();
 
     try {
-        // Get user context
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            throw new Error("Unauthorized");
-        }
+        if (!user) throw new Error("Unauthorized");
 
-        // Get user profile
         const { data: profile } = await supabase
             .from("profiles")
             .select("first_name, last_name, role")
             .eq("id", user.id)
             .single();
 
-        // Build context data
         const contextData = await buildContextData(supabase);
+        const sessionContext = query.sessionId ? await getSessionContext(query.sessionId) : null;
 
-        // Get session context
-        const sessionContext = query.sessionId
-            ? await getSessionContext(query.sessionId)
-            : null;
-
-        // Process with AI provider - ✅ FIXED: use imported function directly
-        const aiResponse = await processAIQuery({
+        // Phase 1: intent + entities ONLY
+        const analysis = await analyzeQuery({
             ...query,
             context: {
                 ...query.context,
@@ -62,39 +46,44 @@ export async function processQuery(query: AIQuery): Promise<AIResponse> {
             },
         });
 
-        // Execute database queries if needed
-        let dataResponse: AIResponse | null = null;
-        if (aiResponse.success && aiResponse.data) {
-            dataResponse = await executeQuery(aiResponse.data, supabase);
+        let finalResponse: AIResponse;
+
+        if (analysis.requiresData) {
+            const executed = await executeQuery(analysis, supabase);
+            finalResponse = executed ?? {
+                success: false,
+                message: "I couldn't find data for that. Could you rephrase your question?",
+                confidence: analysis.confidence,
+                intent: analysis.intent,
+            };
+        } else {
+            const message = await chatReply(query);
+            finalResponse = {
+                success: true,
+                message,
+                confidence: analysis.confidence,
+                intent: analysis.intent,
+                suggestions: analysis.followUp,
+            };
         }
 
-        // Combine responses
-        const finalResponse: AIResponse = {
-            success: true,
-            message: dataResponse?.message || aiResponse.message,
-            data: dataResponse?.data || aiResponse.data,
-            chart: dataResponse?.chart || aiResponse.chart,
-            suggestions: dataResponse?.suggestions || aiResponse.suggestions || [],
-            confidence: aiResponse.confidence,
-            intent: aiResponse.intent,
-            executionTime: Date.now() - startTime,
-        };
+        finalResponse.executionTime = Date.now() - startTime;
+        if (process.env.NODE_ENV === "development") {
+            finalResponse.raw = { analysis };
+        }
 
-        // Save session context
         if (query.sessionId) {
             await saveSessionContext(query.sessionId, {
                 conversation: [
                     ...(sessionContext?.conversation || []),
-                    { role: 'user', content: query.query, timestamp: new Date() },
-                    { role: 'assistant', content: finalResponse.message, timestamp: new Date(), data: finalResponse.data },
+                    { role: "user", content: query.query, timestamp: new Date() },
+                    { role: "assistant", content: finalResponse.message, timestamp: new Date(), data: finalResponse.data },
                 ],
                 lastIntent: finalResponse.intent,
             });
         }
 
-        // Log the query
         await logAIQuery(user.id, query, finalResponse);
-
         return finalResponse;
     } catch (error) {
         console.error("[AI Processor] Error:", error);
@@ -108,16 +97,8 @@ export async function processQuery(query: AIQuery): Promise<AIResponse> {
     }
 }
 
-/**
- * Build context data for AI
- */
 async function buildContextData(supabase: any): Promise<Record<string, any>> {
-    const [
-        memberCount,
-        paymentCount,
-        taskCount,
-        branchCount,
-    ] = await Promise.all([
+    const [memberCount, paymentCount, taskCount, branchCount] = await Promise.all([
         supabase.from("members").select("*", { count: "exact", head: true }).is("deleted_at", null),
         supabase.from("member_payments").select("*", { count: "exact", head: true }),
         supabase.from("tasks").select("*", { count: "exact", head: true }),
@@ -127,7 +108,6 @@ async function buildContextData(supabase: any): Promise<Record<string, any>> {
     const currentMonth = new Date().getMonth() + 1;
     const currentYear = new Date().getFullYear();
 
-    // ✅ FIX: destructure `count`, not `data` — `data` is always null on head requests
     const { count: paidThisMonth } = await supabase
         .from("member_payments")
         .select("*", { count: "exact", head: true })
@@ -140,89 +120,55 @@ async function buildContextData(supabase: any): Promise<Record<string, any>> {
         totalPayments: paymentCount.count || 0,
         totalTasks: taskCount.count || 0,
         totalBranches: branchCount.count || 0,
-        paidThisMonth: paidThisMonth || 0, // ✅ no longer calling `.count` on null
+        paidThisMonth: paidThisMonth || 0,
         currentMonth,
         currentYear,
     };
 }
 
-/**
- * Execute database query based on AI response
- */
-async function executeQuery(data: any, supabase: any): Promise<AIResponse | null> {
-    if (!data || !data.intent) return null;
-
-    switch (data.intent) {
-        case 'member_query':
-            return executeMemberQuery(data, supabase);
-        case 'payment_query':
-            return executePaymentQuery(data, supabase);
-        case 'task_query':
-            return executeTaskQuery(data, supabase);
-        case 'analytics_query':
-            return executeAnalyticsQuery(data, supabase);
-        case 'search_query':
-            return executeSearchQuery(data, supabase);
-        case 'workflow_query':
-            return executeWorkflowQuery(data, supabase);
-        case 'branch_query':
-            return executeBranchQuery(data, supabase);
-        case 'sms_query':
-            return executeSMSQuery(data, supabase);
-        default:
-            return null;
+async function executeQuery(analysis: { intent: string; entities: Record<string, any> }, supabase: any): Promise<AIResponse | null> {
+    const payload = { entities: analysis.entities };
+    switch (analysis.intent) {
+        case "member_query": return executeMemberQuery(payload, supabase);
+        case "payment_query": return executePaymentQuery(payload, supabase);
+        case "task_query": return executeTaskQuery(payload, supabase);
+        case "analytics_query": return executeAnalyticsQuery(payload, supabase);
+        case "search_query": return executeSearchQuery(payload, supabase);
+        // FIXED: Added payload and supabase arguments below
+        case "workflow_query": return executeWorkflowQuery(payload, supabase);
+        case "branch_query": return executeBranchQuery(payload, supabase);
+        case "sms_query": return executeSMSQuery(payload, supabase);
+        default: return null;
     }
 }
 
-/**
- * Get session context
- */
+
 async function getSessionContext(sessionId: string): Promise<any> {
     const supabase = await createClient();
-    const { data } = await supabase
-        .from("ai_sessions")
-        .select("context")
-        .eq("session_id", sessionId)
-        .single();
-
+    const { data } = await supabase.from("ai_sessions").select("context").eq("session_id", sessionId).single();
     return data?.context || null;
 }
 
-/**
- * Save session context
- */
 async function saveSessionContext(sessionId: string, context: any): Promise<void> {
     const supabase = await createClient();
-    await supabase
-        .from("ai_sessions")
-        .upsert({
-            session_id: sessionId,
-            context,
-            last_activity: new Date().toISOString(),
-        });
+    await supabase.from("ai_sessions").upsert({
+        session_id: sessionId,
+        context,
+        last_activity: new Date().toISOString(),
+    });
 }
 
-/**
- * Log AI query
- */
 async function logAIQuery(userId: string, query: AIQuery, response: AIResponse): Promise<void> {
     const supabase = await createClient();
-    await supabase
-        .from("ai_query_logs")
-        .insert({
-            user_id: userId,
-            query: query.query,
-            query_type: query.type,
-            intent: response.intent,
-            entities: query.context?.entities || {},
-            response: {
-                message: response.message,
-                data: response.data,
-                chart: response.chart,
-                confidence: response.confidence,
-            },
-            confidence: response.confidence,
-            latency_ms: response.executionTime || 0,
-            session_id: query.sessionId,
-        });
+    await supabase.from("ai_query_logs").insert({
+        user_id: userId,
+        query: query.query,
+        query_type: query.type,
+        intent: response.intent,
+        entities: query.context?.entities || {},
+        response: { message: response.message, data: response.data, chart: response.chart, confidence: response.confidence },
+        confidence: response.confidence,
+        latency_ms: response.executionTime || 0,
+        session_id: query.sessionId,
+    });
 }

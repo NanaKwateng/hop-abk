@@ -80,3 +80,16 @@ export interface AISession {
     updatedAt: Date;
     isActive: boolean;
 }
+
+// Add this — Phase 1 result: intent + entities only, never the final answer.
+// AIResponse (already defined above) stays the contract for the FINAL answer,
+// built deterministically in query-executors.ts from real DB rows.
+export interface AIQueryAnalysis {
+    success: boolean;
+    intent: AIIntent;
+    entities: Record<string, any>;
+    requiresData: boolean;
+    chartType?: 'bar' | 'line' | 'pie' | 'table' | null;
+    confidence: number;
+    followUp?: string[];
+}
