@@ -17,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Select,
@@ -43,17 +42,11 @@ import {
     CheckCircle2,
     Shield,
     Activity,
-    BarChart3,
-    Download,
     UserPlus,
     Filter,
-    Calendar,
-    TrendingUp,
-    Archive,
     MoreVertical,
 } from "lucide-react";
 import { format, isBefore } from "date-fns";
-import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
     getStatusVariant,
@@ -81,6 +74,89 @@ const GROUP_FILTER_OPTIONS = [
     { value: "men", label: "Men" },
     { value: "women", label: "Women" },
 ];
+
+/**
+ * 2D GitHub Universe Flat Pattern Component
+ * Renders 2D graphic overlays (arcs, grid lines, pill shapes, vector sweeps)
+ */
+function GithubUniverse2DPattern({ variant = 1 }: { variant?: 1 | 2 | 3 }) {
+    return (
+        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] z-0 opacity-40 dark:opacity-30">
+            {variant === 1 && (
+                <svg
+                    className="absolute -right-10 -top-10 w-80 h-80 text-primary"
+                    viewBox="0 0 200 200"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <defs>
+                        <linearGradient id="gh2d-grad-1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#22c55e" stopOpacity="0.8" />
+                            <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.6" />
+                            <stop offset="100%" stopColor="#a855f7" stopOpacity="0.2" />
+                        </linearGradient>
+                    </defs>
+                    {/* Sweeping 2D Intersection Arcs */}
+                    <path
+                        d="M 0,200 C 100,200 200,100 200,0 L 200,200 Z"
+                        fill="url(#gh2d-grad-1)"
+                    />
+                    <circle cx="100" cy="100" r="80" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" opacity="0.4" />
+                    <path d="M 20 20 L 180 180 M 180 20 L 20 180" stroke="currentColor" strokeWidth="0.5" opacity="0.2" />
+                </svg>
+            )}
+
+            {variant === 2 && (
+                <svg
+                    className="absolute -left-12 -bottom-12 w-96 h-96 text-primary"
+                    viewBox="0 0 300 300"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <defs>
+                        <linearGradient id="gh2d-grad-2" x1="0%" y1="100%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#ec4899" stopOpacity="0.7" />
+                            <stop offset="60%" stopColor="#8b5cf6" stopOpacity="0.4" />
+                            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.1" />
+                        </linearGradient>
+                    </defs>
+                    {/* Flat 2D Curved Pill Overlays */}
+                    <path
+                        d="M 0,150 C 0,67.15 67.15,0 150,0 C 232.85,0 300,67.15 300,150 L 150,300 Z"
+                        fill="url(#gh2d-grad-2)"
+                    />
+                    <path d="M 0,0 L 300,300" stroke="currentColor" strokeWidth="1" strokeDasharray="6 6" opacity="0.3" />
+                    <circle cx="150" cy="150" r="120" stroke="currentColor" strokeWidth="0.8" opacity="0.25" />
+                </svg>
+            )}
+
+            {variant === 3 && (
+                <svg
+                    className="absolute right-0 bottom-0 w-full h-full text-primary"
+                    viewBox="0 0 400 200"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <defs>
+                        <linearGradient id="gh2d-grad-3" x1="100%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="#f97316" stopOpacity="0.5" />
+                            <stop offset="50%" stopColor="#eab308" stopOpacity="0.3" />
+                            <stop offset="100%" stopColor="#10b981" stopOpacity="0.1" />
+                        </linearGradient>
+                    </defs>
+                    {/* Flat Vector Grid Lines & Quadrant Arcs */}
+                    <path d="M 200,0 C 310.45,0 400,89.55 400,200 L 200,200 Z" fill="url(#gh2d-grad-3)" />
+                    <line x1="0" y1="50" x2="400" y2="50" stroke="currentColor" strokeWidth="0.5" opacity="0.2" />
+                    <line x1="0" y1="100" x2="400" y2="100" stroke="currentColor" strokeWidth="0.5" opacity="0.2" />
+                    <line x1="0" y1="150" x2="400" y2="150" stroke="currentColor" strokeWidth="0.5" opacity="0.2" />
+                    <line x1="100" y1="0" x2="100" y2="200" stroke="currentColor" strokeWidth="0.5" opacity="0.2" />
+                    <line x1="200" y1="0" x2="200" y2="200" stroke="currentColor" strokeWidth="0.5" opacity="0.2" />
+                    <line x1="300" y1="0" x2="300" y2="200" stroke="currentColor" strokeWidth="0.5" opacity="0.2" />
+                </svg>
+            )}
+        </div>
+    );
+}
 
 export function TaskDetailPage({ task }: TaskDetailPageProps) {
     const router = useRouter();
@@ -299,354 +375,360 @@ export function TaskDetailPage({ task }: TaskDetailPageProps) {
                     processedMembers={processedMemberIds.size}
                 />
 
-                {/* Main Content Grid */}
+                {/* Main Content Grid (Bento Grid Style Cards with 2D Patterns) */}
                 <div className="grid gap-6 lg:grid-cols-3">
                     {/* Members Panel */}
-                    <Card className="lg:col-span-1">
-                        <CardHeader className="pb-3 space-y-3">
-                            <CardTitle className="text-base flex items-center gap-2">
-                                <Users className="h-4 w-4" />
-                                Members ({members.length})
-                            </CardTitle>
-                            <CardDescription className="text-xs">
-                                {task.purpose === "payments"
-                                    ? "Click a member to record payments"
-                                    : task.purpose === "roles"
-                                        ? "Click a member to assign roles"
-                                        : task.purpose === "monitoring"
-                                            ? "Click a member to track activities"
-                                            : "Click a member to create records"}
-                            </CardDescription>
-                            <div className="flex gap-2">
-                                <div className="relative flex-1">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                                    <Input
-                                        placeholder="Search…"
-                                        value={memberSearch}
-                                        onChange={(e) => setMemberSearch(e.target.value)}
-                                        className="pl-9 h-8 text-sm"
-                                    />
+                    <Card className="lg:col-span-1 relative overflow-hidden backdrop-blur-sm border-border/60">
+                        <GithubUniverse2DPattern variant={1} />
+                        <div className="relative z-10">
+                            <CardHeader className="pb-3 space-y-3">
+                                <CardTitle className="text-base flex items-center gap-2">
+                                    <Users className="h-4 w-4" />
+                                    Members ({members.length})
+                                </CardTitle>
+                                <CardDescription className="text-xs">
+                                    {task.purpose === "payments"
+                                        ? "Click a member to record payments"
+                                        : task.purpose === "roles"
+                                            ? "Click a member to assign roles"
+                                            : task.purpose === "monitoring"
+                                                ? "Click a member to track activities"
+                                                : "Click a member to create records"}
+                                </CardDescription>
+                                <div className="flex gap-2">
+                                    <div className="relative flex-1">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Search…"
+                                            value={memberSearch}
+                                            onChange={(e) => setMemberSearch(e.target.value)}
+                                            className="pl-9 h-8 text-sm bg-background/50 backdrop-blur-sm"
+                                        />
+                                    </div>
+                                    <Select
+                                        value={memberGroupFilter}
+                                        onValueChange={setMemberGroupFilter}
+                                    >
+                                        <SelectTrigger className="w-[100px] h-8 text-xs bg-background/50 backdrop-blur-sm">
+                                            <Filter className="h-3 w-3 mr-1" />
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {GROUP_FILTER_OPTIONS.map((opt) => (
+                                                <SelectItem
+                                                    key={opt.value}
+                                                    value={opt.value}
+                                                    className="text-xs"
+                                                >
+                                                    {opt.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                                <Select
-                                    value={memberGroupFilter}
-                                    onValueChange={setMemberGroupFilter}
-                                >
-                                    <SelectTrigger className="w-[100px] h-8 text-xs">
-                                        <Filter className="h-3 w-3 mr-1" />
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {GROUP_FILTER_OPTIONS.map((opt) => (
-                                            <SelectItem
-                                                key={opt.value}
-                                                value={opt.value}
-                                                className="text-xs"
-                                            >
-                                                {opt.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                            <ScrollArea className="h-[500px]">
-                                <div className="divide-y">
-                                    {filteredMembers.map((member) => {
-                                        const isProcessed = processedMemberIds.has(member.memberId);
-                                        const activityCount =
-                                            memberActivityCounts.get(member.memberId) ?? 0;
-                                        const memberTotal = memberTotals.get(member.memberId) ?? 0;
-                                        const initials =
-                                            (member.firstName?.[0] ?? "") +
-                                            (member.lastName?.[0] ?? "");
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <ScrollArea className="h-[500px]">
+                                    <div className="divide-y divide-border/40">
+                                        {filteredMembers.map((member) => {
+                                            const isProcessed = processedMemberIds.has(member.memberId);
+                                            const activityCount =
+                                                memberActivityCounts.get(member.memberId) ?? 0;
+                                            const memberTotal = memberTotals.get(member.memberId) ?? 0;
+                                            const initials =
+                                                (member.firstName?.[0] ?? "") +
+                                                (member.lastName?.[0] ?? "");
 
-                                        return (
-                                            <div
-                                                key={member.id}
-                                                role="button"
-                                                tabIndex={0}
-                                                onClick={() => handleMemberClick(member)}
-                                                onKeyDown={(e) => {
-                                                    if (e.key === "Enter" || e.key === " ") {
-                                                        e.preventDefault();
-                                                        handleMemberClick(member);
-                                                    }
-                                                }}
-                                                className={cn(
-                                                    "flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors outline-none",
-                                                    "hover:bg-muted/50 focus-visible:bg-muted/50"
-                                                )}
-                                            >
-                                                <Avatar className="h-8 w-8 shrink-0">
-                                                    <AvatarImage src={member.avatarUrl || ""} />
-                                                    <AvatarFallback className="text-[10px]">
-                                                        {initials.toUpperCase() || "?"}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-medium truncate">
-                                                        {member.firstName} {member.lastName}
-                                                    </p>
-                                                    <div className="flex items-center gap-2">
-                                                        <p className="text-[11px] text-muted-foreground font-mono">
-                                                            {member.membershipId ?? "—"}
+                                            return (
+                                                <div
+                                                    key={member.id}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onClick={() => handleMemberClick(member)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter" || e.key === " ") {
+                                                            e.preventDefault();
+                                                            handleMemberClick(member);
+                                                        }
+                                                    }}
+                                                    className={cn(
+                                                        "flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors outline-none",
+                                                        "hover:bg-muted/50 focus-visible:bg-muted/50"
+                                                    )}
+                                                >
+                                                    <Avatar className="h-8 w-8 shrink-0">
+                                                        <AvatarImage src={member.avatarUrl || ""} />
+                                                        <AvatarFallback className="text-[10px]">
+                                                            {initials.toUpperCase() || "?"}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium truncate">
+                                                            {member.firstName} {member.lastName}
                                                         </p>
-                                                        {activityCount > 0 && (
-                                                            <Badge
-                                                                variant="secondary"
-                                                                className="text-[9px] h-4 px-1"
-                                                            >
-                                                                {activityCount}
-                                                            </Badge>
+                                                        <div className="flex items-center gap-2">
+                                                            <p className="text-[11px] text-muted-foreground font-mono">
+                                                                {member.membershipId ?? "—"}
+                                                            </p>
+                                                            {activityCount > 0 && (
+                                                                <Badge
+                                                                    variant="secondary"
+                                                                    className="text-[9px] h-4 px-1"
+                                                                >
+                                                                    {activityCount}
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Progress bar for member */}
+                                                        {member.progress > 0 && (
+                                                            <div className="mt-1.5">
+                                                                <div className="flex items-center gap-2 text-[10px] text-muted-foreground mb-0.5">
+                                                                    <span>{member.progress}%</span>
+                                                                </div>
+                                                                <div className="h-1 bg-muted/60 rounded-full overflow-hidden">
+                                                                    <div
+                                                                        className="h-full bg-primary transition-all"
+                                                                        style={{ width: `${member.progress}%` }}
+                                                                    />
+                                                                </div>
+                                                            </div>
                                                         )}
                                                     </div>
-
-                                                    {/* Progress bar for member */}
-                                                    {member.progress > 0 && (
-                                                        <div className="mt-1.5">
-                                                            <div className="flex items-center gap-2 text-[10px] text-muted-foreground mb-0.5">
-                                                                <span>{member.progress}%</span>
-                                                            </div>
-                                                            <div className="h-1 bg-muted rounded-full overflow-hidden">
-                                                                <div
-                                                                    className="h-full bg-primary transition-all"
-                                                                    style={{ width: `${member.progress}%` }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    )}
+                                                    <div className="flex items-center gap-1.5 shrink-0">
+                                                        {task.purpose === "payments" && memberTotal > 0 && (
+                                                            <span className="text-[10px] text-green-600 font-medium tabular-nums">
+                                                                GH₵{memberTotal.toFixed(0)}
+                                                            </span>
+                                                        )}
+                                                        {isProcessed && (
+                                                            <Tooltip>
+                                                                <TooltipTrigger asChild>
+                                                                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    {activityCount} activities
+                                                                </TooltipContent>
+                                                            </Tooltip>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-1.5 shrink-0">
-                                                    {task.purpose === "payments" && memberTotal > 0 && (
-                                                        <span className="text-[10px] text-green-600 font-medium tabular-nums">
-                                                            GH₵{memberTotal.toFixed(0)}
-                                                        </span>
-                                                    )}
-                                                    {isProcessed && (
-                                                        <Tooltip>
-                                                            <TooltipTrigger asChild>
-                                                                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                                            </TooltipTrigger>
-                                                            <TooltipContent>
-                                                                {activityCount} activities
-                                                            </TooltipContent>
-                                                        </Tooltip>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                    {filteredMembers.length === 0 && (
-                                        <p className="text-center py-8 text-sm text-muted-foreground">
-                                            No members found.
-                                        </p>
-                                    )}
-                                </div>
-                            </ScrollArea>
-                        </CardContent>
+                                            );
+                                        })}
+                                        {filteredMembers.length === 0 && (
+                                            <p className="text-center py-8 text-sm text-muted-foreground">
+                                                No members found.
+                                            </p>
+                                        )}
+                                    </div>
+                                </ScrollArea>
+                            </CardContent>
+                        </div>
                     </Card>
 
                     {/* Activities Panel */}
                     <div className="lg:col-span-2 space-y-6">
-                        <Card>
-                            <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-4">
-                                <div className="space-y-1">
-                                    <CardTitle className="text-base">
-                                        Activities ({activities.length})
-                                    </CardTitle>
-                                    <CardDescription>
-                                        All recorded activities for this task.
-                                    </CardDescription>
-                                </div>
-                                {activities.length > 0 && (
-                                    <TaskExportMenu task={task} activities={activities} />
-                                )}
-                            </CardHeader>
-                            <CardContent className="p-0">
-                                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-                                    <div className="px-6 pb-4">
-                                        <TabsList className="grid w-full grid-cols-2">
-                                            <TabsTrigger value="all">All Activities</TabsTrigger>
-                                            <TabsTrigger value="by-member">By Member</TabsTrigger>
-                                        </TabsList>
+                        <Card className="relative overflow-hidden backdrop-blur-sm border-border/60">
+                            <GithubUniverse2DPattern variant={2} />
+                            <div className="relative z-10">
+                                <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-4">
+                                    <div className="space-y-1">
+                                        <CardTitle className="text-base">
+                                            Activities ({activities.length})
+                                        </CardTitle>
+                                        <CardDescription>
+                                            All recorded activities for this task.
+                                        </CardDescription>
                                     </div>
+                                    {activities.length > 0 && (
+                                        <TaskExportMenu task={task} activities={activities} />
+                                    )}
+                                </CardHeader>
+                                <CardContent className="p-0">
+                                    <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+                                        <div className="px-6 pb-4">
+                                            <TabsList className="grid w-full grid-cols-2 bg-background/50 backdrop-blur-sm">
+                                                <TabsTrigger value="all">All Activities</TabsTrigger>
+                                                <TabsTrigger value="by-member">By Member</TabsTrigger>
+                                            </TabsList>
+                                        </div>
 
-                                    <TabsContent value="all" className="mt-0">
-                                        {activities.length === 0 ? (
-                                            <div className="flex flex-col items-center gap-2 py-12">
-                                                <FileText className="h-10 w-10 text-muted-foreground/30" />
-                                                <p className="text-sm text-muted-foreground">
-                                                    No activities yet.
-                                                </p>
-                                                <p className="text-xs text-muted-foreground">
-                                                    Click a member to create an activity.
-                                                </p>
-                                            </div>
-                                        ) : (
-                                            <ScrollArea className="h-[400px]">
-                                                <div className="divide-y">
-                                                    {activities.map((activity) => (
-                                                        <div
-                                                            key={activity.id}
-                                                            className="px-6 py-4 hover:bg-muted/30 transition-colors"
-                                                        >
-                                                            <div className="flex items-start gap-3">
-                                                                <Avatar className="h-8 w-8 shrink-0 mt-1">
-                                                                    <AvatarImage
-                                                                        src={activity.memberAvatarUrl || ""}
-                                                                    />
-                                                                    <AvatarFallback className="text-[10px]">
-                                                                        {((activity.memberFirstName?.[0] ?? "") +
-                                                                            (activity.memberLastName?.[0] ?? "")
-                                                                        ).toUpperCase() || "?"}
-                                                                    </AvatarFallback>
-                                                                </Avatar>
-
-                                                                <div className="flex-1 min-w-0">
-                                                                    <div className="flex items-start justify-between gap-2">
-                                                                        <div className="flex-1">
-                                                                            <Link
-                                                                                href={`/admin/users/${activity.memberId}`}
-                                                                                className="text-sm font-medium hover:text-primary transition-colors"
-                                                                            >
-                                                                                {activity.memberFirstName}{" "}
-                                                                                {activity.memberLastName}
-                                                                            </Link>
-                                                                            <p className="text-xs text-muted-foreground mt-0.5">
-                                                                                {format(
-                                                                                    new Date(activity.createdAt),
-                                                                                    "MMM d, yyyy 'at' h:mm a"
-                                                                                )}
-                                                                            </p>
-                                                                        </div>
-                                                                        {activity.amount != null && (
-                                                                            <Badge
-                                                                                variant="secondary"
-                                                                                className="bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400"
-                                                                            >
-                                                                                {formatCurrency(activity.amount)}
-                                                                            </Badge>
-                                                                        )}
-                                                                    </div>
-
-                                                                    <div className="mt-2">
-                                                                        <p className="text-sm font-medium">
-                                                                            {activity.roleTitle ?? activity.title}
-                                                                        </p>
-                                                                        {(activity.roleDescription ??
-                                                                            activity.description ??
-                                                                            activity.monitorNote) && (
-                                                                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                                                                    {activity.roleDescription ??
-                                                                                        activity.description ??
-                                                                                        activity.monitorNote}
-                                                                                </p>
-                                                                            )}
-                                                                    </div>
-
-                                                                    <div className="flex items-center gap-2 mt-2">
-                                                                        <Badge variant="outline" className="text-[10px]">
-                                                                            {activity.activityType}
-                                                                        </Badge>
-                                                                        {activity.paymentStatus && (
-                                                                            <Badge
-                                                                                variant={
-                                                                                    activity.paymentStatus === "completed"
-                                                                                        ? "default"
-                                                                                        : activity.paymentStatus === "cancelled"
-                                                                                            ? "destructive"
-                                                                                            : "secondary"
-                                                                                }
-                                                                                className="text-[10px]"
-                                                                            >
-                                                                                {activity.paymentStatus}
-                                                                            </Badge>
-                                                                        )}
-                                                                        {activity.paymentPeriod && (
-                                                                            <Badge variant="secondary" className="text-[10px]">
-                                                                                {activity.paymentPeriod}
-                                                                            </Badge>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                        <TabsContent value="all" className="mt-0">
+                                            {activities.length === 0 ? (
+                                                <div className="flex flex-col items-center gap-2 py-12">
+                                                    <FileText className="h-10 w-10 text-muted-foreground/30" />
+                                                    <p className="text-sm text-muted-foreground">
+                                                        No activities yet.
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Click a member to create an activity.
+                                                    </p>
                                                 </div>
-                                            </ScrollArea>
-                                        )}
-                                    </TabsContent>
-
-                                    <TabsContent value="by-member" className="mt-0">
-                                        <ScrollArea className="h-[400px]">
-                                            <div className="divide-y">
-                                                {members
-                                                    .filter((m) =>
-                                                        activities.some((a) => a.memberId === m.memberId)
-                                                    )
-                                                    .map((member) => {
-                                                        const memberActivities = activities.filter(
-                                                            (a) => a.memberId === member.memberId
-                                                        );
-                                                        const initials =
-                                                            (member.firstName?.[0] ?? "") +
-                                                            (member.lastName?.[0] ?? "");
-
-                                                        return (
-                                                            <div key={member.id} className="px-6 py-4">
-                                                                <div className="flex items-center gap-3 mb-3">
-                                                                    <Avatar className="h-8 w-8">
-                                                                        <AvatarImage src={member.avatarUrl || ""} />
+                                            ) : (
+                                                <ScrollArea className="h-[400px]">
+                                                    <div className="divide-y divide-border/40">
+                                                        {activities.map((activity) => (
+                                                            <div
+                                                                key={activity.id}
+                                                                className="px-6 py-4 hover:bg-muted/30 transition-colors"
+                                                            >
+                                                                <div className="flex items-start gap-3">
+                                                                    <Avatar className="h-8 w-8 shrink-0 mt-1">
+                                                                        <AvatarImage
+                                                                            src={activity.memberAvatarUrl || ""}
+                                                                        />
                                                                         <AvatarFallback className="text-[10px]">
-                                                                            {initials.toUpperCase() || "?"}
+                                                                            {((activity.memberFirstName?.[0] ?? "") +
+                                                                                (activity.memberLastName?.[0] ?? "")
+                                                                            ).toUpperCase() || "?"}
                                                                         </AvatarFallback>
                                                                     </Avatar>
-                                                                    <div className="flex-1">
-                                                                        <Link
-                                                                            href={`/admin/users/${member.memberId}`}
-                                                                            className="text-sm font-medium hover:text-primary transition-colors"
-                                                                        >
-                                                                            {member.firstName} {member.lastName}
-                                                                        </Link>
-                                                                        <p className="text-xs text-muted-foreground">
-                                                                            {memberActivities.length} activity
-                                                                            {memberActivities.length !== 1 ? "ies" : "y"}
-                                                                        </p>
-                                                                    </div>
-                                                                    <Badge variant="secondary">
-                                                                        {member.progress}%
-                                                                    </Badge>
-                                                                </div>
 
-                                                                <div className="ml-11 space-y-2">
-                                                                    {memberActivities.map((activity) => (
-                                                                        <div
-                                                                            key={activity.id}
-                                                                            className="text-xs p-2 rounded-md bg-muted/30"
-                                                                        >
-                                                                            <p className="font-medium">
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="flex items-start justify-between gap-2">
+                                                                            <div className="flex-1">
+                                                                                <Link
+                                                                                    href={`/admin/users/${activity.memberId}`}
+                                                                                    className="text-sm font-medium hover:text-primary transition-colors"
+                                                                                >
+                                                                                    {activity.memberFirstName}{" "}
+                                                                                    {activity.memberLastName}
+                                                                                </Link>
+                                                                                <p className="text-xs text-muted-foreground mt-0.5">
+                                                                                    {format(
+                                                                                        new Date(activity.createdAt),
+                                                                                        "MMM d, yyyy 'at' h:mm a"
+                                                                                    )}
+                                                                                </p>
+                                                                            </div>
+                                                                            {activity.amount != null && (
+                                                                                <Badge
+                                                                                    variant="secondary"
+                                                                                    className="bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400"
+                                                                                >
+                                                                                    {formatCurrency(activity.amount)}
+                                                                                </Badge>
+                                                                            )}
+                                                                        </div>
+
+                                                                        <div className="mt-2">
+                                                                            <p className="text-sm font-medium">
                                                                                 {activity.roleTitle ?? activity.title}
                                                                             </p>
-                                                                            <p className="text-muted-foreground text-[11px] mt-0.5">
-                                                                                {format(
-                                                                                    new Date(activity.createdAt),
-                                                                                    "MMM d, yyyy"
+                                                                            {(activity.roleDescription ??
+                                                                                activity.description ??
+                                                                                activity.monitorNote) && (
+                                                                                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                                                                        {activity.roleDescription ??
+                                                                                            activity.description ??
+                                                                                            activity.monitorNote}
+                                                                                    </p>
                                                                                 )}
-                                                                                {activity.amount != null &&
-                                                                                    ` · ${formatCurrency(activity.amount)}`}
-                                                                            </p>
                                                                         </div>
-                                                                    ))}
+
+                                                                        <div className="flex items-center gap-2 mt-2">
+                                                                            <Badge variant="outline" className="text-[10px]">
+                                                                                {activity.activityType}
+                                                                            </Badge>
+                                                                            {activity.paymentStatus && (
+                                                                                <Badge
+                                                                                    variant={
+                                                                                        activity.paymentStatus === "completed"
+                                                                                            ? "default"
+                                                                                            : activity.paymentStatus === "cancelled"
+                                                                                                ? "destructive"
+                                                                                                : "secondary"
+                                                                                    }
+                                                                                    className="text-[10px]"
+                                                                                >
+                                                                                    {activity.paymentStatus}
+                                                                                </Badge>
+                                                                            )}
+                                                                            {activity.paymentPeriod && (
+                                                                                <Badge variant="secondary" className="text-[10px]">
+                                                                                    {activity.paymentPeriod}
+                                                                                </Badge>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                        );
-                                                    })}
-                                            </div>
-                                        </ScrollArea>
-                                    </TabsContent>
-                                </Tabs>
-                            </CardContent>
+                                                        ))}
+                                                    </div>
+                                                </ScrollArea>
+                                            )}
+                                        </TabsContent>
+
+                                        <TabsContent value="by-member" className="mt-0">
+                                            <ScrollArea className="h-[400px]">
+                                                <div className="divide-y divide-border/40">
+                                                    {members
+                                                        .filter((m) =>
+                                                            activities.some((a) => a.memberId === m.memberId)
+                                                        )
+                                                        .map((member) => {
+                                                            const memberActivities = activities.filter(
+                                                                (a) => a.memberId === member.memberId
+                                                            );
+                                                            const initials =
+                                                                (member.firstName?.[0] ?? "") +
+                                                                (member.lastName?.[0] ?? "");
+
+                                                            return (
+                                                                <div key={member.id} className="px-6 py-4">
+                                                                    <div className="flex items-center gap-3 mb-3">
+                                                                        <Avatar className="h-8 w-8">
+                                                                            <AvatarImage src={member.avatarUrl || ""} />
+                                                                            <AvatarFallback className="text-[10px]">
+                                                                                {initials.toUpperCase() || "?"}
+                                                                            </AvatarFallback>
+                                                                        </Avatar>
+                                                                        <div className="flex-1">
+                                                                            <Link
+                                                                                href={`/admin/users/${member.memberId}`}
+                                                                                className="text-sm font-medium hover:text-primary transition-colors"
+                                                                            >
+                                                                                {member.firstName} {member.lastName}
+                                                                            </Link>
+                                                                            <p className="text-xs text-muted-foreground">
+                                                                                {memberActivities.length} activity
+                                                                                {memberActivities.length !== 1 ? "ies" : "y"}
+                                                                            </p>
+                                                                        </div>
+                                                                        <Badge variant="secondary">
+                                                                            {member.progress}%
+                                                                        </Badge>
+                                                                    </div>
+
+                                                                    <div className="ml-11 space-y-2">
+                                                                        {memberActivities.map((activity) => (
+                                                                            <div
+                                                                                key={activity.id}
+                                                                                className="text-xs p-2 rounded-md bg-muted/40 backdrop-blur-sm"
+                                                                            >
+                                                                                <p className="font-medium">
+                                                                                    {activity.roleTitle ?? activity.title}
+                                                                                </p>
+                                                                                <p className="text-muted-foreground text-[11px] mt-0.5">
+                                                                                    {format(
+                                                                                        new Date(activity.createdAt),
+                                                                                        "MMM d, yyyy"
+                                                                                    )}
+                                                                                    {activity.amount != null &&
+                                                                                        ` · ${formatCurrency(activity.amount)}`}
+                                                                                </p>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                </div>
+                                            </ScrollArea>
+                                        </TabsContent>
+                                    </Tabs>
+                                </CardContent>
+                            </div>
                         </Card>
                     </div>
                 </div>
