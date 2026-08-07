@@ -1,4 +1,3 @@
-// components/dashboard/tasks/tasks-list.tsx
 "use client";
 
 import { useState, useMemo, useTransition } from "react";
@@ -99,9 +98,44 @@ const PURPOSE_ICONS = {
     other: MoreVertical,
 };
 
+// Purpose theme map for card ambient hover glows & progress bar gradients
+const PURPOSE_GLOW_STYLES: Record<string, { gradient: string; glow: string; text: string }> = {
+    payments: {
+        gradient: "from-emerald-500 via-teal-400 to-cyan-400",
+        glow: "group-hover:shadow-[0_0_35px_-5px_rgba(16,185,129,0.3)] group-hover:border-emerald-500/40",
+        text: "text-emerald-500 dark:text-emerald-400",
+    },
+    records: {
+        gradient: "from-blue-500 via-indigo-400 to-purple-400",
+        glow: "group-hover:shadow-[0_0_35px_-5px_rgba(59,130,246,0.3)] group-hover:border-blue-500/40",
+        text: "text-blue-500 dark:text-blue-400",
+    },
+    roles: {
+        gradient: "from-amber-500 via-orange-400 to-yellow-400",
+        glow: "group-hover:shadow-[0_0_35px_-5px_rgba(245,158,11,0.3)] group-hover:border-amber-500/40",
+        text: "text-amber-500 dark:text-amber-400",
+    },
+    monitoring: {
+        gradient: "from-purple-500 via-pink-500 to-rose-400",
+        glow: "group-hover:shadow-[0_0_35px_-5px_rgba(168,85,247,0.3)] group-hover:border-purple-500/40",
+        text: "text-purple-500 dark:text-purple-400",
+    },
+    groups: {
+        gradient: "from-cyan-500 via-sky-400 to-blue-500",
+        glow: "group-hover:shadow-[0_0_35px_-5px_rgba(6,182,212,0.3)] group-hover:border-cyan-500/40",
+        text: "text-cyan-500 dark:text-cyan-400",
+    },
+    other: {
+        gradient: "from-neutral-400 via-slate-400 to-zinc-500",
+        glow: "group-hover:shadow-[0_0_35px_-5px_rgba(156,163,175,0.3)] group-hover:border-neutral-400/40",
+        text: "text-neutral-500 dark:text-neutral-400",
+    },
+};
+
 export function TasksList({ initialTasks }: TasksListProps) {
     const router = useRouter();
     const [tasks, setTasks] = useState(initialTasks);
+
     const [viewMode, setViewMode] = useState<TaskViewMode>("grid");
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
@@ -158,24 +192,50 @@ export function TasksList({ initialTasks }: TasksListProps) {
         setPurposeFilter("all");
     }
 
+    // Custom Bar Progress Indicator matching the financial design snippet
+    const SegmentedProgressBar = ({ completionRate, gradientStyle }: { completionRate: number; gradientStyle: string }) => {
+        const totalSegments = 20;
+        const filledSegments = Math.round((completionRate / 100) * totalSegments);
+
+        return (
+            <div className="flex items-center gap-[3px] w-full my-2">
+                {Array.from({ length: totalSegments }).map((_, index) => {
+                    const isFilled = index < filledSegments;
+                    return (
+                        <div
+                            key={index}
+                            className={cn(
+                                "h-5 flex-1 rounded-sm transition-all duration-300 ease-out",
+                                isFilled
+                                    ? `bg-gradient-to-t ${gradientStyle} opacity-100 scale-100`
+                                    : "bg-neutral-200 dark:bg-neutral-800/80 opacity-40 scale-95"
+                            )}
+                        />
+                    );
+                })}
+            </div>
+        );
+    };
+
     return (
-        <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6 bg-[#09090b] text-white min-h-screen">
+        <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6 bg-slate-50 dark:bg-[#09090b] text-neutral-900 dark:text-white min-h-screen transition-colors duration-300">
             {/* Header Bento Box */}
-            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0f0f12] p-6 sm:p-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative overflow-hidden rounded-3xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#0f0f12] p-6 sm:p-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between shadow-sm dark:shadow-none transition-all">
                 <div className="space-y-2 z-10 max-w-xl">
                     <div className="flex items-center gap-2">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 border border-white/10">
-                            <Sparkles className="h-3.5 w-3.5 text-white" />
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 dark:bg-white/10 border border-neutral-200 dark:border-white/10">
+                            <Sparkles className="h-3.5 w-3.5 text-neutral-800 dark:text-white" />
                         </span>
-                        <span className="text-xs uppercase tracking-wider text-neutral-400 font-semibold">
+                        <span className="text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-semibold">
                             Management
                         </span>
                     </div>
-                    <h1 className="text-3xl font-extrabold tracking-tight text-white">Tasks Overview</h1>
-                    <p className="text-xs sm:text-sm text-neutral-400">
+
+                    <h1 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">Tasks Overview</h1>
+                    <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
                         Track operations, manage member activities, and monitor platform progress.
                         {tasks.length > 0 && (
-                            <span className="ml-2 px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-white font-medium">
+                            <span className="ml-2 px-2 py-0.5 rounded-full border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5 text-neutral-800 dark:text-white font-medium">
                                 {tasks.length} total
                             </span>
                         )}
@@ -187,12 +247,12 @@ export function TasksList({ initialTasks }: TasksListProps) {
                 </div>
 
                 {/* Decorative Grid Line Graphics */}
-                <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-20 pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]" />
+                <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-10 dark:opacity-20 pointer-events-none bg-[radial-gradient(#000000_1px,transparent_1px)] dark:bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]" />
             </div>
 
             {/* Alerts */}
             {expiredCount > 0 && (
-                <Alert variant="destructive" className="rounded-2xl border-red-500/30 bg-red-950/20 text-red-400">
+                <Alert variant="destructive" className="rounded-2xl border-red-500/30 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Action Needed</AlertTitle>
                     <AlertDescription>
@@ -202,8 +262,8 @@ export function TasksList({ initialTasks }: TasksListProps) {
             )}
 
             {expiringSoonCount > 0 && (
-                <Alert className="rounded-2xl border-amber-500/30 bg-amber-950/20 text-amber-400">
-                    <AlertCircle className="h-4 w-4 text-amber-400" />
+                <Alert className="rounded-2xl border-amber-500/30 bg-amber-50 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400">
+                    <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                     <AlertTitle>Expiring Soon</AlertTitle>
                     <AlertDescription>
                         {expiringSoonCount} task(s) will expire within 7 days.
@@ -212,7 +272,7 @@ export function TasksList({ initialTasks }: TasksListProps) {
             )}
 
             {/* Control Toolbar */}
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between p-2 rounded-2xl border border-white/10 bg-[#0f0f12]">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between p-2 rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#0f0f12] shadow-sm dark:shadow-none">
                 {/* Search Input */}
                 <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
@@ -220,13 +280,13 @@ export function TasksList({ initialTasks }: TasksListProps) {
                         placeholder="Search tasks..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9 h-10 text-xs rounded-xl border-white/10 bg-white/5 text-white placeholder:text-neutral-500 focus-visible:ring-white/20"
+                        className="pl-9 h-10 text-xs rounded-xl border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/5 text-neutral-900 dark:text-white placeholder:text-neutral-400 dark:placeholder:text-neutral-500 focus-visible:ring-neutral-400 dark:focus-visible:ring-white/20"
                     />
                     {searchQuery && (
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-neutral-400 hover:text-white"
+                            className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
                             onClick={() => setSearchQuery("")}
                         >
                             <X className="h-3 w-3" />
@@ -238,10 +298,10 @@ export function TasksList({ initialTasks }: TasksListProps) {
                 <div className="flex flex-wrap items-center gap-2">
                     {/* Status Filter */}
                     <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-                        <SelectTrigger className="w-[120px] h-10 text-xs rounded-xl border-white/10 bg-white/5 text-white">
+                        <SelectTrigger className="w-[120px] h-10 text-xs rounded-xl border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/5 text-neutral-900 dark:text-white">
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>
-                        <SelectContent className="border-white/10 bg-[#18181b] text-white">
+                        <SelectContent className="border-neutral-200 dark:border-white/10 bg-white dark:bg-[#18181b] text-neutral-900 dark:text-white">
                             <SelectItem value="all">All Status</SelectItem>
                             <SelectItem value="active">Active</SelectItem>
                             <SelectItem value="completed">Completed</SelectItem>
@@ -252,10 +312,10 @@ export function TasksList({ initialTasks }: TasksListProps) {
 
                     {/* Purpose Filter */}
                     <Select value={purposeFilter} onValueChange={(v) => setPurposeFilter(v as any)}>
-                        <SelectTrigger className="w-[130px] h-10 text-xs rounded-xl border-white/10 bg-white/5 text-white">
+                        <SelectTrigger className="w-[130px] h-10 text-xs rounded-xl border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/5 text-neutral-900 dark:text-white">
                             <SelectValue placeholder="Purpose" />
                         </SelectTrigger>
-                        <SelectContent className="border-white/10 bg-[#18181b] text-white">
+                        <SelectContent className="border-neutral-200 dark:border-white/10 bg-white dark:bg-[#18181b] text-neutral-900 dark:text-white">
                             <SelectItem value="all">All Types</SelectItem>
                             <SelectItem value="payments">💳 Payments</SelectItem>
                             <SelectItem value="records">📄 Records</SelectItem>
@@ -268,10 +328,10 @@ export function TasksList({ initialTasks }: TasksListProps) {
 
                     {/* Sort */}
                     <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-                        <SelectTrigger className="w-[130px] h-10 text-xs rounded-xl border-white/10 bg-white/5 text-white">
+                        <SelectTrigger className="w-[130px] h-10 text-xs rounded-xl border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/5 text-neutral-900 dark:text-white">
                             <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="border-white/10 bg-[#18181b] text-white">
+                        <SelectContent className="border-neutral-200 dark:border-white/10 bg-white dark:bg-[#18181b] text-neutral-900 dark:text-white">
                             <SelectItem value="created_at">Created Date</SelectItem>
                             <SelectItem value="name">Name</SelectItem>
                             <SelectItem value="completion_rate">Progress</SelectItem>
@@ -283,18 +343,18 @@ export function TasksList({ initialTasks }: TasksListProps) {
                     <Button
                         variant="outline"
                         size="icon"
-                        className="h-10 w-10 rounded-xl border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+                        className="h-10 w-10 rounded-xl border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/5 text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-white/10"
                         onClick={() => setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))}
                     >
                         <TrendingUp className={cn("h-4 w-4 transition-transform", sortOrder === "desc" && "rotate-180")} />
                     </Button>
 
                     {/* View Mode Toggle */}
-                    <div className="flex items-center gap-1 border border-white/10 rounded-xl p-1 bg-white/5">
+                    <div className="flex items-center gap-1 border border-neutral-200 dark:border-white/10 rounded-xl p-1 bg-neutral-50 dark:bg-white/5">
                         <Button
                             variant={viewMode === "grid" ? "secondary" : "ghost"}
                             size="icon"
-                            className={cn("h-8 w-8 rounded-lg", viewMode === "grid" ? "bg-white/10 text-white" : "text-neutral-400 hover:text-white")}
+                            className={cn("h-8 w-8 rounded-lg", viewMode === "grid" ? "bg-white dark:bg-white/10 text-neutral-900 dark:text-white shadow-sm dark:shadow-none" : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white")}
                             onClick={() => setViewMode("grid")}
                         >
                             <LayoutGrid className="h-4 w-4" />
@@ -302,7 +362,7 @@ export function TasksList({ initialTasks }: TasksListProps) {
                         <Button
                             variant={viewMode === "list" ? "secondary" : "ghost"}
                             size="icon"
-                            className={cn("h-8 w-8 rounded-lg", viewMode === "list" ? "bg-white/10 text-white" : "text-neutral-400 hover:text-white")}
+                            className={cn("h-8 w-8 rounded-lg", viewMode === "list" ? "bg-white dark:bg-white/10 text-neutral-900 dark:text-white shadow-sm dark:shadow-none" : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white")}
                             onClick={() => setViewMode("list")}
                         >
                             <LayoutList className="h-4 w-4" />
@@ -314,7 +374,7 @@ export function TasksList({ initialTasks }: TasksListProps) {
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-10 text-xs text-neutral-400 hover:text-white hover:bg-white/10 rounded-xl"
+                            className="h-10 text-xs text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-white/10 rounded-xl"
                             onClick={clearFilters}
                         >
                             Clear ({activeFiltersCount})
@@ -323,16 +383,16 @@ export function TasksList({ initialTasks }: TasksListProps) {
                 </div>
             </div>
 
-            {/* Empty State Options (Designed matching Google I/O Bento visual grid) */}
+            {/* Empty State Options */}
             {tasks.length === 0 ? (
-                <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0f0f12] p-8 sm:p-12 text-center min-h-[380px] flex flex-col items-center justify-center space-y-5">
-                    <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl border border-white/10 bg-white/5 shadow-2xl">
+                <div className="relative overflow-hidden rounded-3xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#0f0f12] p-8 sm:p-12 text-center min-h-[380px] flex flex-col items-center justify-center space-y-5">
+                    <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl border border-neutral-200 dark:border-white/10 bg-neutral-50 dark:bg-white/5 shadow-2xl">
                         <FolderOpen className="h-10 w-10 text-neutral-400" />
                         <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-emerald-400 animate-pulse" />
                     </div>
                     <div className="max-w-md space-y-2">
-                        <h3 className="text-xl font-bold text-white">No tasks created yet</h3>
-                        <p className="text-xs sm:text-sm text-neutral-400">
+                        <h3 className="text-xl font-bold text-neutral-900 dark:text-white">No tasks created yet</h3>
+                        <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
                             Start building your operational workflow by establishing your first task and registering members.
                         </p>
                     </div>
@@ -340,23 +400,20 @@ export function TasksList({ initialTasks }: TasksListProps) {
                         <TaskCreateTrigger />
                     </div>
 
-                    {/* Abstract Wireframe Sphere Graphics Background */}
-                    <div className="absolute -right-12 -bottom-12 pointer-events-none opacity-20">
-                        <div className="w-64 h-64 rounded-full border border-white/20 bg-[radial-gradient(circle,rgba(255,255,255,0.1)_1px,transparent_1px)] [background-size:12px_12px]" />
+                    <div className="absolute -right-12 -bottom-12 pointer-events-none opacity-10 dark:opacity-20">
+                        <div className="w-64 h-64 rounded-full border border-neutral-300 dark:border-white/20 bg-[radial-gradient(circle,rgba(0,0,0,0.1)_1px,transparent_1px)] dark:bg-[radial-gradient(circle,rgba(255,255,255,0.1)_1px,transparent_1px)] [background-size:12px_12px]" />
                     </div>
                 </div>
             ) : filteredAndSortedTasks.length === 0 ? (
-                /* Empty Filter State - Styled in modern Flow App dark UI layout */
-                <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0f0f12] p-8 sm:p-12 text-center min-h-[360px] flex flex-col items-center justify-center space-y-5">
-                    {/* Bento Graphical Mesh Icon Context */}
-                    <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl border border-white/10 bg-gradient-to-tr from-amber-500/20 via-orange-500/10 to-transparent shadow-xl">
-                        <Search className="h-9 w-9 text-amber-400" />
+                <div className="relative overflow-hidden rounded-3xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#0f0f12] p-8 sm:p-12 text-center min-h-[360px] flex flex-col items-center justify-center space-y-5">
+                    <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl border border-neutral-200 dark:border-white/10 bg-gradient-to-tr from-amber-500/20 via-orange-500/10 to-transparent shadow-xl">
+                        <Search className="h-9 w-9 text-amber-500 dark:text-amber-400" />
                         <div className="absolute inset-0 rounded-3xl border border-amber-500/20 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:8px_8px] opacity-40" />
                     </div>
 
                     <div className="max-w-md space-y-1.5">
-                        <h3 className="text-xl font-bold text-white">No matching tasks found</h3>
-                        <p className="text-xs sm:text-sm text-neutral-400">
+                        <h3 className="text-xl font-bold text-neutral-900 dark:text-white">No matching tasks found</h3>
+                        <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
                             We couldn't find any tasks matching your selected filters or search query. Try clearing filters to inspect all records.
                         </p>
                     </div>
@@ -365,14 +422,13 @@ export function TasksList({ initialTasks }: TasksListProps) {
                         variant="outline"
                         size="sm"
                         onClick={clearFilters}
-                        className="rounded-full border-white/20 bg-white/5 text-xs text-white hover:bg-white/10 hover:text-white px-6 py-2"
+                        className="rounded-full border-neutral-300 dark:border-white/20 bg-neutral-50 dark:bg-white/5 text-xs text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-white/10 px-6 py-2"
                     >
                         Clear Search & Filters
                     </Button>
 
-                    {/* Graphic Wireframe Background Decor */}
                     <div className="absolute left-[-20px] bottom-[-20px] pointer-events-none opacity-15">
-                        <div className="w-48 h-48 rounded-full border border-white/20" />
+                        <div className="w-48 h-48 rounded-full border border-neutral-300 dark:border-white/20" />
                     </div>
                 </div>
             ) : (
@@ -391,30 +447,35 @@ export function TasksList({ initialTasks }: TasksListProps) {
                         const daysLeft = getDaysUntilExpiry(task.endDate);
                         const expiryInfo = getExpiryVariant(daysLeft);
                         const taskUrl = `/admin/task/${task.slug}`;
+                        const themeGlow = PURPOSE_GLOW_STYLES[task.purpose] || PURPOSE_GLOW_STYLES.other;
 
                         if (viewMode === "list") {
                             return (
                                 <div
                                     key={task.id}
-                                    className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f12] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-white/20 transition-all group"
+                                    className={cn(
+                                        "relative overflow-hidden rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#0f0f12] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-300 hover:-translate-y-0.5 group shadow-sm hover:shadow-md dark:shadow-none",
+                                        themeGlow.glow
+                                    )}
                                 >
                                     <div className="flex items-center gap-4 min-w-0">
                                         <div
                                             className={cn(
-                                                "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5",
+                                                "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5",
                                                 config.bg
                                             )}
                                         >
-                                            <PurposeIcon className="h-6 w-6 text-white" />
+                                            <PurposeIcon className="h-6 w-6 text-neutral-900 dark:text-white" />
                                         </div>
 
                                         <div className="min-w-0 flex-1">
-                                            <Link href={taskUrl} className="group-hover:text-emerald-400 transition-colors">
-                                                <h3 className="font-bold text-base text-white truncate">
+                                            <Link href={taskUrl} className="group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">
+                                                <h3 className="font-bold text-base text-neutral-900 dark:text-white truncate">
                                                     {task.name}
                                                 </h3>
                                             </Link>
-                                            <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-neutral-400">
+
+                                            <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-neutral-500 dark:text-neutral-400">
                                                 <span className="flex items-center gap-1">
                                                     <Users className="h-3 w-3" />
                                                     {task.memberCount} members
@@ -425,44 +486,21 @@ export function TasksList({ initialTasks }: TasksListProps) {
                                                         {format(new Date(task.endDate), "MMM d, yyyy")}
                                                     </span>
                                                 )}
-                                                <Badge variant="secondary" className="bg-white/10 text-white rounded-full text-[10px] px-2 py-0">
+                                                <Badge variant="secondary" className="bg-neutral-100 dark:bg-white/10 text-neutral-800 dark:text-white rounded-full text-[10px] px-2 py-0">
                                                     {config.label}
                                                 </Badge>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 border-t border-white/5 sm:border-0 pt-3 sm:pt-0">
-                                        {/* Progress */}
-                                        <div className="flex items-center gap-3">
-                                            <div className="text-right">
-                                                <p className="text-sm font-bold text-white tabular-nums">{task.completionRate}%</p>
-                                                <p className="text-[10px] text-neutral-400">Complete</p>
+                                    <div className="flex items-center justify-between sm:justify-end gap-6 shrink-0 border-t border-neutral-100 dark:border-white/5 sm:border-0 pt-3 sm:pt-0">
+                                        {/* Multi-segment mini indicator for list view */}
+                                        <div className="w-36 hidden md:block">
+                                            <div className="flex items-center justify-between text-[10px] mb-1">
+                                                <span className="text-neutral-400">Progress</span>
+                                                <span className="font-semibold text-neutral-900 dark:text-white">{task.completionRate}%</span>
                                             </div>
-                                            <div className="w-10 h-10 relative flex items-center justify-center">
-                                                <svg className="transform -rotate-90 w-10 h-10">
-                                                    <circle
-                                                        cx="20"
-                                                        cy="20"
-                                                        r="16"
-                                                        stroke="currentColor"
-                                                        strokeWidth="3"
-                                                        fill="none"
-                                                        className="text-white/10"
-                                                    />
-                                                    <circle
-                                                        cx="20"
-                                                        cy="20"
-                                                        r="16"
-                                                        stroke="currentColor"
-                                                        strokeWidth="3"
-                                                        fill="none"
-                                                        strokeDasharray={`${2 * Math.PI * 16}`}
-                                                        strokeDashoffset={`${2 * Math.PI * 16 * (1 - task.completionRate / 100)}`}
-                                                        className="text-emerald-400 transition-all"
-                                                    />
-                                                </svg>
-                                            </div>
+                                            <SegmentedProgressBar completionRate={task.completionRate} gradientStyle={themeGlow.gradient} />
                                         </div>
 
                                         <Badge variant={getStatusVariant(task.status)} className="rounded-full px-3 py-0.5 text-xs">
@@ -472,20 +510,20 @@ export function TasksList({ initialTasks }: TasksListProps) {
                                         {/* Actions Menu */}
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-white">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-neutral-900 dark:hover:text-white">
                                                     <MoreHorizontal className="h-4 w-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="border-white/10 bg-[#18181b] text-white">
-                                                <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-white">
+                                            <DropdownMenuContent align="end" className="border-neutral-200 dark:border-white/10 bg-white dark:bg-[#18181b] text-neutral-900 dark:text-white">
+                                                <DropdownMenuItem asChild className="focus:bg-neutral-100 dark:focus:bg-white/10 focus:text-neutral-900 dark:focus:text-white">
                                                     <Link href={taskUrl}>
                                                         <Eye className="mr-2 h-4 w-4" />
                                                         View Task
                                                     </Link>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuSeparator className="bg-white/10" />
+                                                <DropdownMenuSeparator className="bg-neutral-100 dark:bg-white/10" />
                                                 <DropdownMenuItem
-                                                    className="text-red-400 focus:bg-red-500/10 focus:text-red-400"
+                                                    className="text-red-500 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-500/10 focus:text-red-600 dark:focus:text-red-400"
                                                     onClick={() => setDeleteTarget(task)}
                                                 >
                                                     <Trash2 className="mr-2 h-4 w-4" />
@@ -498,17 +536,23 @@ export function TasksList({ initialTasks }: TasksListProps) {
                             );
                         }
 
-                        {/* Grid View Bento Style */ }
+                        /* Grid View - Segmented Progress & Ambient Glow Style */
                         return (
                             <div
                                 key={task.id}
-                                className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0f0f12] p-6 flex flex-col justify-between hover:border-white/20 transition-all group"
+                                className={cn(
+                                    "relative overflow-hidden rounded-3xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#0f0f12] p-6 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 group shadow-sm hover:shadow-xl dark:shadow-none",
+                                    themeGlow.glow
+                                )}
                             >
-                                <div className="space-y-4">
+                                {/* Soft Ambient Glow Overlay Inspired by Coffee Machine Display */}
+                                <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-gradient-to-br from-white/10 via-white/5 to-transparent dark:from-white/5 dark:to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none blur-2xl" />
+
+                                <div className="space-y-4 relative z-10">
                                     {/* Top Header */}
                                     <div className="flex items-start justify-between">
-                                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-                                            <PurposeIcon className="h-5 w-5 text-white" />
+                                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5 group-hover:scale-105 transition-transform">
+                                            <PurposeIcon className="h-5 w-5 text-neutral-900 dark:text-white" />
                                         </div>
 
                                         <div className="flex items-center gap-1">
@@ -520,21 +564,21 @@ export function TasksList({ initialTasks }: TasksListProps) {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="h-8 w-8 text-neutral-400 hover:text-white"
+                                                        className="h-8 w-8 text-neutral-400 hover:text-neutral-900 dark:hover:text-white"
                                                     >
                                                         <MoreHorizontal className="h-4 w-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="border-white/10 bg-[#18181b] text-white">
-                                                    <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-white">
+                                                <DropdownMenuContent align="end" className="border-neutral-200 dark:border-white/10 bg-white dark:bg-[#18181b] text-neutral-900 dark:text-white">
+                                                    <DropdownMenuItem asChild className="focus:bg-neutral-100 dark:focus:bg-white/10 focus:text-neutral-900 dark:focus:text-white">
                                                         <Link href={taskUrl}>
                                                             <Eye className="mr-2 h-4 w-4" />
                                                             View Task
                                                         </Link>
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuSeparator className="bg-white/10" />
+                                                    <DropdownMenuSeparator className="bg-neutral-100 dark:bg-white/10" />
                                                     <DropdownMenuItem
-                                                        className="text-red-400 focus:bg-red-500/10 focus:text-red-400"
+                                                        className="text-red-500 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-500/10 focus:text-red-600 dark:focus:text-red-400"
                                                         onClick={() => setDeleteTarget(task)}
                                                     >
                                                         <Trash2 className="mr-2 h-4 w-4" />
@@ -547,51 +591,49 @@ export function TasksList({ initialTasks }: TasksListProps) {
 
                                     {/* Task Title & Description */}
                                     <div>
-                                        <Link href={taskUrl} className="group-hover:text-emerald-400 transition-colors">
-                                            <h3 className="text-xl font-bold tracking-tight text-white line-clamp-1">
+                                        <Link href={taskUrl} className="group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">
+                                            <h3 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white line-clamp-1">
                                                 {task.name}
                                             </h3>
                                         </Link>
                                         {task.description && (
-                                            <p className="text-xs text-neutral-400 line-clamp-2 mt-1">
+                                            <p className="text-xs text-neutral-500 dark:text-neutral-400 line-clamp-2 mt-1">
                                                 {task.description}
                                             </p>
                                         )}
                                     </div>
 
-                                    {/* Progress Indicator Bar */}
-                                    <div className="space-y-1.5 pt-1">
+                                    {/* Multi-Segment Step Progress Indicator */}
+                                    <div className="space-y-1.5 pt-2">
                                         <div className="flex items-center justify-between text-xs">
-                                            <span className="text-neutral-400 font-medium">Progress</span>
-                                            <span className="font-extrabold text-white tabular-nums">{task.completionRate}%</span>
+                                            <span className="text-neutral-500 dark:text-neutral-400 font-medium">Completion Yield</span>
+                                            <span className={cn("font-black text-sm tabular-nums", themeGlow.text)}>
+                                                {task.completionRate}%
+                                            </span>
                                         </div>
-                                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 transition-all duration-500"
-                                                style={{ width: `${task.completionRate}%` }}
-                                            />
-                                        </div>
+
+                                        <SegmentedProgressBar completionRate={task.completionRate} gradientStyle={themeGlow.gradient} />
                                     </div>
                                 </div>
 
                                 {/* Footer Metadata */}
-                                <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between">
-                                    <div className="flex items-center gap-1.5 text-xs text-neutral-400">
+                                <div className="mt-6 pt-4 border-t border-neutral-100 dark:border-white/5 flex items-center justify-between relative z-10">
+                                    <div className="flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
                                         <Users className="h-3.5 w-3.5" />
                                         <span>{task.memberCount} member{task.memberCount !== 1 ? "s" : ""}</span>
                                     </div>
 
                                     <Link href={taskUrl}>
-                                        <div className="inline-flex items-center gap-1 text-xs text-white font-medium hover:text-emerald-400 transition-colors">
+                                        <div className="inline-flex items-center gap-1 text-xs text-neutral-900 dark:text-white font-medium group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">
                                             <span>Details</span>
-                                            <ArrowUpRight className="h-3 w-3" />
+                                            <ArrowUpRight className="h-3 w-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                                         </div>
                                     </Link>
                                 </div>
 
                                 {/* Background Decoration Graphic */}
-                                <div className="absolute right-[-10px] bottom-[-10px] pointer-events-none opacity-5">
-                                    <Globe className="w-32 h-32 text-white" />
+                                <div className="absolute right-[-10px] bottom-[-10px] pointer-events-none opacity-5 group-hover:opacity-10 transition-opacity">
+                                    <Globe className="w-32 h-32 text-neutral-900 dark:text-white" />
                                 </div>
                             </div>
                         );
@@ -601,15 +643,15 @@ export function TasksList({ initialTasks }: TasksListProps) {
 
             {/* Delete Confirmation Alert */}
             <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-                <AlertDialogContent className="border-white/10 bg-[#18181b] text-white rounded-3xl">
+                <AlertDialogContent className="border-neutral-200 dark:border-white/10 bg-white dark:bg-[#18181b] text-neutral-900 dark:text-white rounded-3xl">
                     <AlertDialogHeader>
                         <AlertDialogTitle className="text-lg font-bold">Delete this task?</AlertDialogTitle>
-                        <AlertDialogDescription className="text-xs text-neutral-400">
-                            This will permanently delete <strong className="text-white">{deleteTarget?.name}</strong> along with all associated activity records and member assignments.
+                        <AlertDialogDescription className="text-xs text-neutral-500 dark:text-neutral-400">
+                            This will permanently delete <strong className="text-neutral-900 dark:text-white">{deleteTarget?.name}</strong> along with all associated activity records and member assignments.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isPending} className="rounded-full border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white">
+                        <AlertDialogCancel disabled={isPending} className="rounded-full border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5 text-neutral-900 dark:text-white hover:bg-neutral-200 dark:hover:bg-white/10">
                             Cancel
                         </AlertDialogCancel>
                         <AlertDialogAction
