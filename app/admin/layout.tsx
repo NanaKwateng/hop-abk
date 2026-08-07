@@ -22,7 +22,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </aside>
                     <SidebarInset>
 
-                        <main className="flex-1 p-8">
+                        <main className="flex-1 p-2 lg:p-8">
                             {children}
                             <AssistiveTouch />
                         </main>
