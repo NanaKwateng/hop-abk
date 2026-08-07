@@ -76,82 +76,81 @@ const GROUP_FILTER_OPTIONS = [
 ];
 
 /**
- * 2D GitHub Universe Flat Pattern Component
- * Renders 2D graphic overlays (arcs, grid lines, pill shapes, vector sweeps)
+ * Enhanced 2D GitHub Universe Flat Pattern Component
  */
 function GithubUniverse2DPattern({ variant = 1 }: { variant?: 1 | 2 | 3 }) {
     return (
-        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] z-0 opacity-40 dark:opacity-30">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit] z-0 opacity-45 dark:opacity-35">
             {variant === 1 && (
                 <svg
-                    className="absolute -right-10 -top-10 w-80 h-80 text-primary"
-                    viewBox="0 0 200 200"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                >
-                    <defs>
-                        <linearGradient id="gh2d-grad-1" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#22c55e" stopOpacity="0.8" />
-                            <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.6" />
-                            <stop offset="100%" stopColor="#a855f7" stopOpacity="0.2" />
-                        </linearGradient>
-                    </defs>
-                    {/* Sweeping 2D Intersection Arcs */}
-                    <path
-                        d="M 0,200 C 100,200 200,100 200,0 L 200,200 Z"
-                        fill="url(#gh2d-grad-1)"
-                    />
-                    <circle cx="100" cy="100" r="80" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" opacity="0.4" />
-                    <path d="M 20 20 L 180 180 M 180 20 L 20 180" stroke="currentColor" strokeWidth="0.5" opacity="0.2" />
-                </svg>
-            )}
-
-            {variant === 2 && (
-                <svg
-                    className="absolute -left-12 -bottom-12 w-96 h-96 text-primary"
+                    className="absolute -right-8 -bottom-8 w-96 h-96 text-indigo-500"
                     viewBox="0 0 300 300"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
                 >
                     <defs>
-                        <linearGradient id="gh2d-grad-2" x1="0%" y1="100%" x2="100%" y2="0%">
-                            <stop offset="0%" stopColor="#ec4899" stopOpacity="0.7" />
-                            <stop offset="60%" stopColor="#8b5cf6" stopOpacity="0.4" />
-                            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.1" />
+                        <linearGradient id="gh2d-bento-1a" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#818cf8" stopOpacity="0.75" />
+                            <stop offset="50%" stopColor="#c084fc" stopOpacity="0.45" />
+                            <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.1" />
+                        </linearGradient>
+                        <linearGradient id="gh2d-bento-1b" x1="100%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stopColor="#ec4899" stopOpacity="0.5" />
+                            <stop offset="100%" stopColor="#6366f1" stopOpacity="0.05" />
                         </linearGradient>
                     </defs>
-                    {/* Flat 2D Curved Pill Overlays */}
+                    {/* Intersecting 2D Pill & Arc Shapes */}
                     <path
-                        d="M 0,150 C 0,67.15 67.15,0 150,0 C 232.85,0 300,67.15 300,150 L 150,300 Z"
-                        fill="url(#gh2d-grad-2)"
+                        d="M 150,0 C 232.84,0 300,67.16 300,150 L 150,300 C 67.16,300 0,232.84 0,150 Z"
+                        fill="url(#gh2d-bento-1a)"
                     />
-                    <path d="M 0,0 L 300,300" stroke="currentColor" strokeWidth="1" strokeDasharray="6 6" opacity="0.3" />
-                    <circle cx="150" cy="150" r="120" stroke="currentColor" strokeWidth="0.8" opacity="0.25" />
+                    <path
+                        d="M 300,150 C 300,232.84 232.84,300 150,300 L 300,0 Z"
+                        fill="url(#gh2d-bento-1b)"
+                    />
+                    {/* Geometric Grid Lines & Orbit Curves */}
+                    <circle cx="150" cy="150" r="130" stroke="currentColor" strokeWidth="1" strokeDasharray="6 6" opacity="0.3" />
+                    <circle cx="150" cy="150" r="80" stroke="currentColor" strokeWidth="0.75" opacity="0.25" />
+                    <line x1="0" y1="150" x2="300" y2="150" stroke="currentColor" strokeWidth="0.5" opacity="0.3" />
+                    <line x1="150" y1="0" x2="150" y2="300" stroke="currentColor" strokeWidth="0.5" opacity="0.3" />
                 </svg>
             )}
 
-            {variant === 3 && (
+            {variant === 2 && (
                 <svg
-                    className="absolute right-0 bottom-0 w-full h-full text-primary"
-                    viewBox="0 0 400 200"
+                    className="absolute -left-12 -bottom-12 w-[480px] h-[480px] text-emerald-500"
+                    viewBox="0 0 400 400"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
                 >
                     <defs>
-                        <linearGradient id="gh2d-grad-3" x1="100%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" stopColor="#f97316" stopOpacity="0.5" />
-                            <stop offset="50%" stopColor="#eab308" stopOpacity="0.3" />
+                        <linearGradient id="gh2d-bento-2a" x1="0%" y1="100%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#34d399" stopOpacity="0.65" />
+                            <stop offset="50%" stopColor="#3b82f6" stopOpacity="0.35" />
+                            <stop offset="100%" stopColor="#a855f7" stopOpacity="0.05" />
+                        </linearGradient>
+                        <linearGradient id="gh2d-bento-2b" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.4" />
                             <stop offset="100%" stopColor="#10b981" stopOpacity="0.1" />
                         </linearGradient>
                     </defs>
-                    {/* Flat Vector Grid Lines & Quadrant Arcs */}
-                    <path d="M 200,0 C 310.45,0 400,89.55 400,200 L 200,200 Z" fill="url(#gh2d-grad-3)" />
-                    <line x1="0" y1="50" x2="400" y2="50" stroke="currentColor" strokeWidth="0.5" opacity="0.2" />
-                    <line x1="0" y1="100" x2="400" y2="100" stroke="currentColor" strokeWidth="0.5" opacity="0.2" />
-                    <line x1="0" y1="150" x2="400" y2="150" stroke="currentColor" strokeWidth="0.5" opacity="0.2" />
-                    <line x1="100" y1="0" x2="100" y2="200" stroke="currentColor" strokeWidth="0.5" opacity="0.2" />
-                    <line x1="200" y1="0" x2="200" y2="200" stroke="currentColor" strokeWidth="0.5" opacity="0.2" />
-                    <line x1="300" y1="0" x2="300" y2="200" stroke="currentColor" strokeWidth="0.5" opacity="0.2" />
+                    {/* GitHub Poster Flat Arc Composition */}
+                    <path
+                        d="M 0,200 C 0,89.54 89.54,0 200,0 L 400,200 C 400,310.46 310.46,400 200,400 Z"
+                        fill="url(#gh2d-bento-2a)"
+                    />
+                    <path
+                        d="M 200,200 C 310.46,200 400,289.54 400,400 L 200,400 Z"
+                        fill="url(#gh2d-bento-2b)"
+                    />
+                    {/* Isometric 2D Overlay Wireframe */}
+                    <line x1="0" y1="100" x2="400" y2="100" stroke="currentColor" strokeWidth="0.5" opacity="0.25" />
+                    <line x1="0" y1="200" x2="400" y2="200" stroke="currentColor" strokeWidth="0.5" opacity="0.25" />
+                    <line x1="0" y1="300" x2="400" y2="300" stroke="currentColor" strokeWidth="0.5" opacity="0.25" />
+                    <line x1="100" y1="0" x2="100" y2="400" stroke="currentColor" strokeWidth="0.5" opacity="0.25" />
+                    <line x1="200" y1="0" x2="200" y2="400" stroke="currentColor" strokeWidth="0.5" opacity="0.25" />
+                    <line x1="300" y1="0" x2="300" y2="400" stroke="currentColor" strokeWidth="0.5" opacity="0.25" />
+                    <circle cx="200" cy="200" r="180" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" opacity="0.3" />
                 </svg>
             )}
         </div>
@@ -375,10 +374,10 @@ export function TaskDetailPage({ task }: TaskDetailPageProps) {
                     processedMembers={processedMemberIds.size}
                 />
 
-                {/* Main Content Grid (Bento Grid Style Cards with 2D Patterns) */}
+                {/* Main Content Grid (Bento Grid Cards) */}
                 <div className="grid gap-6 lg:grid-cols-3">
                     {/* Members Panel */}
-                    <Card className="lg:col-span-1 relative overflow-hidden backdrop-blur-sm border-border/60">
+                    <Card className="lg:col-span-1 relative overflow-hidden backdrop-blur-md border-border/60 bg-card/80 shadow-lg">
                         <GithubUniverse2DPattern variant={1} />
                         <div className="relative z-10">
                             <CardHeader className="pb-3 space-y-3">
@@ -402,14 +401,14 @@ export function TaskDetailPage({ task }: TaskDetailPageProps) {
                                             placeholder="Search…"
                                             value={memberSearch}
                                             onChange={(e) => setMemberSearch(e.target.value)}
-                                            className="pl-9 h-8 text-sm bg-background/50 backdrop-blur-sm"
+                                            className="pl-9 h-8 text-sm bg-background/60 backdrop-blur-sm"
                                         />
                                     </div>
                                     <Select
                                         value={memberGroupFilter}
                                         onValueChange={setMemberGroupFilter}
                                     >
-                                        <SelectTrigger className="w-[100px] h-8 text-xs bg-background/50 backdrop-blur-sm">
+                                        <SelectTrigger className="w-[100px] h-8 text-xs bg-background/60 backdrop-blur-sm">
                                             <Filter className="h-3 w-3 mr-1" />
                                             <SelectValue />
                                         </SelectTrigger>
@@ -429,7 +428,7 @@ export function TaskDetailPage({ task }: TaskDetailPageProps) {
                             </CardHeader>
                             <CardContent className="p-0">
                                 <ScrollArea className="h-[500px]">
-                                    <div className="divide-y divide-border/40">
+                                    <div className="divide-y divide-border/30">
                                         {filteredMembers.map((member) => {
                                             const isProcessed = processedMemberIds.has(member.memberId);
                                             const activityCount =
@@ -453,7 +452,7 @@ export function TaskDetailPage({ task }: TaskDetailPageProps) {
                                                     }}
                                                     className={cn(
                                                         "flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors outline-none",
-                                                        "hover:bg-muted/50 focus-visible:bg-muted/50"
+                                                        "hover:bg-muted/40 focus-visible:bg-muted/40"
                                                     )}
                                                 >
                                                     <Avatar className="h-8 w-8 shrink-0">
@@ -497,7 +496,7 @@ export function TaskDetailPage({ task }: TaskDetailPageProps) {
                                                     </div>
                                                     <div className="flex items-center gap-1.5 shrink-0">
                                                         {task.purpose === "payments" && memberTotal > 0 && (
-                                                            <span className="text-[10px] text-green-600 font-medium tabular-nums">
+                                                            <span className="text-[10px] text-green-500 font-medium tabular-nums">
                                                                 GH₵{memberTotal.toFixed(0)}
                                                             </span>
                                                         )}
@@ -528,7 +527,7 @@ export function TaskDetailPage({ task }: TaskDetailPageProps) {
 
                     {/* Activities Panel */}
                     <div className="lg:col-span-2 space-y-6">
-                        <Card className="relative overflow-hidden backdrop-blur-sm border-border/60">
+                        <Card className="relative overflow-hidden backdrop-blur-md border-border/60 bg-card/80 shadow-lg">
                             <GithubUniverse2DPattern variant={2} />
                             <div className="relative z-10">
                                 <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-4">
@@ -547,7 +546,7 @@ export function TaskDetailPage({ task }: TaskDetailPageProps) {
                                 <CardContent className="p-0">
                                     <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
                                         <div className="px-6 pb-4">
-                                            <TabsList className="grid w-full grid-cols-2 bg-background/50 backdrop-blur-sm">
+                                            <TabsList className="grid w-full grid-cols-2 bg-background/60 backdrop-blur-sm">
                                                 <TabsTrigger value="all">All Activities</TabsTrigger>
                                                 <TabsTrigger value="by-member">By Member</TabsTrigger>
                                             </TabsList>
@@ -566,7 +565,7 @@ export function TaskDetailPage({ task }: TaskDetailPageProps) {
                                                 </div>
                                             ) : (
                                                 <ScrollArea className="h-[400px]">
-                                                    <div className="divide-y divide-border/40">
+                                                    <div className="divide-y divide-border/30">
                                                         {activities.map((activity) => (
                                                             <div
                                                                 key={activity.id}
@@ -604,7 +603,7 @@ export function TaskDetailPage({ task }: TaskDetailPageProps) {
                                                                             {activity.amount != null && (
                                                                                 <Badge
                                                                                     variant="secondary"
-                                                                                    className="bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400"
+                                                                                    className="bg-green-500/10 text-green-500 border border-green-500/20"
                                                                                 >
                                                                                     {formatCurrency(activity.amount)}
                                                                                 </Badge>
@@ -661,7 +660,7 @@ export function TaskDetailPage({ task }: TaskDetailPageProps) {
 
                                         <TabsContent value="by-member" className="mt-0">
                                             <ScrollArea className="h-[400px]">
-                                                <div className="divide-y divide-border/40">
+                                                <div className="divide-y divide-border/30">
                                                     {members
                                                         .filter((m) =>
                                                             activities.some((a) => a.memberId === m.memberId)
@@ -704,7 +703,7 @@ export function TaskDetailPage({ task }: TaskDetailPageProps) {
                                                                         {memberActivities.map((activity) => (
                                                                             <div
                                                                                 key={activity.id}
-                                                                                className="text-xs p-2 rounded-md bg-muted/40 backdrop-blur-sm"
+                                                                                className="text-xs p-2.5 rounded-md bg-background/50 border border-border/40 backdrop-blur-sm"
                                                                             >
                                                                                 <p className="font-medium">
                                                                                     {activity.roleTitle ?? activity.title}
