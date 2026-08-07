@@ -6,6 +6,7 @@ import { CustomizationProvider } from "@/lib/context/customization-context";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AssistiveTouch } from "@/components/dashboard/assistive-touch";
 import { AIChat } from "@/components/ai-assistant/ai-chat";
+import PatternCardContainer from "@/components/pattern-card";
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     return (
 
@@ -16,8 +17,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <div className="flex min-h-screen">
 
 
-                    <aside className="w-64 bg-background hidden md:block">
-                        <Sidebar />
+                    <aside className="w-64 bg-background hidden md:block px-3">
+
+                        <PatternCardContainer
+                            bgColor={["#F9D658", "#E2D9F8", "#EDF6EF", "#FFF2EA"]}
+                            intervalDuration={4000}
+                        >
+                            <Sidebar />
+                        </PatternCardContainer>
                     </aside>
                     <SidebarInset>
 

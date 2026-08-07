@@ -7,7 +7,10 @@ export default function MainPage() {
     return (
         <section className="min-h-screen w-full mx-auto p-5 space-y-12">
             {/* Reusable Container wrapping hero components with puzzle background & glow */}
-            <PatternCardContainer className="shadow-lg">
+            <PatternCardContainer
+                bgColor={["#F9D658", "#E2D9F8", "#EDF6EF", "#FFF2EA"]}
+                intervalDuration={4000}
+                className="shadow-lg">
                 <main className="flex items-start justify-between w-full gap-12 flex-1 flex-col">
                     <WelcomeText />
                     <Widgets />
