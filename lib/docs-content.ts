@@ -12,7 +12,7 @@ const docsContent: Record<string, DocContent> = {
     introduction: {
         title: "Introduction",
         description:
-            "Beautifully designed components that you can copy and paste into your apps. Accessible. Customizable. Open Source.",
+            "Welcome aboard, we are excited to have you on board, let's get to work. Manage your clients, projects, and tasks with ease. SkyBird HOP is a project management tool that helps you stay organized and on track.",
         slug: "introduction",
         toc: [
             { id: "about", title: "About" },
