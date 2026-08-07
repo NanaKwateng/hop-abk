@@ -1,636 +1,744 @@
-// components/dashboard/tasks/create-task-dialog.tsx
+// components/dashboard/tasks/task-detail-page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-import confetti from "canvas-confetti";
+import Link from "next/link";
 import {
-    Sheet,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
-    SheetDescription,
-} from "@/components/ui/sheet";
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Switch } from "@/components/ui/switch";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-    Loader2,
-    ArrowRight,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
     ArrowLeft,
-    Check,
     CreditCard,
     FileText,
+    Users,
+    Clock,
+    AlertCircle,
+    Search,
+    CheckCircle2,
     Shield,
-    Users as UsersIcon,
     Activity,
-    MoreHorizontal,
-    CalendarDays,
-    Sparkles,
-    PartyPopper,
+    UserPlus,
+    Filter,
+    MoreVertical,
 } from "lucide-react";
+import { format, isBefore } from "date-fns";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import { useCreateTaskMutation } from "@/queries/task-queries";
 import {
-    taskBasicInfoSchema,
-    taskDurationSchema,
-    taskMemberSelectionSchema,
-    createTaskSchema,
-    type CreateTaskInput,
-} from "@/lib/validations/task-schema";
-import { TaskMemberSelection } from "./task-member-selection";
-import { TaskPurposeConfig } from "./task-purpose-config";
-import type { DateRange } from "react-day-picker";
-import type { TaskPurpose } from "@/lib/types/task";
+    getStatusVariant,
+    getPurposeConfig,
+    getDaysUntilExpiry,
+    getExpiryVariant,
+    formatCurrency,
+} from "@/lib/utils/task-utils";
+import { TaskPaymentTracker } from "./task-payment-tracker";
+import { TaskRecordManager } from "./task-record-manager";
+import { TaskRoleAssigner } from "./task-role-assigner";
+import { TaskMonitorTracker } from "./task-monitor-tracker";
+import { TaskMembersManager } from "./task-members-manager";
+import { TaskExportMenu } from "./task-export-menu";
+import { TaskStatsCards } from "./task-stats-cards";
+import type { TaskDetail, TaskMember, TaskActivity } from "@/lib/types/task";
 
-interface CreateTaskDialogProps {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
+interface TaskDetailPageProps {
+    task: TaskDetail;
 }
 
-const STEPS = [
-    { label: "Basic Info", description: "Name & purpose" },
-    { label: "Duration", description: "Optional dates" },
-    { label: "Members", description: "Select participants" },
-    { label: "Configure", description: "Purpose settings" },
-    { label: "Review", description: "Confirm details" },
-] as const;
-
-const PURPOSE_OPTIONS = [
-    {
-        value: "payments" as const,
-        icon: CreditCard,
-        label: "💳 Payments",
-        description: "Track tithes, donations, or dues",
-        color: "text-green-600",
-        bg: "bg-green-100 dark:bg-green-950/50",
-    },
-    {
-        value: "records" as const,
-        icon: FileText,
-        label: "📄 Records",
-        description: "Log attendance, notes, or updates",
-        color: "text-blue-600",
-        bg: "bg-blue-100 dark:bg-blue-950/50",
-    },
-    {
-        value: "roles" as const,
-        icon: Shield,
-        label: "🛡️ Roles",
-        description: "Assign positions and responsibilities",
-        color: "text-purple-600",
-        bg: "bg-purple-100 dark:bg-purple-950/50",
-    },
-    {
-        value: "groups" as const,
-        icon: UsersIcon,
-        label: "👥 Groups",
-        description: "Create teams or committees",
-        color: "text-indigo-600",
-        bg: "bg-indigo-100 dark:bg-indigo-950/50",
-    },
-    {
-        value: "monitoring" as const,
-        icon: Activity,
-        label: "📊 Monitoring",
-        description: "Track activities and checkpoints",
-        color: "text-orange-600",
-        bg: "bg-orange-100 dark:bg-orange-950/50",
-    },
-    {
-        value: "other" as const,
-        icon: MoreHorizontal,
-        label: "📌 Other",
-        description: "Custom task type",
-        color: "text-gray-600",
-        bg: "bg-gray-100 dark:bg-gray-950/50",
-    },
+const GROUP_FILTER_OPTIONS = [
+    { value: "all", label: "All Groups" },
+    { value: "youth", label: "Youth" },
+    { value: "men", label: "Men" },
+    { value: "women", label: "Women" },
 ];
 
-function fireSuccessConfetti() {
-    const count = 200;
-    const defaults = {
-        origin: { y: 0.7 },
-        zIndex: 9999,
-    };
-
-    function fire(particleRatio: number, opts: any) {
-        confetti({
-            ...defaults,
-            ...opts,
-            particleCount: Math.floor(count * particleRatio),
-        });
-    }
-
-    fire(0.25, {
-        spread: 26,
-        startVelocity: 55,
-    });
-    fire(0.2, {
-        spread: 60,
-    });
-    fire(0.35, {
-        spread: 100,
-        decay: 0.91,
-        scalar: 0.8,
-    });
-    fire(0.1, {
-        spread: 120,
-        startVelocity: 25,
-        decay: 0.92,
-        scalar: 1.2,
-    });
-    fire(0.1, {
-        spread: 120,
-        startVelocity: 45,
-    });
-}
-
-export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) {
+export function TaskDetailPage({ task }: TaskDetailPageProps) {
     const router = useRouter();
-    const [step, setStep] = useState(1);
-    const [showSuccess, setShowSuccess] = useState(false);
-    const [createdTaskSlug, setCreatedTaskSlug] = useState<string | null>(null);
+    const [activities, setActivities] = useState<TaskActivity[]>(task.activities);
+    const [members, setMembers] = useState<TaskMember[]>(task.members);
+    const [memberSearch, setMemberSearch] = useState("");
+    const [memberGroupFilter, setMemberGroupFilter] = useState("all");
+    const [activeTab, setActiveTab] = useState<"all" | "by-member">("all");
 
-    const createMutation = useCreateTaskMutation();
+    // Drawers
+    const [paymentDrawerOpen, setPaymentDrawerOpen] = useState(false);
+    const [recordDrawerOpen, setRecordDrawerOpen] = useState(false);
+    const [roleDrawerOpen, setRoleDrawerOpen] = useState(false);
+    const [monitorDrawerOpen, setMonitorDrawerOpen] = useState(false);
+    const [membersManagerOpen, setMembersManagerOpen] = useState(false);
+    const [drawerMember, setDrawerMember] = useState<TaskMember | null>(null);
 
-    const form = useForm<any>({
-        defaultValues: {
-            name: "",
-            purpose: "payments", // ✅ FIXED 
-            description: "",
-            hasDuration: false,
-            dateRange: undefined,
-            durationType: "", // ✅ FIXED: Empty string instead of undefined
-            memberIds: [],
-            paymentConfig: undefined,
-            recordConfig: undefined,
-            monitorConfig: undefined,
-        },
-    });
+    const isExpired = task.endDate && isBefore(new Date(task.endDate), new Date());
+    const config = getPurposeConfig(task.purpose);
+    const daysLeft = getDaysUntilExpiry(task.endDate);
+    const expiryInfo = getExpiryVariant(daysLeft);
 
-    const { watch, setValue, trigger, reset } = form;
+    // Filtered members
+    const filteredMembers = useMemo(() => {
+        let result = members;
 
-    const purpose = watch("purpose");
-    const hasDuration = watch("hasDuration");
-    const dateRange = watch("dateRange") as DateRange | undefined;
-    const memberIds = watch("memberIds") as string[];
-
-    const progress = ((step - 1) / (STEPS.length - 1)) * 100;
-
-    async function handleNext() {
-        let valid = false;
-
-        if (step === 1) {
-            valid = await trigger(["name", "purpose"]);
-        } else if (step === 2) {
-            if (!hasDuration) {
-                valid = true;
-            } else {
-                valid = await trigger(["dateRange", "durationType"]);
-            }
-        } else if (step === 3) {
-            valid = memberIds.length > 0;
-            if (!valid) toast.error("Select at least one member");
-        } else {
-            valid = true;
+        if (memberGroupFilter !== "all") {
+            result = result.filter(
+                (m) => m.memberGroup?.toLowerCase() === memberGroupFilter
+            );
         }
 
-        if (valid) setStep((s) => s + 1);
-    }
-
-    function handleBack() {
-        setStep((s) => s - 1);
-    }
-
-    async function onSubmit() {
-        const values = form.getValues();
-
-        const payload: any = {
-            name: values.name,
-            purpose: values.purpose,
-            description: values.description || undefined,
-            hasDuration: values.hasDuration,
-            memberIds: values.memberIds,
-        };
-
-        if (values.hasDuration && dateRange?.from && dateRange?.to) {
-            payload.startDate = format(dateRange.from, "yyyy-MM-dd");
-            payload.endDate = format(dateRange.to, "yyyy-MM-dd");
-            payload.durationType = values.durationType;
+        if (memberSearch.trim()) {
+            const q = memberSearch.toLowerCase();
+            result = result.filter(
+                (m) =>
+                    m.firstName.toLowerCase().includes(q) ||
+                    m.lastName.toLowerCase().includes(q) ||
+                    m.membershipId?.toLowerCase().includes(q)
+            );
         }
 
-        if (values.purpose === "payments" && values.paymentConfig) {
-            payload.paymentConfig = values.paymentConfig;
-        } else if (values.purpose === "records" && values.recordConfig) {
-            payload.recordConfig = values.recordConfig;
-        } else if (values.purpose === "monitoring" && values.monitorConfig) {
-            payload.monitorConfig = values.monitorConfig;
-        }
+        return result;
+    }, [members, memberSearch, memberGroupFilter]);
 
-        // ✅ Log before mutation
-        console.log("[CreateTaskDialog] Submitting payload:", payload);
-
-        createMutation.mutate(payload, {
-            onSuccess: (slug) => {
-                console.log("[CreateTaskDialog] Success! Slug:", slug);
-                setCreatedTaskSlug(slug);
-                setShowSuccess(true);
-                fireSuccessConfetti();
-            },
-            onError: (error) => {
-                console.error("[CreateTaskDialog] Mutation failed:", error);
-                // Don't close dialog on error so user can retry
-            },
-        });
-    }
-
-    function handleClose() {
-        if (!createMutation.isPending) {
-            reset();
-            setStep(1);
-            setShowSuccess(false);
-            setCreatedTaskSlug(null);
-            onOpenChange(false);
-        }
-    }
-
-    function goToTask() {
-        if (createdTaskSlug) {
-            console.log("[CreateTaskDialog] Navigating to:", `/admin/task/${createdTaskSlug}`);
-
-            // ✅ FIXED: Use window.location for safer navigation
-            window.location.href = `/admin/task/${createdTaskSlug}`;
-        }
-    }
-
-    function backToTasks() {
-        console.log("[CreateTaskDialog] Navigating to task list");
-
-        // ✅ FIXED: Use window.location for safer navigation
-        window.location.href = "/admin/task";
-    }
-
-    if (showSuccess) {
-        return (
-            <Sheet open={open} onOpenChange={handleClose}>
-                <SheetContent side="right" className="w-full sm:max-w-lg px-0 flex flex-col">
-                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6">
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-green-500/20 rounded-full animate-ping" />
-                            <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-green-100 dark:bg-green-950/50">
-                                <PartyPopper className="h-10 w-10 text-green-600" />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <h2 className="text-2xl font-bold">Task Created! 🎉</h2>
-                            <p className="text-muted-foreground">
-                                Your task <strong>{form.getValues("name")}</strong> has been created successfully with{" "}
-                                <strong>{memberIds.length}</strong> member{memberIds.length !== 1 ? "s" : ""}.
-                            </p>
-                        </div>
-
-                        <div className="flex flex-col gap-3 w-full max-w-xs">
-                            <Button onClick={goToTask} size="lg" className="w-full">
-                                <Sparkles className="mr-2 h-4 w-4" />
-                                Go to Task
-                            </Button>
-                            <Button variant="outline" onClick={backToTasks} size="lg" className="w-full">
-                                Back to All Tasks
-                            </Button>
-                        </div>
-                    </div>
-                </SheetContent>
-            </Sheet>
+    // Member stats
+    const memberActivityCounts = useMemo(() => {
+        const counts = new Map<string, number>();
+        activities.forEach((a) =>
+            counts.set(a.memberId, (counts.get(a.memberId) ?? 0) + 1)
         );
+        return counts;
+    }, [activities]);
+
+    const memberTotals = useMemo(() => {
+        if (task.purpose !== "payments") return new Map<string, number>();
+        const totals = new Map<string, number>();
+        activities.forEach((a) => {
+            if (a.amount != null)
+                totals.set(a.memberId, (totals.get(a.memberId) ?? 0) + a.amount);
+        });
+        return totals;
+    }, [activities, task.purpose]);
+
+    const processedMemberIds = useMemo(
+        () => new Set(activities.map((a) => a.memberId)),
+        [activities]
+    );
+
+    function handleMemberClick(member: TaskMember) {
+        setDrawerMember(member);
+
+        switch (task.purpose) {
+            case "payments":
+                setPaymentDrawerOpen(true);
+                break;
+            case "records":
+                setRecordDrawerOpen(true);
+                break;
+            case "roles":
+                setRoleDrawerOpen(true);
+                break;
+            case "monitoring":
+                setMonitorDrawerOpen(true);
+                break;
+            default:
+                setRecordDrawerOpen(true);
+        }
     }
+
+    const handleActivityChange = useCallback(
+        (newActivities: TaskActivity[]) => {
+            setActivities((prev) => {
+                const otherActivities = prev.filter(
+                    (a) => a.memberId !== drawerMember?.memberId
+                );
+                const merged = [...newActivities, ...otherActivities].sort(
+                    (a, b) =>
+                        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                );
+                return merged;
+            });
+        },
+        [drawerMember]
+    );
+
+    function handleMembersChanged() {
+        router.refresh();
+        setMembersManagerOpen(false);
+    }
+
+    // Stats calculations
+    const totalPayments = activities
+        .filter((a) => a.amount != null)
+        .reduce((sum, a) => sum + (a.amount ?? 0), 0);
+
+    const completedActivities = activities.filter(
+        (a) => a.paymentStatus === "completed" || !a.paymentStatus
+    ).length;
+
+    const pendingActivities = activities.filter(
+        (a) => a.paymentStatus === "pending"
+    ).length;
 
     return (
-        <Sheet open={open} onOpenChange={handleClose}>
-            <SheetContent side="right" className="w-full sm:max-w-2xl px-2 flex flex-col gap-0">
-                {/* Header */}
-                <div className="shrink-0 px-6 pt-6 pb-4 border-b bg-muted/30 space-y-4">
-                    <SheetHeader className="text-left">
-                        <SheetTitle className="text-xl">Create New Task</SheetTitle>
-                        <SheetDescription>
-                            Set up a task to track member activities and progress.
-                        </SheetDescription>
-                    </SheetHeader>
+        <TooltipProvider>
+            <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6 bg-[#09090b] text-white min-h-screen">
+                {/* Back Button */}
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-neutral-400 hover:text-white hover:bg-white/10"
+                    asChild
+                >
+                    <Link href="/admin/task">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        All Tasks
+                    </Link>
+                </Button>
 
-                    {/* Progress Bar - ✅ FIXED: Added blue color */}
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                            <span>
-                                Step {step} of {STEPS.length}
-                            </span>
-                            <span>{Math.round(progress)}% complete</span>
-                        </div>
-                        <Progress
-                            value={progress}
-                            className="h-1.5 [&>div]:bg-blue-600"
-                        />
-                    </div>
-
-                    {/* Stepper - ✅ FIXED: Blue active states */}
-                    <nav aria-label="Task creation steps" className="flex items-center justify-between">
-                        {STEPS.map((s, i) => {
-                            const stepNum = i + 1;
-                            const isActive = stepNum === step;
-                            const isComplete = stepNum < step;
-
-                            return (
-                                <div key={stepNum} className="flex flex-col items-center gap-1">
-                                    <div
-                                        className={cn(
-                                            "flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors",
-                                            isActive && "bg-blue-600 text-white shadow-sm ring-2 ring-blue-600/20",
-                                            isComplete && "bg-blue-600/20 text-blue-600",
-                                            !isActive && !isComplete && "bg-muted text-muted-foreground"
-                                        )}
-                                    >
-                                        {isComplete ? <Check className="h-3.5 w-3.5" /> : stepNum}
-                                    </div>
-                                    <div className="hidden sm:block text-center">
-                                        <p className={cn("text-[10px] font-medium leading-none", isActive ? "text-foreground" : "text-muted-foreground")}>
-                                            {s.label}
-                                        </p>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </nav>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 overflow-hidden min-h-0">
-                    {/* STEP 1: Basic Info */}
-                    {step === 1 && (
-                        <ScrollArea className="h-full">
-                            <div className="px-6 py-6 space-y-6">
-                                <div className="space-y-2">
-                                    <Label htmlFor="task-name" className="text-sm font-medium">
-                                        Task Name *
-                                    </Label>
-                                    <Input
-                                        id="task-name"
-                                        placeholder="e.g., Monthly Tithe Collection"
-                                        className="h-11"
-                                        autoFocus
-                                        {...form.register("name")}
-                                    />
-                                    {form.formState.errors.name && (
-                                        <p className="text-sm text-destructive">{form.formState.errors.name.message as string}</p>
-                                    )}
-                                </div>
-
-                                {/* ✅ FIXED: RadioGroup with controlled value */}
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-medium">Task Purpose *</Label>
-                                    <RadioGroup
-                                        value={purpose || ""}
-                                        onValueChange={(v) => setValue("purpose", v, { shouldValidate: true })}
-                                    >
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                            {PURPOSE_OPTIONS.map((opt) => {
-                                                const Icon = opt.icon;
-                                                return (
-                                                    <div key={opt.value}>
-                                                        <RadioGroupItem value={opt.value} id={`purpose-${opt.value}`} className="peer sr-only" />
-                                                        <Label
-                                                            htmlFor={`purpose-${opt.value}`}
-                                                            className={cn(
-                                                                "flex flex-col items-start gap-2 rounded-xl border-2 p-4 cursor-pointer transition-all",
-                                                                "hover:bg-accent hover:border-primary/40",
-                                                                "peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5"
-                                                            )}
-                                                        >
-                                                            <div className={cn("flex h-10 w-10 items-center justify-center rounded-lg", opt.bg)}>
-                                                                <Icon className={cn("h-5 w-5", opt.color)} />
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-sm font-semibold">{opt.label}</p>
-                                                                <p className="text-xs text-muted-foreground mt-0.5">{opt.description}</p>
-                                                            </div>
-                                                        </Label>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </RadioGroup>
-                                    {form.formState.errors.purpose && (
-                                        <p className="text-sm text-destructive">{form.formState.errors.purpose.message as string}</p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="task-desc" className="text-sm font-medium">
-                                        Description <span className="text-muted-foreground font-normal">(optional)</span>
-                                    </Label>
-                                    <Textarea
-                                        id="task-desc"
-                                        placeholder="Add notes about this task..."
-                                        rows={3}
-                                        {...form.register("description")}
-                                    />
+                {/* Header Section styled as Bento Card Header */}
+                <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0f0f12] p-6 sm:p-8 flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="space-y-3 z-10">
+                        <div className="flex items-center gap-3">
+                            <div
+                                className={cn(
+                                    "flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5",
+                                    config.bg
+                                )}
+                            >
+                                <div className={cn("h-5 w-5", config.color)}>
+                                    {task.purpose === "payments" && <CreditCard className="h-5 w-5 text-white" />}
+                                    {task.purpose === "records" && <FileText className="h-5 w-5 text-white" />}
+                                    {task.purpose === "roles" && <Shield className="h-5 w-5 text-white" />}
+                                    {task.purpose === "monitoring" && <Activity className="h-5 w-5 text-white" />}
+                                    {task.purpose === "groups" && <Users className="h-5 w-5 text-white" />}
+                                    {task.purpose === "other" && <MoreVertical className="h-5 w-5 text-white" />}
                                 </div>
                             </div>
-                        </ScrollArea>
-                    )}
+                            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                                {task.name}
+                            </h1>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-neutral-400">
+                            {task.startDate && task.endDate && (
+                                <span className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/10 bg-white/5">
+                                    <Clock className="h-3.5 w-3.5" />
+                                    {format(new Date(task.startDate), "MMM d")} –{" "}
+                                    {format(new Date(task.endDate), "MMM d, yyyy")}
+                                </span>
+                            )}
+                            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/10 bg-white/5">
+                                <Users className="h-3.5 w-3.5" />
+                                {members.length} members
+                            </span>
+                            <Badge
+                                variant="secondary"
+                                className="bg-white/10 text-white border-white/10 rounded-full text-xs px-3 py-0.5"
+                            >
+                                {config.label}
+                            </Badge>
+                        </div>
+                        {task.description && (
+                            <p className="text-xs sm:text-sm text-neutral-400 max-w-2xl pt-1">
+                                {task.description}
+                            </p>
+                        )}
+                    </div>
 
-                    {/* STEP 2: Duration */}
-                    {step === 2 && (
-                        <ScrollArea className="h-full">
-                            <div className="px-6 py-6 space-y-6">
-                                <div className="flex items-center justify-between rounded-lg border p-4">
-                                    <div className="space-y-0.5">
-                                        <Label htmlFor="has-duration" className="text-sm font-medium">
-                                            Set Duration
-                                        </Label>
-                                        <p className="text-xs text-muted-foreground">Add start and end dates for this task</p>
-                                    </div>
-                                    <Switch id="has-duration" checked={hasDuration} onCheckedChange={(checked) => setValue("hasDuration", checked)} />
+                    <div className="flex flex-wrap items-center gap-2 z-10">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setMembersManagerOpen(true)}
+                            className="rounded-full border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+                        >
+                            <UserPlus className="mr-2 h-3.5 w-3.5" />
+                            Manage Members
+                        </Button>
+                        <Badge
+                            variant={getStatusVariant(task.status)}
+                            className="w-fit rounded-full px-3 py-1"
+                        >
+                            {task.status}
+                        </Badge>
+                        {daysLeft !== null && daysLeft <= 7 && (
+                            <Badge variant={expiryInfo.variant} className="rounded-full px-3 py-1">
+                                {expiryInfo.label}
+                            </Badge>
+                        )}
+                    </div>
+
+                    {/* Decorative Subtle Background Mesh Pattern */}
+                    <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-20 pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]" />
+                </div>
+
+                {/* Expiry Alert */}
+                {isExpired && (
+                    <Alert variant="destructive" className="rounded-2xl border-red-500/30 bg-red-950/20 text-red-400">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertTitle>Task Expired</AlertTitle>
+                        <AlertDescription>
+                            This task's end date has passed. You can still view and manage activities.
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                {/* Stats Cards (Bento Cards Component) */}
+                <TaskStatsCards
+                    task={task}
+                    totalActivities={activities.length}
+                    completedActivities={completedActivities}
+                    pendingActivities={pendingActivities}
+                    totalPayments={totalPayments}
+                    processedMembers={processedMemberIds.size}
+                />
+
+                {/* Main Content Bento Grid */}
+                <div className="grid gap-6 lg:grid-cols-3">
+                    {/* Members Panel */}
+                    <Card className="lg:col-span-1 rounded-3xl border-white/10 bg-[#0f0f12] text-white">
+                        <CardHeader className="pb-3 space-y-3 border-b border-white/10">
+                            <CardTitle className="text-base flex items-center gap-2 text-white">
+                                <Users className="h-4 w-4 text-neutral-400" />
+                                Members ({members.length})
+                            </CardTitle>
+                            <CardDescription className="text-xs text-neutral-400">
+                                {task.purpose === "payments"
+                                    ? "Click a member to record payments"
+                                    : task.purpose === "roles"
+                                        ? "Click a member to assign roles"
+                                        : task.purpose === "monitoring"
+                                            ? "Click a member to track activities"
+                                            : "Click a member to create records"}
+                            </CardDescription>
+                            <div className="flex gap-2 pt-1">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400" />
+                                    <Input
+                                        placeholder="Search…"
+                                        value={memberSearch}
+                                        onChange={(e) => setMemberSearch(e.target.value)}
+                                        className="pl-9 h-9 text-xs rounded-full border-white/10 bg-white/5 text-white placeholder:text-neutral-500 focus-visible:ring-white/20"
+                                    />
                                 </div>
-
-                                {hasDuration && (
-                                    <>
-                                        <div className="space-y-3">
-                                            <Label className="text-sm font-medium flex items-center gap-2">
-                                                <CalendarDays className="h-4 w-4" />
-                                                Date Range *
-                                            </Label>
-
-                                            {dateRange?.from && (
-                                                <p className="text-sm text-muted-foreground bg-muted/50 rounded-md px-3 py-2">
-                                                    {format(dateRange.from, "MMMM d, yyyy")}
-                                                    {dateRange.to && <> → {format(dateRange.to, "MMMM d, yyyy")}</>}
-                                                </p>
-                                            )}
-
-                                            <div className="border rounded-lg overflow-x-auto">
-                                                <Calendar
-                                                    mode="range"
-                                                    defaultMonth={dateRange?.from ?? new Date()}
-                                                    selected={dateRange}
-                                                    onSelect={(range) => setValue("dateRange", range, { shouldValidate: true })}
-                                                    numberOfMonths={1}
-                                                    disabled={(date) => date < new Date("1900-01-01")}
-                                                    className="mx-auto"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* ✅ FIXED: RadioGroup with controlled value */}
-                                        <div className="space-y-2">
-                                            <Label className="text-sm font-medium">Duration Type</Label>
-                                            <RadioGroup
-                                                value={watch("durationType") || ""}
-                                                onValueChange={(v) => setValue("durationType", v, { shouldValidate: true })}
+                                <Select
+                                    value={memberGroupFilter}
+                                    onValueChange={setMemberGroupFilter}
+                                >
+                                    <SelectTrigger className="w-[110px] h-9 text-xs rounded-full border-white/10 bg-white/5 text-white">
+                                        <Filter className="h-3 w-3 mr-1 text-neutral-400" />
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="border-white/10 bg-[#18181b] text-white">
+                                        {GROUP_FILTER_OPTIONS.map((opt) => (
+                                            <SelectItem
+                                                key={opt.value}
+                                                value={opt.value}
+                                                className="text-xs focus:bg-white/10 focus:text-white"
                                             >
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    {[
-                                                        { value: "weekly", label: "Weekly" },
-                                                        { value: "monthly", label: "Monthly" },
-                                                        { value: "quarterly", label: "Quarterly" },
-                                                        { value: "custom", label: "Custom" },
-                                                    ].map((opt) => (
-                                                        <div key={opt.value}>
-                                                            <RadioGroupItem value={opt.value} id={`duration-${opt.value}`} className="peer sr-only" />
-                                                            <Label
-                                                                htmlFor={`duration-${opt.value}`}
-                                                                className={cn(
-                                                                    "flex items-center justify-center rounded-lg border-2 p-3 cursor-pointer transition-all text-sm font-medium",
-                                                                    "hover:bg-accent hover:border-primary/40",
-                                                                    "peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5"
-                                                                )}
+                                                {opt.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <ScrollArea className="h-[500px]">
+                                <div className="divide-y divide-white/5">
+                                    {filteredMembers.map((member) => {
+                                        const isProcessed = processedMemberIds.has(member.memberId);
+                                        const activityCount =
+                                            memberActivityCounts.get(member.memberId) ?? 0;
+                                        const memberTotal = memberTotals.get(member.memberId) ?? 0;
+                                        const initials =
+                                            (member.firstName?.[0] ?? "") +
+                                            (member.lastName?.[0] ?? "");
+
+                                        return (
+                                            <div
+                                                key={member.id}
+                                                role="button"
+                                                tabIndex={0}
+                                                onClick={() => handleMemberClick(member)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter" || e.key === " ") {
+                                                        e.preventDefault();
+                                                        handleMemberClick(member);
+                                                    }
+                                                }}
+                                                className={cn(
+                                                    "flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors outline-none",
+                                                    "hover:bg-white/5 focus-visible:bg-white/5"
+                                                )}
+                                            >
+                                                <Avatar className="h-9 w-9 shrink-0 border border-white/10">
+                                                    <AvatarImage src={member.avatarUrl || ""} />
+                                                    <AvatarFallback className="text-[10px] bg-white/10 text-white">
+                                                        {initials.toUpperCase() || "?"}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium text-white truncate">
+                                                        {member.firstName} {member.lastName}
+                                                    </p>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-[11px] text-neutral-400 font-mono">
+                                                            {member.membershipId ?? "—"}
+                                                        </p>
+                                                        {activityCount > 0 && (
+                                                            <Badge
+                                                                variant="secondary"
+                                                                className="text-[9px] h-4 px-1.5 rounded-full bg-white/10 text-white border-0"
                                                             >
-                                                                {opt.label}
-                                                            </Label>
+                                                                {activityCount}
+                                                            </Badge>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Progress bar */}
+                                                    {member.progress > 0 && (
+                                                        <div className="mt-1.5">
+                                                            <div className="flex items-center gap-2 text-[10px] text-neutral-400 mb-0.5">
+                                                                <span>{member.progress}%</span>
+                                                            </div>
+                                                            <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                                                                <div
+                                                                    className="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 transition-all"
+                                                                    style={{ width: `${member.progress}%` }}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center gap-1.5 shrink-0">
+                                                    {task.purpose === "payments" && memberTotal > 0 && (
+                                                        <span className="text-[11px] text-emerald-400 font-medium tabular-nums">
+                                                            GH₵{memberTotal.toFixed(0)}
+                                                        </span>
+                                                    )}
+                                                    {isProcessed && (
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                                                            </TooltipTrigger>
+                                                            <TooltipContent className="border-white/10 bg-[#18181b] text-white">
+                                                                {activityCount} activities
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                    {filteredMembers.length === 0 && (
+                                        <p className="text-center py-12 text-sm text-neutral-500">
+                                            No members found.
+                                        </p>
+                                    )}
+                                </div>
+                            </ScrollArea>
+                        </CardContent>
+                    </Card>
+
+                    {/* Activities Panel */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <Card className="rounded-3xl border-white/10 bg-[#0f0f12] text-white">
+                            <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-white/10">
+                                <div className="space-y-1">
+                                    <CardTitle className="text-base text-white">
+                                        Activities ({activities.length})
+                                    </CardTitle>
+                                    <CardDescription className="text-neutral-400 text-xs">
+                                        All recorded activities for this task.
+                                    </CardDescription>
+                                </div>
+                                {activities.length > 0 && (
+                                    <TaskExportMenu task={task} activities={activities} />
+                                )}
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+                                    <div className="px-6 pt-4 pb-2">
+                                        <TabsList className="grid w-full grid-cols-2 rounded-2xl bg-white/5 border border-white/10 p-1">
+                                            <TabsTrigger
+                                                value="all"
+                                                className="rounded-xl data-[state=active]:bg-white/10 data-[state=active]:text-white text-xs text-neutral-400"
+                                            >
+                                                All Activities
+                                            </TabsTrigger>
+                                            <TabsTrigger
+                                                value="by-member"
+                                                className="rounded-xl data-[state=active]:bg-white/10 data-[state=active]:text-white text-xs text-neutral-400"
+                                            >
+                                                By Member
+                                            </TabsTrigger>
+                                        </TabsList>
+                                    </div>
+
+                                    <TabsContent value="all" className="mt-0">
+                                        {activities.length === 0 ? (
+                                            <div className="flex flex-col items-center gap-2 py-16 text-center">
+                                                <FileText className="h-10 w-10 text-neutral-600" />
+                                                <p className="text-sm text-neutral-400">No activities yet.</p>
+                                                <p className="text-xs text-neutral-500">
+                                                    Click a member to create an activity.
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <ScrollArea className="h-[440px]">
+                                                <div className="divide-y divide-white/5">
+                                                    {activities.map((activity) => (
+                                                        <div
+                                                            key={activity.id}
+                                                            className="px-6 py-4 hover:bg-white/5 transition-colors"
+                                                        >
+                                                            <div className="flex items-start gap-3">
+                                                                <Avatar className="h-8 w-8 shrink-0 mt-1 border border-white/10">
+                                                                    <AvatarImage src={activity.memberAvatarUrl || ""} />
+                                                                    <AvatarFallback className="text-[10px] bg-white/10 text-white">
+                                                                        {((activity.memberFirstName?.[0] ?? "") +
+                                                                            (activity.memberLastName?.[0] ?? "")
+                                                                        ).toUpperCase() || "?"}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="flex items-start justify-between gap-2">
+                                                                        <div className="flex-1">
+                                                                            <Link
+                                                                                href={`/admin/users/${activity.memberId}`}
+                                                                                className="text-sm font-medium text-white hover:text-emerald-400 transition-colors"
+                                                                            >
+                                                                                {activity.memberFirstName}{" "}
+                                                                                {activity.memberLastName}
+                                                                            </Link>
+                                                                            <p className="text-xs text-neutral-400 mt-0.5">
+                                                                                {format(
+                                                                                    new Date(activity.createdAt),
+                                                                                    "MMM d, yyyy 'at' h:mm a"
+                                                                                )}
+                                                                            </p>
+                                                                        </div>
+                                                                        {activity.amount != null && (
+                                                                            <Badge
+                                                                                variant="secondary"
+                                                                                className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full"
+                                                                            >
+                                                                                {formatCurrency(activity.amount)}
+                                                                            </Badge>
+                                                                        )}
+                                                                    </div>
+
+                                                                    <div className="mt-2">
+                                                                        <p className="text-sm font-medium text-white">
+                                                                            {activity.roleTitle ?? activity.title}
+                                                                        </p>
+                                                                        {(activity.roleDescription ??
+                                                                            activity.description ??
+                                                                            activity.monitorNote) && (
+                                                                                <p className="text-xs text-neutral-400 mt-1 line-clamp-2">
+                                                                                    {activity.roleDescription ??
+                                                                                        activity.description ??
+                                                                                        activity.monitorNote}
+                                                                                </p>
+                                                                            )}
+                                                                    </div>
+
+                                                                    <div className="flex items-center gap-2 mt-2">
+                                                                        <Badge
+                                                                            variant="outline"
+                                                                            className="text-[10px] border-white/10 text-neutral-300 rounded-full"
+                                                                        >
+                                                                            {activity.activityType}
+                                                                        </Badge>
+                                                                        {activity.paymentStatus && (
+                                                                            <Badge
+                                                                                variant={
+                                                                                    activity.paymentStatus === "completed"
+                                                                                        ? "default"
+                                                                                        : activity.paymentStatus === "cancelled"
+                                                                                            ? "destructive"
+                                                                                            : "secondary"
+                                                                                }
+                                                                                className="text-[10px] rounded-full"
+                                                                            >
+                                                                                {activity.paymentStatus}
+                                                                            </Badge>
+                                                                        )}
+                                                                        {activity.paymentPeriod && (
+                                                                            <Badge
+                                                                                variant="secondary"
+                                                                                className="text-[10px] bg-white/10 text-white border-0 rounded-full"
+                                                                            >
+                                                                                {activity.paymentPeriod}
+                                                                            </Badge>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     ))}
                                                 </div>
-                                            </RadioGroup>
-                                        </div>
-                                    </>
-                                )}
-
-                                {!hasDuration && (
-                                    <div className="flex flex-col items-center gap-3 py-12 text-center">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                                            <CalendarDays className="h-6 w-6 text-muted-foreground" />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-sm font-medium">No Duration Set</p>
-                                            <p className="text-xs text-muted-foreground">This task will have no specific end date.</p>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </ScrollArea>
-                    )}
-
-                    {/* STEP 3: Members */}
-                    {step === 3 && <TaskMemberSelection selectedIds={memberIds} onSelectionChange={(ids) => setValue("memberIds", ids)} />}
-
-                    {/* STEP 4: Configure */}
-                    {step === 4 && purpose && <TaskPurposeConfig purpose={purpose} form={form} />}
-
-                    {/* STEP 5: Review */}
-                    {step === 5 && (
-                        <ScrollArea className="h-full">
-                            <div className="px-6 py-6 space-y-6">
-                                <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
-                                    <h3 className="font-semibold">Review Your Task</h3>
-                                    <Separator />
-
-                                    <div className="grid grid-cols-2 gap-y-3 text-sm">
-                                        <span className="text-muted-foreground">Name</span>
-                                        <span className="font-medium">{form.getValues("name")}</span>
-
-                                        <span className="text-muted-foreground">Purpose</span>
-                                        <Badge variant="secondary" className="w-fit">
-                                            {PURPOSE_OPTIONS.find((p) => p.value === purpose)?.label}
-                                        </Badge>
-
-                                        {form.getValues("description") && (
-                                            <>
-                                                <span className="text-muted-foreground">Description</span>
-                                                <span className="font-medium text-xs">{form.getValues("description")}</span>
-                                            </>
+                                            </ScrollArea>
                                         )}
+                                    </TabsContent>
 
-                                        <span className="text-muted-foreground">Members</span>
-                                        <span className="font-medium">{memberIds.length} selected</span>
+                                    <TabsContent value="by-member" className="mt-0">
+                                        <ScrollArea className="h-[440px]">
+                                            <div className="divide-y divide-white/5">
+                                                {members
+                                                    .filter((m) =>
+                                                        activities.some((a) => a.memberId === m.memberId)
+                                                    )
+                                                    .map((member) => {
+                                                        const memberActivities = activities.filter(
+                                                            (a) => a.memberId === member.memberId
+                                                        );
+                                                        const initials =
+                                                            (member.firstName?.[0] ?? "") +
+                                                            (member.lastName?.[0] ?? "");
 
-                                        {hasDuration && dateRange?.from && dateRange?.to && (
-                                            <>
-                                                <span className="text-muted-foreground">Duration</span>
-                                                <span className="font-medium text-xs">
-                                                    {format(dateRange.from, "MMM d")} → {format(dateRange.to, "MMM d, yyyy")}
-                                                </span>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
+                                                        return (
+                                                            <div key={member.id} className="px-6 py-4">
+                                                                <div className="flex items-center gap-3 mb-3">
+                                                                    <Avatar className="h-8 w-8 border border-white/10">
+                                                                        <AvatarImage src={member.avatarUrl || ""} />
+                                                                        <AvatarFallback className="text-[10px] bg-white/10 text-white">
+                                                                            {initials.toUpperCase() || "?"}
+                                                                        </AvatarFallback>
+                                                                    </Avatar>
+                                                                    <div className="flex-1">
+                                                                        <Link
+                                                                            href={`/admin/users/${member.memberId}`}
+                                                                            className="text-sm font-medium text-white hover:text-emerald-400 transition-colors"
+                                                                        >
+                                                                            {member.firstName} {member.lastName}
+                                                                        </Link>
+                                                                        <p className="text-xs text-neutral-400">
+                                                                            {memberActivities.length} activity
+                                                                            {memberActivities.length !== 1 ? "ies" : "y"}
+                                                                        </p>
+                                                                    </div>
+                                                                    <Badge
+                                                                        variant="secondary"
+                                                                        className="bg-white/10 text-white rounded-full text-xs"
+                                                                    >
+                                                                        {member.progress}%
+                                                                    </Badge>
+                                                                </div>
 
-                                <div className="rounded-lg border bg-blue-50 dark:bg-blue-950/20 p-4">
-                                    <div className="flex items-start gap-3">
-                                        <Sparkles className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
-                                        <div>
-                                            <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Ready to create!</p>
-                                            <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                                                Click "Create Task" to proceed. You can manage members and activities after creation.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </ScrollArea>
-                    )}
-                </div>
-
-                {/* Footer */}
-                <div className="shrink-0 flex items-center justify-between px-6 py-4 border-t bg-muted/30">
-                    <Button variant="outline" onClick={step === 1 ? handleClose : handleBack} disabled={createMutation.isPending} size="sm">
-                        {step === 1 ? "Cancel" : <><ArrowLeft className="mr-1.5 h-3.5 w-3.5" />Back</>}
-                    </Button>
-
-                    <div className="flex items-center gap-3">
-                        <span className="text-xs text-muted-foreground">
-                            Step {step}/{STEPS.length}
-                        </span>
-                        {step < STEPS.length ? (
-                            <Button onClick={handleNext} size="sm">
-                                Next
-                                <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                            </Button>
-                        ) : (
-                            <Button onClick={onSubmit} disabled={createMutation.isPending} size="sm" className="min-w-[120px]">
-                                {createMutation.isPending ? (
-                                    <>
-                                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                                        Creating…
-                                    </>
-                                ) : (
-                                    "Create Task"
-                                )}
-                            </Button>
-                        )}
+                                                                <div className="ml-11 space-y-2">
+                                                                    {memberActivities.map((activity) => (
+                                                                        <div
+                                                                            key={activity.id}
+                                                                            className="text-xs p-3 rounded-xl bg-white/5 border border-white/5"
+                                                                        >
+                                                                            <p className="font-medium text-white">
+                                                                                {activity.roleTitle ?? activity.title}
+                                                                            </p>
+                                                                            <p className="text-neutral-400 text-[11px] mt-0.5">
+                                                                                {format(
+                                                                                    new Date(activity.createdAt),
+                                                                                    "MMM d, yyyy"
+                                                                                )}
+                                                                                {activity.amount != null &&
+                                                                                    ` · ${formatCurrency(activity.amount)}`}
+                                                                            </p>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                            </div>
+                                        </ScrollArea>
+                                    </TabsContent>
+                                </Tabs>
+                            </CardContent>
+                        </Card>
                     </div>
                 </div>
-            </SheetContent>
-        </Sheet>
+
+                {/* Drawers */}
+                {drawerMember && task.purpose === "payments" && (
+                    <TaskPaymentTracker
+                        open={paymentDrawerOpen}
+                        onOpenChange={(open) => {
+                            setPaymentDrawerOpen(open);
+                            if (!open) router.refresh();
+                        }}
+                        taskId={task.id}
+                        member={drawerMember}
+                        onActivityChange={handleActivityChange}
+                    />
+                )}
+
+                {drawerMember && task.purpose === "records" && (
+                    <TaskRecordManager
+                        open={recordDrawerOpen}
+                        onOpenChange={(open) => {
+                            setRecordDrawerOpen(open);
+                            if (!open) router.refresh();
+                        }}
+                        taskId={task.id}
+                        member={drawerMember}
+                        onActivityChange={handleActivityChange}
+                    />
+                )}
+
+                {drawerMember && task.purpose === "roles" && (
+                    <TaskRoleAssigner
+                        open={roleDrawerOpen}
+                        onOpenChange={(open) => {
+                            setRoleDrawerOpen(open);
+                            if (!open) router.refresh();
+                        }}
+                        taskId={task.id}
+                        member={drawerMember}
+                        onActivityChange={handleActivityChange}
+                    />
+                )}
+
+                {drawerMember && task.purpose === "monitoring" && (
+                    <TaskMonitorTracker
+                        open={monitorDrawerOpen}
+                        onOpenChange={(open) => {
+                            setMonitorDrawerOpen(open);
+                            if (!open) router.refresh();
+                        }}
+                        taskId={task.id}
+                        member={drawerMember}
+                        onActivityChange={handleActivityChange}
+                    />
+                )}
+
+                <TaskMembersManager
+                    open={membersManagerOpen}
+                    onOpenChange={setMembersManagerOpen}
+                    taskId={task.id}
+                    currentMembers={members}
+                    onMembersChanged={handleMembersChanged}
+                />
+            </div>
+        </TooltipProvider>
     );
 }

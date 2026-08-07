@@ -35,7 +35,11 @@ interface TaskMemberSelectionProps {
 }
 
 type GenderFilter = "all" | "male" | "female";
-type GroupFilter = "all" | "men" | "women" | "youth";
+// fixed: values now match the real member_group enum
+// ('mens_fellowship' | 'womens_fellowship' | 'youth_fellowship'),
+// not the display labels ('men' | 'women' | 'youth') that never
+// matched any real row.
+type GroupFilter = "all" | "mens_fellowship" | "womens_fellowship" | "youth_fellowship";
 
 export function TaskMemberSelection({
     selectedIds,
@@ -49,31 +53,23 @@ export function TaskMemberSelection({
 
     const { data, isLoading } = useMembersQuery({
         page: 1,
-        pageSize: 1000, // ✅ No limit - load all members
+        pageSize: 1000,
         search: debouncedSearch,
     });
 
     const allMembers = data?.data ?? [];
 
-    // ✅ Advanced filtering by gender and group
     const displayMembers = useMemo(() => {
         let filtered = allMembers;
 
-        // ✅ Filter by gender (male/female from database)
         if (genderFilter !== "all") {
             filtered = filtered.filter((m) => m.gender?.toLowerCase() === genderFilter);
         }
 
-        // ✅ Filter by group (men/women/youth from database)
         if (groupFilter !== "all") {
-            filtered = filtered.filter((m) => {
-                const memberGroup = m.memberGroup?.toLowerCase();
-                // Map "men" → "men", "women" → "women", "youth" → "youth"
-                return memberGroup === groupFilter;
-            });
+            filtered = filtered.filter((m) => m.memberGroup?.toLowerCase() === groupFilter);
         }
 
-        // Show only selected
         if (showSelectedOnly) {
             filtered = filtered.filter((m) => selectedIds.includes(m.id));
         }
@@ -126,9 +122,7 @@ export function TaskMemberSelection({
 
     return (
         <div className="flex flex-col h-full">
-            {/* Toolbar */}
             <div className="flex flex-col gap-3 p-4 border-b bg-muted/30">
-                {/* Search Bar */}
                 <div className="flex items-center gap-2">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -174,9 +168,7 @@ export function TaskMemberSelection({
                     )}
                 </div>
 
-                {/* Filter Row */}
                 <div className="flex items-center gap-2">
-                    {/* Gender Filter */}
                     <Select value={genderFilter} onValueChange={(v) => setGenderFilter(v as GenderFilter)}>
                         <SelectTrigger className="h-8 w-[120px]">
                             <SelectValue placeholder="Gender" />
@@ -188,16 +180,15 @@ export function TaskMemberSelection({
                         </SelectContent>
                     </Select>
 
-                    {/* Group Filter */}
                     <Select value={groupFilter} onValueChange={(v) => setGroupFilter(v as GroupFilter)}>
                         <SelectTrigger className="h-8 w-[140px]">
                             <SelectValue placeholder="Fellowship" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">All Fellowships</SelectItem>
-                            <SelectItem value="men">Men's Fellowship</SelectItem>
-                            <SelectItem value="women">Women's Fellowship</SelectItem>
-                            <SelectItem value="youth">Youth Fellowship</SelectItem>
+                            <SelectItem value="mens_fellowship">Men's Fellowship</SelectItem>
+                            <SelectItem value="womens_fellowship">Women's Fellowship</SelectItem>
+                            <SelectItem value="youth_fellowship">Youth Fellowship</SelectItem>
                         </SelectContent>
                     </Select>
 
@@ -232,7 +223,6 @@ export function TaskMemberSelection({
                     )}
                 </div>
 
-                {/* Stats Row */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Badge variant="default" className="tabular-nums">
@@ -253,15 +243,18 @@ export function TaskMemberSelection({
                 </div>
             </div>
 
-            {/* Member List */}
-            <ScrollArea className="flex-1 h-screen">
+            {/* fixed: h-screen -> h-full — the scroll area was forcing itself to
+                100vh regardless of the flex-1/min-h-0 parent, overflowing past
+                the Sheet's footer and making the Add/Cancel/Next/Back buttons
+                unclickable in both CreateTaskDialog and TaskMembersManager. */}
+            <ScrollArea className="flex-1 h-full">
                 {isLoading ? (
                     <div className="flex flex-col items-center justify-center gap-2 py-12">
                         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                         <p className="text-sm text-muted-foreground">Loading members...</p>
                     </div>
                 ) : displayMembers.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center gap-2 py-12 overflow-y-auto">
+                    <div className="flex flex-col items-center justify-center gap-2 py-12">
                         <Users className="h-8 w-8 text-muted-foreground/40" />
                         <p className="text-sm text-muted-foreground">
                             {showSelectedOnly

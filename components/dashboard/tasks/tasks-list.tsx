@@ -42,9 +42,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
     LayoutGrid,
-    List,
     Search,
-    Filter,
     MoreHorizontal,
     Eye,
     Trash2,
@@ -54,7 +52,6 @@ import {
     Calendar,
     Users,
     TrendingUp,
-    Grid3x3,
     LayoutList,
     X,
     CreditCard,
@@ -63,12 +60,15 @@ import {
     Activity,
     UsersIcon,
     MoreVertical,
+    ArrowUpRight,
+    Globe,
+    Sparkles,
 } from "lucide-react";
-import { format, isBefore } from "date-fns";
+import { format } from "date-fns";
 import { deleteTask } from "@/actions/task";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { TaskCreateTrigger } from "./task-create-trigger";
+import TaskCreateTrigger from "./task-create-trigger";
 import {
     getStatusVariant,
     getPurposeConfig,
@@ -111,20 +111,16 @@ export function TasksList({ initialTasks }: TasksListProps) {
     const [deleteTarget, setDeleteTarget] = useState<TaskWithStats | null>(null);
     const [isPending, startTransition] = useTransition();
 
-    const now = new Date();
-
     // Filter and sort tasks
     const filteredAndSortedTasks = useMemo(() => {
         let result = tasks;
 
-        // Apply filters
         result = filterTasks(result, {
             status: statusFilter === "all" ? undefined : statusFilter,
             purpose: purposeFilter === "all" ? undefined : purposeFilter,
             search: searchQuery,
         });
 
-        // Apply sorting
         result = sortTasks(result, sortBy, sortOrder);
 
         return result;
@@ -163,26 +159,40 @@ export function TasksList({ initialTasks }: TasksListProps) {
     }
 
     return (
-        <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
-            {/* Header */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Tasks</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Manage member tasks, activities, and progress tracking.
+        <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6 bg-[#09090b] text-white min-h-screen">
+            {/* Header Bento Box */}
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0f0f12] p-6 sm:p-8 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-2 z-10 max-w-xl">
+                    <div className="flex items-center gap-2">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 border border-white/10">
+                            <Sparkles className="h-3.5 w-3.5 text-white" />
+                        </span>
+                        <span className="text-xs uppercase tracking-wider text-neutral-400 font-semibold">
+                            Management
+                        </span>
+                    </div>
+                    <h1 className="text-3xl font-extrabold tracking-tight text-white">Tasks Overview</h1>
+                    <p className="text-xs sm:text-sm text-neutral-400">
+                        Track operations, manage member activities, and monitor platform progress.
                         {tasks.length > 0 && (
-                            <span className="ml-1">
-                                · {tasks.length} task{tasks.length !== 1 ? "s" : ""}
+                            <span className="ml-2 px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-white font-medium">
+                                {tasks.length} total
                             </span>
                         )}
                     </p>
                 </div>
-                <TaskCreateTrigger />
+
+                <div className="z-10 shrink-0">
+                    <TaskCreateTrigger />
+                </div>
+
+                {/* Decorative Grid Line Graphics */}
+                <div className="absolute right-0 top-0 bottom-0 w-1/3 opacity-20 pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]" />
             </div>
 
             {/* Alerts */}
             {expiredCount > 0 && (
-                <Alert variant="destructive">
+                <Alert variant="destructive" className="rounded-2xl border-red-500/30 bg-red-950/20 text-red-400">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Action Needed</AlertTitle>
                     <AlertDescription>
@@ -192,8 +202,8 @@ export function TasksList({ initialTasks }: TasksListProps) {
             )}
 
             {expiringSoonCount > 0 && (
-                <Alert>
-                    <AlertCircle className="h-4 w-4" />
+                <Alert className="rounded-2xl border-amber-500/30 bg-amber-950/20 text-amber-400">
+                    <AlertCircle className="h-4 w-4 text-amber-400" />
                     <AlertTitle>Expiring Soon</AlertTitle>
                     <AlertDescription>
                         {expiringSoonCount} task(s) will expire within 7 days.
@@ -201,22 +211,22 @@ export function TasksList({ initialTasks }: TasksListProps) {
                 </Alert>
             )}
 
-            {/* Toolbar */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                {/* Search */}
-                <div className="relative flex-1 sm:max-w-sm">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            {/* Control Toolbar */}
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between p-2 rounded-2xl border border-white/10 bg-[#0f0f12]">
+                {/* Search Input */}
+                <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
                     <Input
                         placeholder="Search tasks..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9"
+                        className="pl-9 h-10 text-xs rounded-xl border-white/10 bg-white/5 text-white placeholder:text-neutral-500 focus-visible:ring-white/20"
                     />
                     {searchQuery && (
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
+                            className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-neutral-400 hover:text-white"
                             onClick={() => setSearchQuery("")}
                         >
                             <X className="h-3 w-3" />
@@ -224,14 +234,14 @@ export function TasksList({ initialTasks }: TasksListProps) {
                     )}
                 </div>
 
-                {/* Filters & View */}
-                <div className="flex items-center gap-2">
+                {/* Filters & Controls */}
+                <div className="flex flex-wrap items-center gap-2">
                     {/* Status Filter */}
                     <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-                        <SelectTrigger className="w-[130px] h-9">
+                        <SelectTrigger className="w-[120px] h-10 text-xs rounded-xl border-white/10 bg-white/5 text-white">
                             <SelectValue placeholder="Status" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="border-white/10 bg-[#18181b] text-white">
                             <SelectItem value="all">All Status</SelectItem>
                             <SelectItem value="active">Active</SelectItem>
                             <SelectItem value="completed">Completed</SelectItem>
@@ -242,10 +252,10 @@ export function TasksList({ initialTasks }: TasksListProps) {
 
                     {/* Purpose Filter */}
                     <Select value={purposeFilter} onValueChange={(v) => setPurposeFilter(v as any)}>
-                        <SelectTrigger className="w-[140px] h-9">
+                        <SelectTrigger className="w-[130px] h-10 text-xs rounded-xl border-white/10 bg-white/5 text-white">
                             <SelectValue placeholder="Purpose" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="border-white/10 bg-[#18181b] text-white">
                             <SelectItem value="all">All Types</SelectItem>
                             <SelectItem value="payments">💳 Payments</SelectItem>
                             <SelectItem value="records">📄 Records</SelectItem>
@@ -258,10 +268,10 @@ export function TasksList({ initialTasks }: TasksListProps) {
 
                     {/* Sort */}
                     <Select value={sortBy} onValueChange={(v) => setSortBy(v as any)}>
-                        <SelectTrigger className="w-[140px] h-9">
+                        <SelectTrigger className="w-[130px] h-10 text-xs rounded-xl border-white/10 bg-white/5 text-white">
                             <SelectValue />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="border-white/10 bg-[#18181b] text-white">
                             <SelectItem value="created_at">Created Date</SelectItem>
                             <SelectItem value="name">Name</SelectItem>
                             <SelectItem value="completion_rate">Progress</SelectItem>
@@ -269,22 +279,22 @@ export function TasksList({ initialTasks }: TasksListProps) {
                         </SelectContent>
                     </Select>
 
-                    {/* Sort Order */}
+                    {/* Sort Order Toggle */}
                     <Button
                         variant="outline"
                         size="icon"
-                        className="h-9 w-9"
+                        className="h-10 w-10 rounded-xl border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white"
                         onClick={() => setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))}
                     >
                         <TrendingUp className={cn("h-4 w-4 transition-transform", sortOrder === "desc" && "rotate-180")} />
                     </Button>
 
                     {/* View Mode Toggle */}
-                    <div className="flex items-center gap-1 border rounded-md p-1">
+                    <div className="flex items-center gap-1 border border-white/10 rounded-xl p-1 bg-white/5">
                         <Button
                             variant={viewMode === "grid" ? "secondary" : "ghost"}
                             size="icon"
-                            className="h-7 w-7"
+                            className={cn("h-8 w-8 rounded-lg", viewMode === "grid" ? "bg-white/10 text-white" : "text-neutral-400 hover:text-white")}
                             onClick={() => setViewMode("grid")}
                         >
                             <LayoutGrid className="h-4 w-4" />
@@ -292,7 +302,7 @@ export function TasksList({ initialTasks }: TasksListProps) {
                         <Button
                             variant={viewMode === "list" ? "secondary" : "ghost"}
                             size="icon"
-                            className="h-7 w-7"
+                            className={cn("h-8 w-8 rounded-lg", viewMode === "list" ? "bg-white/10 text-white" : "text-neutral-400 hover:text-white")}
                             onClick={() => setViewMode("list")}
                         >
                             <LayoutList className="h-4 w-4" />
@@ -301,51 +311,75 @@ export function TasksList({ initialTasks }: TasksListProps) {
 
                     {/* Clear Filters */}
                     {activeFiltersCount > 0 && (
-                        <Button variant="ghost" size="sm" className="h-9" onClick={clearFilters}>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-10 text-xs text-neutral-400 hover:text-white hover:bg-white/10 rounded-xl"
+                            onClick={clearFilters}
+                        >
                             Clear ({activeFiltersCount})
                         </Button>
                     )}
                 </div>
             </div>
 
-            {/* Empty State */}
+            {/* Empty State Options (Designed matching Google I/O Bento visual grid) */}
             {tasks.length === 0 ? (
-                <Card className="border-2 border-dashed">
-                    <CardContent className="flex flex-col items-center justify-center gap-4 py-20">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
-                            <FolderOpen className="h-7 w-7 text-muted-foreground" />
-                        </div>
-                        <div className="text-center space-y-1">
-                            <p className="font-medium">No tasks yet</p>
-                            <p className="text-sm text-muted-foreground">
-                                Create your first task to start tracking member activities.
-                            </p>
-                        </div>
+                <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0f0f12] p-8 sm:p-12 text-center min-h-[380px] flex flex-col items-center justify-center space-y-5">
+                    <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl border border-white/10 bg-white/5 shadow-2xl">
+                        <FolderOpen className="h-10 w-10 text-neutral-400" />
+                        <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-emerald-400 animate-pulse" />
+                    </div>
+                    <div className="max-w-md space-y-2">
+                        <h3 className="text-xl font-bold text-white">No tasks created yet</h3>
+                        <p className="text-xs sm:text-sm text-neutral-400">
+                            Start building your operational workflow by establishing your first task and registering members.
+                        </p>
+                    </div>
+                    <div className="pt-2">
                         <TaskCreateTrigger />
-                    </CardContent>
-                </Card>
+                    </div>
+
+                    {/* Abstract Wireframe Sphere Graphics Background */}
+                    <div className="absolute -right-12 -bottom-12 pointer-events-none opacity-20">
+                        <div className="w-64 h-64 rounded-full border border-white/20 bg-[radial-gradient(circle,rgba(255,255,255,0.1)_1px,transparent_1px)] [background-size:12px_12px]" />
+                    </div>
+                </div>
             ) : filteredAndSortedTasks.length === 0 ? (
-                <Card className="border-2 border-dashed">
-                    <CardContent className="flex flex-col items-center justify-center gap-4 py-16">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                            <Search className="h-6 w-6 text-muted-foreground" />
-                        </div>
-                        <div className="text-center space-y-1">
-                            <p className="font-medium">No tasks found</p>
-                            <p className="text-sm text-muted-foreground">
-                                Try adjusting your filters or search query.
-                            </p>
-                        </div>
-                        <Button variant="outline" size="sm" onClick={clearFilters}>
-                            Clear Filters
-                        </Button>
-                    </CardContent>
-                </Card>
+                /* Empty Filter State - Styled in modern Flow App dark UI layout */
+                <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0f0f12] p-8 sm:p-12 text-center min-h-[360px] flex flex-col items-center justify-center space-y-5">
+                    {/* Bento Graphical Mesh Icon Context */}
+                    <div className="relative flex h-20 w-20 items-center justify-center rounded-3xl border border-white/10 bg-gradient-to-tr from-amber-500/20 via-orange-500/10 to-transparent shadow-xl">
+                        <Search className="h-9 w-9 text-amber-400" />
+                        <div className="absolute inset-0 rounded-3xl border border-amber-500/20 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:8px_8px] opacity-40" />
+                    </div>
+
+                    <div className="max-w-md space-y-1.5">
+                        <h3 className="text-xl font-bold text-white">No matching tasks found</h3>
+                        <p className="text-xs sm:text-sm text-neutral-400">
+                            We couldn't find any tasks matching your selected filters or search query. Try clearing filters to inspect all records.
+                        </p>
+                    </div>
+
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={clearFilters}
+                        className="rounded-full border-white/20 bg-white/5 text-xs text-white hover:bg-white/10 hover:text-white px-6 py-2"
+                    >
+                        Clear Search & Filters
+                    </Button>
+
+                    {/* Graphic Wireframe Background Decor */}
+                    <div className="absolute left-[-20px] bottom-[-20px] pointer-events-none opacity-15">
+                        <div className="w-48 h-48 rounded-full border border-white/20" />
+                    </div>
+                </div>
             ) : (
-                /* Task Cards/List */
+                /* Tasks List / Grid Display */
                 <div
                     className={cn(
-                        "grid gap-6",
+                        "grid gap-4 sm:gap-6",
                         viewMode === "grid"
                             ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
                             : "grid-cols-1"
@@ -360,24 +394,30 @@ export function TasksList({ initialTasks }: TasksListProps) {
 
                         if (viewMode === "list") {
                             return (
-                                <Card key={task.id} className="hover:shadow-md transition-shadow">
-                                    <div className="flex items-center gap-4 p-4">
-                                        {/* Icon */}
-                                        <div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-xl", config.bg)}>
-                                            <PurposeIcon className={cn("h-6 w-6", config.color)} />
+                                <div
+                                    key={task.id}
+                                    className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f12] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-white/20 transition-all group"
+                                >
+                                    <div className="flex items-center gap-4 min-w-0">
+                                        <div
+                                            className={cn(
+                                                "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5",
+                                                config.bg
+                                            )}
+                                        >
+                                            <PurposeIcon className="h-6 w-6 text-white" />
                                         </div>
 
-                                        {/* Info */}
-                                        <div className="flex-1 min-w-0">
-                                            <Link href={taskUrl} className="group">
-                                                <h3 className="font-semibold text-base group-hover:text-primary transition-colors truncate">
+                                        <div className="min-w-0 flex-1">
+                                            <Link href={taskUrl} className="group-hover:text-emerald-400 transition-colors">
+                                                <h3 className="font-bold text-base text-white truncate">
                                                     {task.name}
                                                 </h3>
                                             </Link>
-                                            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                                            <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-neutral-400">
                                                 <span className="flex items-center gap-1">
                                                     <Users className="h-3 w-3" />
-                                                    {task.memberCount}
+                                                    {task.memberCount} members
                                                 </span>
                                                 {task.endDate && (
                                                     <span className="flex items-center gap-1">
@@ -385,66 +425,67 @@ export function TasksList({ initialTasks }: TasksListProps) {
                                                         {format(new Date(task.endDate), "MMM d, yyyy")}
                                                     </span>
                                                 )}
-                                                <Badge variant="secondary" className="text-[10px]">
+                                                <Badge variant="secondary" className="bg-white/10 text-white rounded-full text-[10px] px-2 py-0">
                                                     {config.label}
                                                 </Badge>
                                             </div>
                                         </div>
+                                    </div>
 
+                                    <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 border-t border-white/5 sm:border-0 pt-3 sm:pt-0">
                                         {/* Progress */}
-                                        <div className="hidden sm:flex items-center gap-3 shrink-0">
+                                        <div className="flex items-center gap-3">
                                             <div className="text-right">
-                                                <p className="text-sm font-medium">{task.completionRate}%</p>
-                                                <p className="text-xs text-muted-foreground">Complete</p>
+                                                <p className="text-sm font-bold text-white tabular-nums">{task.completionRate}%</p>
+                                                <p className="text-[10px] text-neutral-400">Complete</p>
                                             </div>
-                                            <div className="w-16 h-16">
-                                                <svg className="transform -rotate-90" width="64" height="64">
+                                            <div className="w-10 h-10 relative flex items-center justify-center">
+                                                <svg className="transform -rotate-90 w-10 h-10">
                                                     <circle
-                                                        cx="32"
-                                                        cy="32"
-                                                        r="28"
+                                                        cx="20"
+                                                        cy="20"
+                                                        r="16"
                                                         stroke="currentColor"
-                                                        strokeWidth="4"
+                                                        strokeWidth="3"
                                                         fill="none"
-                                                        className="text-muted"
+                                                        className="text-white/10"
                                                     />
                                                     <circle
-                                                        cx="32"
-                                                        cy="32"
-                                                        r="28"
+                                                        cx="20"
+                                                        cy="20"
+                                                        r="16"
                                                         stroke="currentColor"
-                                                        strokeWidth="4"
+                                                        strokeWidth="3"
                                                         fill="none"
-                                                        strokeDasharray={`${2 * Math.PI * 28}`}
-                                                        strokeDashoffset={`${2 * Math.PI * 28 * (1 - task.completionRate / 100)}`}
-                                                        className="text-primary transition-all"
+                                                        strokeDasharray={`${2 * Math.PI * 16}`}
+                                                        strokeDashoffset={`${2 * Math.PI * 16 * (1 - task.completionRate / 100)}`}
+                                                        className="text-emerald-400 transition-all"
                                                     />
                                                 </svg>
                                             </div>
                                         </div>
 
-                                        {/* Status Badge */}
-                                        <Badge variant={getStatusVariant(task.status)} className="shrink-0">
+                                        <Badge variant={getStatusVariant(task.status)} className="rounded-full px-3 py-0.5 text-xs">
                                             {task.status}
                                         </Badge>
 
-                                        {/* Actions */}
+                                        {/* Actions Menu */}
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-white">
                                                     <MoreHorizontal className="h-4 w-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem asChild>
+                                            <DropdownMenuContent align="end" className="border-white/10 bg-[#18181b] text-white">
+                                                <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-white">
                                                     <Link href={taskUrl}>
                                                         <Eye className="mr-2 h-4 w-4" />
                                                         View Task
                                                     </Link>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
+                                                <DropdownMenuSeparator className="bg-white/10" />
                                                 <DropdownMenuItem
-                                                    className="text-destructive focus:text-destructive"
+                                                    className="text-red-400 focus:bg-red-500/10 focus:text-red-400"
                                                     onClick={() => setDeleteTarget(task)}
                                                 >
                                                     <Trash2 className="mr-2 h-4 w-4" />
@@ -453,56 +494,48 @@ export function TasksList({ initialTasks }: TasksListProps) {
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </div>
-                                </Card>
+                                </div>
                             );
                         }
 
-                        // Grid View
+                        {/* Grid View Bento Style */ }
                         return (
-                            <Link
+                            <div
                                 key={task.id}
-                                href={taskUrl}
-                                className={cn(
-                                    "group flex flex-col transition-all duration-300 border-none rounded-3xl shadow-sm",
-                                    "hover:shadow-xl hover:-translate-y-1",
-                                    config.cardBg
-                                )}
+                                className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0f0f12] p-6 flex flex-col justify-between hover:border-white/20 transition-all group"
                             >
-                                <Card className="border-none shadow-none bg-transparent h-full flex flex-col">
-                                    <CardHeader className="pb-3">
-                                        <div className="flex items-start justify-between">
-                                            <div className={cn("flex h-12 w-12 items-center justify-center rounded-2xl shadow-inner bg-white/90")}>
-                                                <PurposeIcon className={cn("h-6 w-6", config.color)} />
-                                            </div>
+                                <div className="space-y-4">
+                                    {/* Top Header */}
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+                                            <PurposeIcon className="h-5 w-5 text-white" />
+                                        </div>
 
+                                        <div className="flex items-center gap-1">
+                                            <Badge variant={getStatusVariant(task.status)} className="rounded-full px-2.5 py-0.5 text-[10px] uppercase font-semibold">
+                                                {task.status}
+                                            </Badge>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="h-8 w-8 text-inherit opacity-60 hover:opacity-100 transition-opacity"
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            e.stopPropagation();
-                                                        }}
+                                                        className="h-8 w-8 text-neutral-400 hover:text-white"
                                                     >
                                                         <MoreHorizontal className="h-4 w-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" onClick={(e) => e.preventDefault()}>
-                                                    <DropdownMenuItem asChild>
+                                                <DropdownMenuContent align="end" className="border-white/10 bg-[#18181b] text-white">
+                                                    <DropdownMenuItem asChild className="focus:bg-white/10 focus:text-white">
                                                         <Link href={taskUrl}>
                                                             <Eye className="mr-2 h-4 w-4" />
                                                             View Task
                                                         </Link>
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuSeparator className="bg-white/10" />
                                                     <DropdownMenuItem
-                                                        className="text-destructive focus:text-destructive"
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            setDeleteTarget(task);
-                                                        }}
+                                                        className="text-red-400 focus:bg-red-500/10 focus:text-red-400"
+                                                        onClick={() => setDeleteTarget(task)}
                                                     >
                                                         <Trash2 className="mr-2 h-4 w-4" />
                                                         Delete
@@ -510,84 +543,79 @@ export function TasksList({ initialTasks }: TasksListProps) {
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </div>
+                                    </div>
 
-                                        <CardTitle className="text-xl mt-4 font-bold tracking-tight text-white line-clamp-2">
-                                            {task.name}
-                                        </CardTitle>
-
+                                    {/* Task Title & Description */}
+                                    <div>
+                                        <Link href={taskUrl} className="group-hover:text-emerald-400 transition-colors">
+                                            <h3 className="text-xl font-bold tracking-tight text-white line-clamp-1">
+                                                {task.name}
+                                            </h3>
+                                        </Link>
                                         {task.description && (
-                                            <CardDescription className="text-white/80 line-clamp-2 text-sm">
+                                            <p className="text-xs text-neutral-400 line-clamp-2 mt-1">
                                                 {task.description}
-                                            </CardDescription>
+                                            </p>
                                         )}
-                                    </CardHeader>
+                                    </div>
 
-                                    <CardContent className="flex-1 pb-3 space-y-2">
-                                        <Badge className="bg-white/20 hover:bg-white/30 border-none text-white backdrop-blur-md font-medium">
-                                            {config.label}
-                                        </Badge>
-
-                                        {/* Progress Bar */}
-                                        <div className="space-y-1">
-                                            <div className="flex items-center justify-between text-xs text-white/90">
-                                                <span>Progress</span>
-                                                <span className="font-medium">{task.completionRate}%</span>
-                                            </div>
-                                            <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-white/90 transition-all duration-500"
-                                                    style={{ width: `${task.completionRate}%` }}
-                                                />
-                                            </div>
+                                    {/* Progress Indicator Bar */}
+                                    <div className="space-y-1.5 pt-1">
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="text-neutral-400 font-medium">Progress</span>
+                                            <span className="font-extrabold text-white tabular-nums">{task.completionRate}%</span>
                                         </div>
-                                    </CardContent>
-
-                                    <CardFooter className="pt-3 flex flex-col gap-2 bg-black/5 rounded-b-3xl">
-                                        <div className="flex items-center justify-between w-full">
-                                            <span className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-white/90">
-                                                <Users className="h-3.5 w-3.5" />
-                                                {task.memberCount} member{task.memberCount !== 1 ? "s" : ""}
-                                            </span>
-                                            <Badge variant={getStatusVariant(task.status)} className="text-[10px] uppercase font-bold">
-                                                {task.status}
-                                            </Badge>
+                                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 transition-all duration-500"
+                                                style={{ width: `${task.completionRate}%` }}
+                                            />
                                         </div>
+                                    </div>
+                                </div>
 
-                                        {task.endDate && (
-                                            <div className="flex items-center gap-1.5 text-xs text-white/80">
-                                                <Calendar className="h-3 w-3" />
-                                                <span>Ends {format(new Date(task.endDate), "MMM d, yyyy")}</span>
-                                                {daysLeft !== null && daysLeft <= 7 && (
-                                                    <Badge variant={expiryInfo.variant} className="text-[9px] ml-auto">
-                                                        {expiryInfo.label}
-                                                    </Badge>
-                                                )}
-                                            </div>
-                                        )}
-                                    </CardFooter>
-                                </Card>
-                            </Link>
+                                {/* Footer Metadata */}
+                                <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5 text-xs text-neutral-400">
+                                        <Users className="h-3.5 w-3.5" />
+                                        <span>{task.memberCount} member{task.memberCount !== 1 ? "s" : ""}</span>
+                                    </div>
+
+                                    <Link href={taskUrl}>
+                                        <div className="inline-flex items-center gap-1 text-xs text-white font-medium hover:text-emerald-400 transition-colors">
+                                            <span>Details</span>
+                                            <ArrowUpRight className="h-3 w-3" />
+                                        </div>
+                                    </Link>
+                                </div>
+
+                                {/* Background Decoration Graphic */}
+                                <div className="absolute right-[-10px] bottom-[-10px] pointer-events-none opacity-5">
+                                    <Globe className="w-32 h-32 text-white" />
+                                </div>
+                            </div>
                         );
                     })}
                 </div>
             )}
 
-            {/* Delete Dialog */}
+            {/* Delete Confirmation Alert */}
             <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-                <AlertDialogContent>
+                <AlertDialogContent className="border-white/10 bg-[#18181b] text-white rounded-3xl">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete this task?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This will permanently delete <strong>{deleteTarget?.name}</strong> and all its activities and member assignments.
-                            This cannot be undone.
+                        <AlertDialogTitle className="text-lg font-bold">Delete this task?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-xs text-neutral-400">
+                            This will permanently delete <strong className="text-white">{deleteTarget?.name}</strong> along with all associated activity records and member assignments.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel disabled={isPending} className="rounded-full border-white/10 bg-white/5 text-white hover:bg-white/10 hover:text-white">
+                            Cancel
+                        </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDelete}
                             disabled={isPending}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            className="rounded-full bg-red-600 text-white hover:bg-red-700"
                         >
                             {isPending ? (
                                 <>
@@ -595,7 +623,7 @@ export function TasksList({ initialTasks }: TasksListProps) {
                                     Deleting…
                                 </>
                             ) : (
-                                "Delete"
+                                "Delete Task"
                             )}
                         </AlertDialogAction>
                     </AlertDialogFooter>
