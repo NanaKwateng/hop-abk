@@ -14,288 +14,97 @@ import InteractiveBook from "./ai-assistant-client";
 const GUIDE_PAGES = [
     {
         pageNumber: 1,
-        title: "🏠 Welcome to HOP",
-        content: `Welcome to the HOP Church Management System! This guide will help you navigate the app, understand its features, and manage your church operations efficiently. No technical background needed - we'll explain everything in simple terms.
+        title: "Welcome to HOP",
+        content: `Welcome to the HOP Church Management System. This guide will help you navigate the app and manage your church operations efficiently.
 
-What is HOP?
+HOP helps you manage members, track payments, organize tasks, communicate via SMS, generate reports, and get AI-powered assistance.
 
-HOP (House of Power Ministry) is a complete church management system designed to help you:
-• 👥 Manage members and their information
-• 💰 Track payments and financial contributions
-• ✅ Organize tasks and activities
-• 📱 Communicate with members via SMS
-• 📊 Generate reports and analytics
-• 🤖 Get answers instantly with AI Assistant
+This guide covers all the key features in simple, easy-to-understand language.
 
-Let's get started!`
+Let's get started with your journey to efficient church management.`
     },
     {
         pageNumber: 2,
-        title: "🏠 Dashboard Overview",
-        content: `When you log in, you'll land on the Dashboard - your command center for all church activities.
+        title: "Dashboard & Navigation",
+        content: `The Dashboard is your command center showing welcome message, quick stats, recent activity, and quick action buttons.
 
-Key Sections:
+Use the left sidebar to navigate: Introduction, All Users, Register Member, Workflows, Branches, Financial Analytics, Task Management, AI Assistant, and Settings.
 
-• Welcome Message: Greets you by name and shows today's date
-• Quick Stats: Shows total members, payments, tasks, and branches at a glance
-• Recent Activity: Lists the latest actions taken in the system
-• Quick Actions: Buttons to quickly add members, record payments, or create tasks
+The search bar at the top helps you quickly find members by name, phone, or membership ID.
 
-Navigation Menu (Left Sidebar):
-
-🏠 Introduction - Home page with welcome message and quick overview
-👥 All Users - Complete list of all church members
-➕ Register Member - Form to add a new member to the church
-📋 All Workflows - Manage church processes and activities
-🏛️ Manage Branches - View and manage church branches
-💰 Financial Analytics - View payment reports and financial insights
-📋 Task Management - Create and track tasks for members
-🎤 AI Assistant - Ask questions about your church data
-🔐 Manage Accounts - Admin account settings
-⚙️ Manage Settings - System configuration
-🎨 Customize Settings - Personalize the app appearance`
+Your profile and account settings are accessible from the top-right corner.`
     },
     {
         pageNumber: 3,
-        title: "👥 Managing Members",
-        content: `All Users Page
+        title: "Managing Members",
+        content: `The All Users page shows a complete list of registered members with search, sort, and filter capabilities.
 
-This page shows a complete list of all registered members.
+Click any member's name to view their full profile including payment history and personal information.
 
-What You Can Do:
+Use the Edit button to update member details, add a photo, or change membership status.
 
-🔍 Search Members
-• Type a name, phone number, or membership ID in the search bar
-• Results appear instantly as you type
-
-📊 Sort and Filter
-• Click column headers to sort (e.g., click "Name" to sort alphabetically)
-• Use the "Filters" button to narrow down results by Gender, Position, or Group
-
-👤 View Member Details
-• Click any member's name to see their full profile
-• View payment history, analytics, and personal information
-
-✏️ Edit Member
-• Click the "Edit" button on any member
-• Update their information, add a photo, or change their membership status
-
-📤 Export Members
-• Use the "Export" button to download member lists as CSV or Excel
-• Choose which columns to include (e.g., Name, Phone, Location)
-
-Register Member Page
-
-This is a step-by-step form to add new members with 6 steps:
-
-Step 1: Basic Info - First name, last name, phone, gender
-Step 2: Address - Place of stay, house number, member position
-Step 3: Roles & Duties - Fellowship group, occupation, email
-Step 4: Profile Photo - Upload a photo or take one with your camera
-Step 5: Membership ID - Generate or enter a unique ID
-Step 6: Certificate - Preview and download the membership certificate`
+The Register Member form guides you through 6 steps: Basic Info, Address, Roles, Photo, Membership ID, and Certificate.`
     },
     {
         pageNumber: 4,
-        title: "💳 Payments & Finances",
-        content: `Financial Analytics
+        title: "Payments & Finances",
+        content: `Financial Analytics shows total collections, monthly trends, payment by group, and member payment progress.
 
-This page shows you the financial health of your church.
+Each member's payment page displays a 12-month grid showing paid (green) and unpaid (gray) months.
 
-What You'll See:
+Track payment streaks, view total contributions, and record member testimonies.
 
-📊 Total Payments
-• How much has been collected this year
-• How many members have paid
-
-📈 Monthly Trends
-• Chart showing payments month by month
-• See which months have the most payments
-
-👥 Payment by Group
-• See which fellowship groups are most active
-• Compare Men's, Women's, and Youth Fellowship
-
-📋 Member Payment Progress
-• View each member's payment status
-• See who is fully paid and who is behind
-
-Member Payment Page
-
-When viewing a specific member, you can:
-
-📅 Monthly Payment Grid
-• See all 12 months at a glance
-• Green = Paid, Gray = Unpaid
-• Mark months as paid or unpaid with one click
-
-📊 Payment Analytics
-• See their payment history over the years
-• Track their payment streak
-• View total contributions
-
-📝 Add Testimonials
-• Record member testimonies
-• Add notes about duties and roles
-• Keep track of member contributions`
+Mark months as paid or unpaid with a single click for quick updates.`
     },
     {
         pageNumber: 5,
-        title: "✅ Tasks & Workflows",
-        content: `Task Management
+        title: "Tasks & Workflows",
+        content: `Tasks help organize church activities by assigning members and tracking progress through completion.
 
-Tasks help you organize church activities and assign them to members.
+Create tasks with a name, purpose, optional duration, and assigned members. Each member gets their own progress tracker.
 
-Creating a Task:
+Workflows are reusable templates for common processes like payment collection, role assignment, record keeping, and member monitoring.
 
-1. Name & Purpose
-• Give your task a clear name
-• Choose the purpose (Payments, Monitoring, Roles, etc.)
-
-2. Duration (Optional)
-• Set start and end dates
-• Track progress over time
-
-3. Assign Members
-• Select which members should participate
-• Each member gets their own progress tracker
-
-4. Track Progress
-• Members can mark tasks as complete
-• View completion rates per member
-• See overall task progress
-
-Workflows
-
-Workflows are like task templates for common church processes.
-
-Examples:
-• Payment Collection: Track monthly payments
-• Role Assignment: Assign church roles to members
-• Record Keeping: Document church activities
-• Monitoring: Track member engagement`
+Track completion rates and view overall progress at a glance.`
     },
     {
         pageNumber: 6,
-        title: "🤖 AI Assistant",
-        content: `How to Use the AI Assistant
+        title: "Branches & Settings",
+        content: `Manage multiple church locations by adding branches with name, location, contact details, and leader information.
 
-The AI Assistant is like having a knowledgeable helper who can answer questions about your church data instantly.
+View branch details including leader and spouse information, and track membership size for each branch.
 
-What You Can Ask:
+Customize your experience with theme mode (Light/Dark/Auto), color schemes, font styles, and animation preferences.
 
-Members
-• "How many members do we have?"
-• "Show me all members from Santasi"
-• "Find John's membership ID"
-
-Payments
-• "Who hasn't paid this month?"
-• "Show me payment trends for this year"
-• "What's the total payment collected?"
-
-Tasks
-• "What tasks are overdue?"
-• "How many tasks are completed?"
-• "Show me all active tasks"
-
-Analytics
-• "Give me a summary of this month's activities"
-• "Show me member growth trends"
-• "What's the payment compliance rate?"
-
-How to Use:
-
-💬 Type Your Question
-• Click the chat icon in the bottom-right corner
-• Type your question in plain English
-• Press Enter or click Send
-
-🎤 Voice Search
-• Click the microphone button
-• Speak your question clearly
-• The assistant will transcribe and answer
-
-📊 View Results
-• Answers come with charts and tables when relevant
-• Click suggestions for follow-up questions`
+Account settings allow profile updates and password changes.`
     },
     {
         pageNumber: 7,
-        title: "🏛️ Branches & Settings",
-        content: `Branch Management
+        title: "Quick Reference",
+        content: `Add a new member: Dashboard → Register Member
+Find a member: Dashboard → All Users → Search
+Record a payment: Member Details → Payments Tab
+Check payment status: Member Details → Analytics Tab
+Create a task: Dashboard → Task Management → New Task
+Send an SMS: Dashboard → SMS Messaging
+Add a branch: Dashboard → Manage Branches → Add Branch
+Get statistics: Dashboard → Financial Analytics
 
-If your church has multiple locations, you can manage them here.
-
-What You Can Do:
-
-➕ Add Branch
-• Enter branch name, location, and contact details
-• Add leader information
-• Set membership size
-
-👁️ View Branch Details
-• See all branch information
-• View leader and spouse details
-• Track branch membership
-
-✏️ Edit Branch
-• Update branch information
-• Change leader details
-• Update membership size
-
-Settings & Customization
-
-Account Settings
-• Update your profile information
-• Change your password
-• Manage your preferences
-
-Admin Settings
-• Manage admin users
-• View audit logs
-• Track admin activity
-
-Customize Settings
-• Theme Mode: Choose Light, Dark, or Auto
-• Colors: Pick your preferred color scheme
-• Font: Choose font style
-• Animations: Turn animations on/off`
+Tips: Start with Dashboard, use Search Bar, try AI Assistant, check Analytics, use Export.`
     },
     {
         pageNumber: 8,
-        title: "🔍 Quick Reference & Tips",
-        content: `Quick Reference
+        title: "AI Assistant & Help",
+        content: `The AI Assistant answers questions about members, payments, tasks, and analytics. Click the chat icon in the bottom-right corner.
 
-What You Want To Do           | Where To Go
---------------------------------|--------------------------------
-Add a new member               | Dashboard → Register Member
-Find a member                  | Dashboard → All Users → Search
-Record a payment               | Member Details → Payments Tab
-Check payment status           | Member Details → Analytics Tab
-Create a task                  | Dashboard → Task Management → New Task
-Send an SMS                    | Dashboard → SMS Messaging
-Add a branch                   | Dashboard → Manage Branches → Add Branch
-Get church statistics          | Dashboard → Financial Analytics
-Ask a question                 | Click AI Assistant icon (bottom-right)
+Ask questions like: "How many members do we have?" or "Who hasn't paid this month?"
 
-💡 Tips for New Users
+For help, contact your administrator. Additional documentation is available in the Introduction page.
 
-1. Start with the Dashboard - It gives you a quick overview of everything
-2. Use the Search Bar - It's the fastest way to find members
-3. Try the AI Assistant - Ask questions instead of clicking through menus
-4. Check the Analytics - Stay informed about church health
-5. Use Export - Download reports for sharing with church leadership
-
-🆘 Need Help?
-
-• 🤖 AI Assistant: Ask any question about the app
-• 📧 Support: Contact your administrator
-• 📚 Documentation: Check the "Introduction" page for more details
-
-Welcome to HOP Church Management System! 🙏`
+Welcome to HOP Church Management System. We're here to help you serve your church better.`
     }
 ];
+
 
 export default function ClientWrapper() {
     const [activeTab, setActiveTab] = useState("guide");
