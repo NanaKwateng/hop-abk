@@ -84,6 +84,7 @@ import type {
     TaskStatus,
     TaskPurpose,
 } from "@/lib/types/task";
+import PatternCardContainer from "@/components/pattern-card";
 
 interface TasksListProps {
     initialTasks: TaskWithStats[];
@@ -231,24 +232,25 @@ export function TasksList({ initialTasks }: TasksListProps) {
                 <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-[radial-gradient(circle,rgba(251,146,60,0.25)_0%,rgba(244,63,94,0.15)_45%,transparent_70%)] dark:bg-[radial-gradient(circle,rgba(251,146,60,0.3)_0%,rgba(225,29,72,0.2)_50%,transparent_75%)] blur-3xl opacity-70 pointer-events-none" />
 
                 <div className="space-y-2 z-10 max-w-xl">
-                    <div className="flex items-center gap-2">
-                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 dark:bg-white/10 border border-neutral-200 dark:border-white/10">
-                            <Sparkles className="h-3.5 w-3.5 text-neutral-800 dark:text-white" />
-                        </span>
-                        <span className="text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-semibold">
-                            Management
-                        </span>
-                    </div>
+                    <PatternCardContainer>
+                        <div className="flex items-center gap-2">
 
-                    <h1 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">Tasks Overview</h1>
-                    <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
-                        Track operations, manage member activities, and monitor platform progress.
-                        {tasks.length > 0 && (
-                            <span className="ml-2 px-2 py-0.5 rounded-full border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5 text-neutral-800 dark:text-white font-medium">
-                                {tasks.length} total
+                            <span className="text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-semibold">
+                                Management
                             </span>
-                        )}
-                    </p>
+                            <h1 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">Tasks Overview</h1>
+                            <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
+                                Track operations, manage member activities, and monitor platform progress.
+                                {tasks.length > 0 && (
+                                    <span className="ml-2 px-2 py-0.5 rounded-full border border-neutral-200 dark:border-white/10 bg-neutral-100 dark:bg-white/5 text-neutral-800 dark:text-white font-medium">
+                                        {tasks.length} total
+                                    </span>
+                                )}
+                            </p>
+
+                        </div>
+                    </PatternCardContainer>
+
                 </div>
 
                 <div className="z-10 shrink-0">
