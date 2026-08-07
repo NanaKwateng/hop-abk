@@ -1,4 +1,3 @@
-// components/dashboard/tasks/task-stats-cards.tsx
 "use client";
 
 import {
@@ -9,12 +8,12 @@ import {
     TrendingUp,
     Globe,
     ArrowUpRight,
-    Layers,
     Sparkles,
     Cloud,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/task-utils";
 import type { TaskDetail } from "@/lib/types/task";
+import { cn } from "@/lib/utils";
 
 interface TaskStatsCardsProps {
     task: TaskDetail;
@@ -33,38 +32,60 @@ export function TaskStatsCards({
     totalPayments,
     processedMembers,
 }: TaskStatsCardsProps) {
+    const isPaymentTask = task.purpose === "payments";
+
     return (
-        <div className="space-y-4 text-white">
+        <div className="space-y-4 text-neutral-900 dark:text-white transition-colors duration-300">
             {/* Top Large Bento Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                {/* Total Activities - Main Showcase Card */}
-                <div className="md:col-span-7 relative overflow-hidden rounded-3xl border border-white/10 bg-[#0f0f12] p-6 sm:p-8 flex flex-col justify-between min-h-[220px]">
+
+                {/* 1. Total Activities - Main Showcase Card */}
+                <div className="md:col-span-7 relative overflow-hidden rounded-3xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#0f0f12] p-6 sm:p-8 flex flex-col justify-between min-h-[220px] group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:hover:shadow-none hover:border-emerald-500/40">
+
+                    {/* Glowing Ambient Hover Aura */}
+                    <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+                    {/* SVG Background Path Grid Accent */}
+                    <div className="absolute inset-0 opacity-5 dark:opacity-15 pointer-events-none group-hover:opacity-25 transition-opacity">
+                        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <pattern id="bento-grid-pattern" width="24" height="24" patternUnits="userSpaceOnUse">
+                                    <path d="M 24 0 L 0 0 0 24" fill="none" stroke="currentColor" strokeWidth="0.8" />
+                                </pattern>
+                            </defs>
+                            <rect width="100%" height="100%" fill="url(#bento-grid-pattern)" />
+                        </svg>
+                    </div>
+
                     {/* Header & Main Value */}
                     <div className="z-10 max-w-sm space-y-2">
                         <div className="flex items-center gap-2">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 border border-white/10">
-                                <BarChart3 className="h-3.5 w-3.5 text-white" />
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 dark:bg-white/10 border border-neutral-200 dark:border-white/10 text-neutral-700 dark:text-white">
+                                <BarChart3 className="h-3.5 w-3.5" />
                             </span>
-                            <span className="text-xs uppercase tracking-wider text-neutral-400 font-semibold">
+                            <span className="text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-semibold">
                                 Overview
                             </span>
                         </div>
-                        <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+
+                        <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900 dark:text-white">
                             Total Activities
                         </h3>
-                        <div className="text-4xl sm:text-5xl font-black tracking-tight text-white pt-2 tabular-nums">
-                            {totalActivities}
+
+                        <div className="text-4xl sm:text-5xl font-black tracking-tight text-neutral-900 dark:text-white pt-2 tabular-nums">
+                            {totalActivities.toLocaleString()}
                         </div>
-                        <p className="text-xs sm:text-sm text-neutral-400">
+
+                        <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
                             Track and monitor all operations processed across active members.
                         </p>
                     </div>
 
                     {/* Action pill button */}
                     <div className="z-10 mt-6">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 bg-white/5 text-xs font-medium text-white hover:bg-white/10 transition-colors cursor-pointer">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-200 dark:border-white/20 bg-neutral-50 dark:bg-white/5 text-xs font-medium text-neutral-800 dark:text-white hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors cursor-pointer group/btn">
                             <span>View Details</span>
-                            <ArrowUpRight className="h-3 w-3" />
+                            <ArrowUpRight className="h-3 w-3 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
                         </div>
                     </div>
 
@@ -73,62 +94,69 @@ export function TaskStatsCards({
                         <div className="relative w-48 h-48 sm:w-64 sm:h-64">
                             {/* Wireframe Grid */}
                             <div
-                                className="absolute inset-0 rounded-full border border-white/10"
+                                className="absolute inset-0 rounded-full border border-neutral-200 dark:border-white/10"
                                 style={{
                                     backgroundImage:
-                                        "radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)",
+                                        "radial-gradient(circle, rgba(120,120,120,0.15) 1px, transparent 1px)",
                                     backgroundSize: "12px 12px",
                                 }}
                             />
-                            {/* Colorful Gradient Sphere */}
-                            <div className="absolute bottom-4 right-4 w-32 h-32 sm:w-40 sm:h-40 rounded-full bg-gradient-to-tr from-amber-500 via-emerald-400 to-cyan-500 opacity-90 blur-0 shadow-2xl flex items-center justify-center">
+
+                            {/* Colorful Gradient Sphere with Hover Scale Micro-interaction */}
+                            <div className="absolute bottom-4 right-4 w-32 h-32 sm:w-40 sm:h-40 rounded-full bg-gradient-to-tr from-amber-500 via-emerald-400 to-cyan-500 opacity-90 blur-0 shadow-2xl flex items-center justify-center transition-transform duration-500 group-hover:scale-105">
                                 <Globe className="w-20 h-20 text-black/20" />
                             </div>
-                            <div className="absolute top-8 left-4 border border-white/20 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] text-white">
+
+                            <div className="absolute top-8 left-4 border border-neutral-200 dark:border-white/20 bg-white/80 dark:bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-medium text-neutral-800 dark:text-white shadow-sm">
                                 Active
                             </div>
-                            <div className="absolute bottom-12 left-2 border border-white/20 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] text-white">
+
+                            <div className="absolute bottom-12 left-2 border border-neutral-200 dark:border-white/20 bg-white/80 dark:bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-medium text-neutral-800 dark:text-white shadow-sm">
                                 {processedMembers} Members
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Completion & Financial Card */}
-                <div className="md:col-span-5 relative overflow-hidden rounded-3xl border border-white/10 bg-[#0f0f12] p-6 sm:p-8 flex flex-col justify-between min-h-[220px]">
+                {/* 2. Completion & Financial Card */}
+                <div className="md:col-span-5 relative overflow-hidden rounded-3xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#0f0f12] p-6 sm:p-8 flex flex-col justify-between min-h-[220px] group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:hover:shadow-none hover:border-blue-500/40">
+
+                    {/* Ambient Glow */}
+                    <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-blue-500/10 dark:bg-blue-500/15 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
                     <div className="z-10 space-y-2">
                         <div className="flex items-center gap-2">
-                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 border border-white/10">
-                                {task.purpose === "payments" ? (
-                                    <CreditCard className="h-3.5 w-3.5 text-white" />
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 dark:bg-white/10 border border-neutral-200 dark:border-white/10 text-neutral-700 dark:text-white">
+                                {isPaymentTask ? (
+                                    <CreditCard className="h-3.5 w-3.5" />
                                 ) : (
-                                    <TrendingUp className="h-3.5 w-3.5 text-white" />
+                                    <TrendingUp className="h-3.5 w-3.5" />
                                 )}
                             </span>
-                            <span className="text-xs uppercase tracking-wider text-neutral-400 font-semibold">
-                                {task.purpose === "payments" ? "Finances" : "Performance"}
+                            <span className="text-xs uppercase tracking-wider text-neutral-500 dark:text-neutral-400 font-semibold">
+                                {isPaymentTask ? "Finances" : "Performance"}
                             </span>
                         </div>
 
-                        <h3 className="text-2xl font-bold tracking-tight text-white">
-                            {task.purpose === "payments" ? "Total Payments" : "Overall Progress"}
+                        <h3 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
+                            {isPaymentTask ? "Total Payments" : "Overall Progress"}
                         </h3>
 
-                        <div className="text-3xl sm:text-4xl font-extrabold text-white tabular-nums pt-1">
-                            {task.purpose === "payments"
+                        <div className="text-3xl sm:text-4xl font-extrabold text-neutral-900 dark:text-white tabular-nums pt-1">
+                            {isPaymentTask
                                 ? formatCurrency(totalPayments)
                                 : `${Math.round(task.completionRate || 0)}%`}
                         </div>
 
-                        <p className="text-xs sm:text-sm text-neutral-400">
-                            {task.purpose === "payments"
+                        <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
+                            {isPaymentTask
                                 ? "Cumulative transaction amount recorded"
                                 : "Completion status across all task objectives"}
                         </p>
                     </div>
 
                     <div className="z-10 mt-6">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/20 bg-white/5 text-xs font-medium text-white hover:bg-white/10 transition-colors cursor-pointer">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-200 dark:border-white/20 bg-neutral-50 dark:bg-white/5 text-xs font-medium text-neutral-800 dark:text-white hover:bg-neutral-100 dark:hover:bg-white/10 transition-colors cursor-pointer">
                             <span>View Analytics</span>
                         </div>
                     </div>
@@ -137,8 +165,8 @@ export function TaskStatsCards({
                     <div className="absolute right-2 bottom-2 pointer-events-none">
                         <div className="w-28 h-28 sm:w-36 sm:h-36 relative">
                             {/* Layered Colorful Block Graphic */}
-                            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-yellow-400 via-orange-500 to-pink-500 transform rotate-12 translate-x-4 translate-y-4 opacity-90 shadow-xl" />
-                            <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-cyan-400 to-blue-600 transform -rotate-6 opacity-80 backdrop-blur-sm border border-white/20" />
+                            <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-yellow-400 via-orange-500 to-pink-500 transform rotate-12 translate-x-4 translate-y-4 opacity-90 shadow-xl transition-transform duration-500 group-hover:rotate-6 group-hover:translate-x-2" />
+                            <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-cyan-400 to-blue-600 transform -rotate-6 opacity-80 backdrop-blur-sm border border-neutral-200 dark:border-white/20 transition-transform duration-500 group-hover:-rotate-3" />
                         </div>
                     </div>
                 </div>
@@ -146,73 +174,83 @@ export function TaskStatsCards({
 
             {/* Bottom Row Small Bento Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                {/* Completed Card */}
-                <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f12] p-5 flex flex-col justify-between group hover:border-white/20 transition-all">
+
+                {/* 1. Completed Card */}
+                <div className="relative overflow-hidden rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#0f0f12] p-5 flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:hover:shadow-none hover:border-emerald-500/40">
+                    <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-emerald-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
                     <div className="space-y-3 z-10">
                         <div className="h-20 w-full rounded-xl bg-gradient-to-br from-emerald-500/20 via-teal-500/10 to-transparent border border-emerald-500/20 flex items-center justify-center relative overflow-hidden">
                             <div className="absolute inset-0 opacity-30 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:8px_8px]" />
-                            <CheckCircle2 className="h-8 w-8 text-emerald-400 z-10" />
+                            <CheckCircle2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400 z-10 transition-transform duration-300 group-hover:scale-110" />
                         </div>
                         <div>
-                            <h4 className="text-sm font-semibold text-white">Completed</h4>
-                            <p className="text-2xl font-bold text-white tabular-nums mt-0.5">
-                                {completedActivities}
+                            <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">Completed</h4>
+                            <p className="text-2xl font-bold text-neutral-900 dark:text-white tabular-nums mt-0.5">
+                                {completedActivities.toLocaleString()}
                             </p>
                         </div>
-                        <p className="text-xs text-neutral-400">Successfully finalized tasks.</p>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400">Successfully finalized tasks.</p>
                     </div>
                 </div>
 
-                {/* Pending Card */}
-                <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f12] p-5 flex flex-col justify-between group hover:border-white/20 transition-all">
+                {/* 2. Pending Card */}
+                <div className="relative overflow-hidden rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#0f0f12] p-5 flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:hover:shadow-none hover:border-amber-500/40">
+                    <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-amber-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
                     <div className="space-y-3 z-10">
                         <div className="h-20 w-full rounded-xl bg-gradient-to-br from-amber-500/20 via-orange-500/10 to-transparent border border-amber-500/20 flex items-center justify-center relative overflow-hidden">
                             <div className="absolute inset-0 opacity-30 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:8px_8px]" />
-                            <Clock className="h-8 w-8 text-amber-400 z-10" />
+                            <Clock className="h-8 w-8 text-amber-600 dark:text-amber-400 z-10 transition-transform duration-300 group-hover:scale-110" />
                         </div>
                         <div>
-                            <h4 className="text-sm font-semibold text-white">Pending</h4>
-                            <p className="text-2xl font-bold text-white tabular-nums mt-0.5">
-                                {pendingActivities}
+                            <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">Pending</h4>
+                            <p className="text-2xl font-bold text-neutral-900 dark:text-white tabular-nums mt-0.5">
+                                {pendingActivities.toLocaleString()}
                             </p>
                         </div>
-                        <p className="text-xs text-neutral-400">Awaiting processing or review.</p>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400">Awaiting processing or review.</p>
                     </div>
                 </div>
 
-                {/* Members Processed Card */}
-                <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f12] p-5 flex flex-col justify-between group hover:border-white/20 transition-all">
+                {/* 3. Members Processed Card */}
+                <div className="relative overflow-hidden rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#0f0f12] p-5 flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:hover:shadow-none hover:border-indigo-500/40">
+                    <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-indigo-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
                     <div className="space-y-3 z-10">
                         <div className="h-20 w-full rounded-xl bg-gradient-to-br from-indigo-500/20 via-purple-500/10 to-transparent border border-indigo-500/20 flex items-center justify-center relative overflow-hidden">
                             <div className="absolute inset-0 opacity-30 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:8px_8px]" />
-                            <Sparkles className="h-8 w-8 text-indigo-400 z-10" />
+                            <Sparkles className="h-8 w-8 text-indigo-600 dark:text-indigo-400 z-10 transition-transform duration-300 group-hover:scale-110" />
                         </div>
                         <div>
-                            <h4 className="text-sm font-semibold text-white">Processed Members</h4>
-                            <p className="text-2xl font-bold text-white tabular-nums mt-0.5">
-                                {processedMembers}
+                            <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">Processed Members</h4>
+                            <p className="text-2xl font-bold text-neutral-900 dark:text-white tabular-nums mt-0.5">
+                                {processedMembers.toLocaleString()}
                             </p>
                         </div>
-                        <p className="text-xs text-neutral-400">Members with logged activity.</p>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400">Members with logged activity.</p>
                     </div>
                 </div>
 
-                {/* System Status Card */}
-                <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f12] p-5 flex flex-col justify-between group hover:border-white/20 transition-all">
+                {/* 4. System Status Card */}
+                <div className="relative overflow-hidden rounded-2xl border border-neutral-200 dark:border-white/10 bg-white dark:bg-[#0f0f12] p-5 flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:hover:shadow-none hover:border-cyan-500/40">
+                    <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-cyan-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
                     <div className="space-y-3 z-10">
                         <div className="h-20 w-full rounded-xl bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-transparent border border-cyan-500/20 flex items-center justify-center relative overflow-hidden">
                             <div className="absolute inset-0 opacity-30 bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:8px_8px]" />
-                            <Cloud className="h-8 w-8 text-cyan-400 z-10" />
+                            <Cloud className="h-8 w-8 text-cyan-600 dark:text-cyan-400 z-10 transition-transform duration-300 group-hover:scale-110" />
                         </div>
                         <div>
-                            <h4 className="text-sm font-semibold text-white">Execution Type</h4>
-                            <p className="text-lg font-bold text-white capitalize mt-0.5 truncate">
+                            <h4 className="text-sm font-semibold text-neutral-900 dark:text-white">Execution Type</h4>
+                            <p className="text-lg font-bold text-neutral-900 dark:text-white capitalize mt-0.5 truncate">
                                 {task.purpose}
                             </p>
                         </div>
-                        <p className="text-xs text-neutral-400">Active environment status.</p>
+                        <p className="text-xs text-neutral-500 dark:text-neutral-400">Active environment status.</p>
                     </div>
                 </div>
+
             </div>
         </div>
     );
